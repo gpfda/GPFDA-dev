@@ -1,0 +1,4 @@
+gpr_ex1  First exmaple of Gaussian Process, using only one covariate. (linear + pow.ex)
+gpr_ex2	 	  Second exmaple of Gaussian Process, using two covariate with larger sample size. (linear + pow.ex)
+co2 	  Real data example of Gaussian Process, three different covariance structure, including one customized covariance matrix. 
+gpfr		  Gaussian Process with functional mean. 

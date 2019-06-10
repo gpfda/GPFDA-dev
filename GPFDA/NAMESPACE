@@ -1,0 +1,10 @@
+
+import(fda.usc)
+import(spam)
+import(MASS)
+import(fda)
+export(cov.linear,cov.pow.ex,cov.rat.qu,xixj,xixj_sta,D2,plot.gpr)
+export(gpr,gpfr,gppredict,gpfrpred,mat2fd,betaPar,plot.gpfr)	
+
+S3method(plot, gpr)
+S3method(plot, gpfr)
