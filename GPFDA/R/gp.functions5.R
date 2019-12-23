@@ -109,7 +109,8 @@ gppredict=function(train=NULL,Data.new=NULL,hyper=NULL, Data=NULL, Y=NULL, Cov=N
       return(f(hyper,Data))
   }  )
   Q=Reduce('+',CovL)
-  Q=Q+diag(exp(hyper$vv),dim(Q)[1])
+  # Q=Q+diag(exp(hyper$vv),dim(Q)[1])
+  diag(Q)=diag(Q)+exp(hyper$vv)
   
   for(i in 1:n) CovList[i]=list(paste0('diag.',Cov[i]))
   CovLn=lapply(CovList,function(j){
@@ -224,7 +225,9 @@ gpr=function(Data, response, Cov=c('linear','pow.ex'), hyper=NULL, NewHyper=NULL
     Q=Reduce('+',CovL)
 
   response=as.matrix(response)
-  Q=Q+diag(exp(hyper.cg$vv),dim(Q)[1])
+  # Q=Q+diag(exp(hyper.cg$vv),dim(Q)[1])
+  diag(Q)=diag(Q)+exp(hyper.cg$vv)
+  
   # invQ=pseudoinverse(Q+diag(1e-9,ncol=ncol(Q),nrow=nrow(Q)))
   # invQ=pseudoinverse(Q)
   invQ=mymatrix2(Q)$res
@@ -283,8 +286,9 @@ gp.loglikelihood2=function(hyper.p,Data, response,Cov,gamma=1){
       return(f(hyper.p,Data,Data))
   }  )
   Q=Reduce('+',CovL)
-  Q=Q+diag(exp(hyper.p$vv),dim(Q)[1])
-
+  # Q=Q+diag(exp(hyper.p$vv),dim(Q)[1])
+  diag(Q)=diag(Q)+exp(hyper.p$vv)
+  
   response=as.matrix(response)
   # invQ=pseudoinverse(Q+diag(1e-9,ncol=ncol(Q),nrow=nrow(Q)))
   # invQ=pseudoinverse(Q)
@@ -341,8 +345,9 @@ gp.Dlikelihood2=function(hyper.p,  Data, response,Cov,gamma){
     f(hyper.p,Data,Data)
   }  )
   Q=Reduce('+',CovL)
-  Q=Q+diag(exp(hyper.p$vv),dim(Q)[1])
-
+  # Q=Q+diag(exp(hyper.p$vv),dim(Q)[1])
+  diag(Q)=diag(Q)+exp(hyper.p$vv)
+  
   response=as.matrix(response)
   # invQ=pseudoinverse(Q+diag(1e-9,ncol=ncol(Q),nrow=nrow(Q)))
   # invQ=pseudoinverse(Q)
@@ -400,7 +405,10 @@ mymatrix=function(matrix,log=T){
 
 
 mymatrix2=function(smatrix,sB='sB',det=F,log=T,jitter=1e-10){
-  mat=smatrix+diag(jitter,dim(smatrix)[1])
+  # mat=smatrix+diag(jitter,dim(smatrix)[1])
+  diag(smatrix)=diag(smatrix)+jitter
+  mat=smatrix
+  
   smatrix=as.spam(mat,eps=1e-8)
   if(is.character(sB)) sB=diag(1,dim(mat)[1])
   else sB=as.matrix(sB)
