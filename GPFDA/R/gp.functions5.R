@@ -398,7 +398,8 @@ mymatrix=function(matrix,log=T){
 	else D=D
 	inv=V%*%diag(1/D)%*%t(U)
 	if(log==T)
-		det=log(prod(D))
+		# det=log(prod(D))
+	  det=sum(log(D))
 	else
 		det=prod(D)
 	return(list("inv"=inv,"det"=det))}
@@ -418,7 +419,8 @@ mymatrix2=function(smatrix,sB='sB',det=F,log=T,jitter=1e-10){
   if(det==T){
     L=chol(smatrix)
     if(log==T)
-      d=2*log(prod(diag(L)))
+      # d=2*log(prod(diag(L)))
+      d=2*sum(log(diag(L)))
     if(log==F)
       d=prod(diag(L))
   }
