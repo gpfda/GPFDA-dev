@@ -43,7 +43,18 @@ cov.rat.qu=function(hyper,Data,Data.new=NULL){
 }
 
 
-
+# source("CovMaternCpp_sq.R")
+# source("CovMaternCpp.R")
+cov.matern=function(hyper,Data,Data.new=NA, nu=5/2){
+  warning("ATTENTION: hp names need to be changed in cov.matern")
+  cc <- exp(hp$pow.ex.v)           # CHANGE NAMES
+  A <- as.matrix(exp(hp$pow.ex.w)) # CHANGE NAMES
+  if (is.null(Data.new)) {
+    Data.new = Data
+  }
+  cov.matern <- CovMaternCpp(X=Data, Xnew=Data.new, cc=cc, A=A, nu=nu)
+  return(cov.matern)
+}
 # 
 # cov.matern=function(hyper,Data,Data.new=NA){
 #   #hyper is a list of hyper-parameters
