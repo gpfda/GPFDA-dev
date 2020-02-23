@@ -19,7 +19,12 @@ cov.pow.ex=function(hyper,Data,Data.new=NULL,gamma=1){
   hyper=lapply(hyper,exp);
   datadim=dim(Data)
   #Data=t(t(Data)*hyper$w^(1/hyper$gamma))
-  A=as.matrix(hyper$pow.ex.w)
+  # A=as.matrix(hyper$pow.ex.w)
+  if(datadim[2]==1){
+    A=as.matrix(hyper$pow.ex.w)
+  }else{
+    A=diag(hyper$pow.ex.w)
+  }
   if (is.null(Data.new)) {
     Data.new = Data
   }
@@ -633,11 +638,22 @@ DCov.linear.a=function(hyper,data,AlphaQ){
 
 
 
+# DCov.pow.ex.w=function(hyper,data,gamma=1,AlphaQ){
+#   Dpow.ex.wj=apply(data,2,function(i) sum(AlphaQ*Dpow.ex(as.matrix(i),data,hyper,gamma=gamma)) )
+#   return(Dpow.ex.wj)
+# }
 DCov.pow.ex.w=function(hyper,data,gamma=1,AlphaQ){
-  Dpow.ex.wj=apply(data,2,function(i) sum(AlphaQ*Dpow.ex(as.matrix(i),data,hyper,gamma=gamma)) )
+  Dpow.ex.wj=sapply(1:ncol(data),function(i){
+    wi <- exp(hyper$pow.ex.w[i])
+    Ai <- as.matrix(1)
+    Xi <- as.matrix(data[,i])
+    DPsi <- -0.5*cov.pow.ex(hyper=hyper, Data=data, gamma=gamma)*xixj_staNEW_sq(X=Xi, A=Ai, power=gamma)*wi
+    res <- 0.5*sum(diag(AlphaQ%*%DPsi))
+    return(res)
+  }
+  )
   return(Dpow.ex.wj)
 }
-
 
 DCov.pow.ex.v=function(hyper,data,gamma,AlphaQ){
   DDpow.ex.v=cov.pow.ex(hyper,data)
