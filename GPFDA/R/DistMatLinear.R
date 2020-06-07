@@ -24,6 +24,8 @@ for(int i=0;i<nn;i++){
 
 return(wrap(M));
 '
-xixjNEW <- cxxfunction(signature(X="matrix", Xnew="matrix", A="matrix"),
+DistMatLinear <- cxxfunction(signature(X="matrix", Xnew="matrix", A="matrix"),
                              body,plugin='RcppArmadillo',includes=include)
 
+
+# previously called xixjNEW

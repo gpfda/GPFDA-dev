@@ -23,6 +23,7 @@ for(int i=0;i<nn;i++){
 
 return(wrap(M));
 '
-xixjNEW_sq <- cxxfunction(signature(X="matrix", A="matrix"),
+DistMatLinear_sq <- cxxfunction(signature(X="matrix", A="matrix"),
                              body,plugin='RcppArmadillo',includes=include)
 
+# previously called xixjNEW_sq

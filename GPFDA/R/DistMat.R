@@ -21,14 +21,18 @@ for(int i=0;i<nn;i++){
   for(int j=0;j<nNew;j++){
     mat xi = x.row(i);
     mat xj = xNew.row(j);
-    mat xsep = xi - xj;
-    double eucDist = as_scalar(xsep*AA*xsep.t());
-    M(i,j) = pow(eucDist, powerr);
+    
+    mat xsep = abs(xi - xj);
+    xsep = pow(xsep, powerr/2);
+    double AbsDist = as_scalar(xsep*AA*xsep.t());
+    M(i,j) = AbsDist;
   }
 }
 
 return(wrap(M));
 '
-xixj_staNEW <- cxxfunction(signature(X="matrix", Xnew="matrix", A="matrix", power="double"),
+DistMat <- cxxfunction(signature(X="matrix", Xnew="matrix", A="matrix", power="double"),
                              body,plugin='RcppArmadillo',includes=include)
+
+# previously called xixj_staNEW
 
