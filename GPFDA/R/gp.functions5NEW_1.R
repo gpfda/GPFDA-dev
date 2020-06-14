@@ -62,6 +62,15 @@ cov.rat.qu <- function(hyper,Data,Data.new=NULL){
 
 # source("CovMaternCpp_sq.R")
 # source("CovMaternCpp.R")
+
+# distmat <- sqrt(2*nu)*sqrt(DistMat_sq(X=Data, A=A, power=2))
+# covmaternNew <- cc*2^(1-nu)/(gamma(nu))*(distmat^nu)*besselK(x=distmat, nu=nu)
+# # besselK at zero produces inf. At zero covmatern=cc
+# range(covmaternNew)
+# corner(covmaternNew)
+# corner(covmatern0)
+# max(abs(covmatern0-covmaternNew))
+
 cov.matern <- function(hyper,Data,Data.new=NULL, nu){
   
   Data <- as.matrix(Data)
@@ -83,7 +92,7 @@ cov.matern <- function(hyper,Data,Data.new=NULL, nu){
         distmat <- sqrt(DistMat_sq(X=Data, A=A, power=2))
         covmatern <- cc*(1+sqrt(5)*distmat+(5/3)*distmat^2)*exp(-sqrt(5)*distmat)
       }else{
-        covmatern <- CovMaternCpp_sq(X=Data, cc=cc, A=A, nu=nu)    
+        covmatern <- CovMaternCpp_sq(X=Data, cc=cc, A=A, nu=nu)
       }
     }
 
@@ -129,13 +138,15 @@ cov.linear <- function(hyper,Data,Data.new=NULL){
     cov.lin <- DistMatLinear(X=Data, Xnew=Data.new, A=A)
   }
   
+  cov.lin <- hyper$linear.i + cov.lin
+  
   return(cov.lin)
 }
 
 ######################## Predict ############################
 gppredictNEW <- function(train=NULL,Data.new=NULL,noiseFreePred=F,hyper=NULL, 
-                         Data=NULL, Y=NULL, 
-                         Cov=NULL,gamma=NULL,nu=NULL,lrm=NULL,mean=0){
+                         Data=NULL, Y=NULL, mSR=NULL,
+                         Cov=NULL,gamma=NULL,nu=NULL,meanModel=NULL,mean=0){
   Data.new=as.matrix(Data.new)
   if(mean==1){
     mean=mean(Y)
@@ -156,8 +167,12 @@ gppredictNEW <- function(train=NULL,Data.new=NULL,noiseFreePred=F,hyper=NULL,
     gamma=train$gamma
     nu=train$nu
     mean=train$mean
-    lrm=train$lrm
+    meanModel=train$meanModel
+    meanLinearModel=train$meanLinearModel
   }
+  
+  nrep <- ncol(Y)
+  
   if(is.null(train)){
     train=gprNEW(Data=Data,response=Y,Cov=Cov,hyper=hyper,gamma=gamma,nu=nu)
   }
@@ -166,11 +181,15 @@ gppredictNEW <- function(train=NULL,Data.new=NULL,noiseFreePred=F,hyper=NULL,
   # nn=dim(Data.new)[1];
   # n.var=dim(Data)[2]
   
-  nkernels=length(Cov)
-  CovList=vector('list',nkernels)
+  nkernels <- length(Cov)
+
+
+if(is.null(mSR)){
+  
+  CovList <- vector('list',nkernels)
   for(i in 1:nkernels) CovList[i]=list(paste0('cov.',Cov[i]))
   
-  CovL1=lapply(CovList,function(j){
+  CovL1 <- lapply(CovList,function(j){
     f=get(j)
     if(j=='cov.pow.ex'){return(f(hyper=hyper, Data=Data, Data.new=Data.new, gamma=gamma))}
     if(j=='cov.matern'){return(f(hyper=hyper, Data=Data, Data.new=Data.new, nu=nu))}
@@ -180,7 +199,7 @@ gppredictNEW <- function(train=NULL,Data.new=NULL,noiseFreePred=F,hyper=NULL,
   
   Q1 <- t(Q1)  #  #  #
   
-  CovL=lapply(CovList,function(j){
+  CovL <- lapply(CovList,function(j){
     f=get(j)
     if(j=='cov.pow.ex'){return(f(hyper=hyper, Data=Data, gamma=gamma))}
     if(j=='cov.matern'){return(f(hyper=hyper, Data=Data, nu=nu))}
@@ -189,48 +208,142 @@ gppredictNEW <- function(train=NULL,Data.new=NULL,noiseFreePred=F,hyper=NULL,
   Q <- Reduce('+',CovL)
   diag(Q) <- diag(Q)+exp(hyper$vv)
   
-  for(i in 1:nkernels) CovList[i]=list(paste0('diag.',Cov[i]))
-  CovLn=lapply(CovList,function(j){
+  for(i in 1:nkernels) CovList[i] <- list(paste0('diag.',Cov[i]))
+  CovLn <- lapply(CovList,function(j){
     f=get(j)
     f(hyper=hyper, data=Data.new)
-    # if(j=='cov.pow.ex'){return(f(hyper=hyper, Data=Data.new, gamma=gamma))}
-    # if(j=='cov.matern'){return(f(hyper=hyper, Data=Data.new, nu=nu))}
-    # if(!(j%in%c('cov.pow.ex', 'cov.matern'))){return(f(hyper=hyper, Data=Data.new))}
   })
   Qstar <- Reduce('+',CovLn)
 
-  # invQ=pseudoinverse(Q+diag(1e-9,ncol=ncol(Q),nrow=nrow(Q)))
-  # invQ=pseudoinverse(Q)
-  # invQ=mymatrix2(Q)$res
   invQ <- chol2inv(chol(Q))
   
   QQ1 <- invQ%*%t(Q1)
   QR <- invQ%*%Y
-  
-  # if(!exists('lrm')) lrm=NULL
 
-  if(class(lrm)=='lm'){
-    newtrend=data.frame(xxx=Data.new[,1])
-    mean=predict(lrm,newdata=newtrend)
-  } 
-  mu <- Q1%*%QR+mean
-  
+  if(meanModel=='t'){
+    newtrend <- data.frame(xxx=Data.new[,1])
+    mean <- predict(meanLinearModel,newdata=newtrend)
+    mu <- Q1%*%QR + matrix(rep(mean, nrep), ncol=nrep, byrow=F)
+  }else{
+    if(meanModel=='avg'){
+      if(!all(Data.new[,1]%in%Data[,1])){
+        stop("For predicting response values at input locations Data.new, 
+             the mean function can only be 'avg' across replications if
+             all Data.new are included in Data.")
+      }
+      mu <- Q1%*%QR + mean
+    }else{
+      mu <- Q1%*%QR + mean
+    }
+  }
+
   if(noiseFreePred){
     sigma2 <- Qstar-as.matrix(diag(Q1%*%invQ%*%t(Q1)))
-    }else{
+  }else{
     sigma2 <- Qstar-as.matrix(diag(Q1%*%invQ%*%t(Q1)))+exp(hyper$vv)
   }
+  pred.sd <- sqrt(sigma2[,1])
   
-#   sigma2=abs(Qstar-as.matrix(colSums(t(Q1)*QQ1)))+exp(hyper$vv)
-  #sigma=sqrt(sigma2)
-  result=c(list('noiseFreePred'=noiseFreePred, 'pred.mean'=mu[,1],'pred.sd'=sqrt(sigma2[,1]),
-                'newdata'=Data.new),unclass(train),nsigma=any(Qstar<as.matrix(colSums(t(Q1)*QQ1))))
+}else{ # mSR set
+  
+  
+  if(mSR>=n){stop("mSR must be smaller than n.")}
+  n <- nrow(Data)
+  idx <- sort(sample(x=1:n, size=mSR, replace=F))
+    
+  CovList <- vector('list',nkernels)
+  for(i in 1:nkernels) CovList[i]=list(paste0('cov.',Cov[i]))
+  
+  ### K_m_nstar
+  Cov_m_ns <- lapply(CovList,function(j){
+    f=get(j)
+    if(j=='cov.pow.ex'){return(f(hyper=hyper, Data=Data[idx,,drop=F], Data.new=Data.new, gamma=gamma))}
+    if(j=='cov.matern'){return(f(hyper=hyper, Data=Data[idx,,drop=F], Data.new=Data.new, nu=nu))}
+    if(!(j%in%c('cov.pow.ex', 'cov.matern'))){return(f(hyper=hyper, Data=Data[idx,,drop=F], Data.new=Data.new))}
+  })
+  K_m_nstar <- Reduce('+',Cov_m_ns)
+  
+  ### K_m_m
+  Cov_mm <- lapply(CovList,function(j){
+    f=get(j)
+    if(j=='cov.pow.ex'){return(f(hyper=hyper, Data=Data[idx,,drop=F], gamma=gamma))}
+    if(j=='cov.matern'){return(f(hyper=hyper, Data=Data[idx,,drop=F], nu=nu))}
+    if(!(j%in%c('cov.pow.ex', 'cov.matern'))){return(f(hyper=hyper, Data=Data[idx,,drop=F]))}
+  })
+  K_mm <- Reduce('+',Cov_mm)
+  # diag(Q_mm) <- diag(Q_mm) + exp(hyper$vv)
+  # diag(K_mm) <- diag(K_mm) + 1e-8
+  
+  ### K_m_n
+  Cov_m_n <- lapply(CovList,function(j){
+    f=get(j)
+    if(j=='cov.pow.ex'){return(f(hyper=hyper, Data=Data[idx,,drop=F], Data.new=Data, gamma=gamma))}
+    if(j=='cov.matern'){return(f(hyper=hyper, Data=Data[idx,,drop=F], Data.new=Data, nu=nu))}
+    if(!(j%in%c('cov.pow.ex', 'cov.matern'))){return(f(hyper=hyper, Data=Data[idx,,drop=F], Data.new=Data))}
+  })
+  K_m_n <- Reduce('+',Cov_m_n)
+  # whichAdj <- cbind(1:mSR, idx)
+  # K_m_n[whichAdj] <- K_m_n[whichAdj] + 1e-6
+  
+  
+  toBeInverted <- K_m_n%*%t(K_m_n) + exp(hyper$vv)*K_mm
+  diag(toBeInverted) <- diag(toBeInverted) + 1e-8
+  invTerm <- chol2inv(chol(toBeInverted))
+  
+  centYpred <- t(K_m_nstar)%*%invTerm%*%K_m_n%*%Y
+  varYpred <- exp(hyper$vv)*t(K_m_nstar)%*%invTerm%*%K_m_nstar
+  range(varYpred)
+  
+  
+  if(meanModel=='t'){
+    newtrend <- data.frame(xxx=Data.new[,1])
+    mean <- predict(meanLinearModel,newdata=newtrend)
+    mu <- centYpred + matrix(rep(mean, nrep), ncol=nrep, byrow=F)
+  }else{
+    if(meanModel=='avg'){
+      if(!all(Data.new[,1]%in%Data[,1])){
+        stop("For predicting response values at input locations Data.new, 
+             the mean function can only be 'avg' across replications if
+             all Data.new are included in Data.")
+      }
+      mu <- centYpred + mean
+    }else{
+      mu <- centYpred + mean
+    }
+  }
+  
+  if(noiseFreePred){
+    sigma2 <- varYpred
+  }else{
+    sigma2 <- varYpred + exp(hyper$vv)
+  }
+  
+  sigma2
+  if(all(sigma2>0)){
+    pred.sd <- sqrt(sigma2[,1])
+  }else{
+    pred.sd <- NA
+    warning("Subset of Regressors give negative predictive variance.")
+  }
+  
+  
+}
+  
+
+  
+  result=c(list('noiseFreePred'=noiseFreePred, 
+                # 'pred.mean'=mu[,1],
+                'pred.mean'=mu,
+                'pred.sd'=pred.sd)
+                # ,'newdata'=Data.new,unclass(train),nsigma=any(Qstar<as.matrix(colSums(t(Q1)*QQ1))))
+           )
   class(result)='gpr'
   return(result)
 }
 
 gprNEW <- function(Data, response, Cov='pow.ex', 
-                m = NULL, hyper=NULL, NewHyper=NULL, mean=0, gamma=NULL, nu=NULL,
+                m = NULL, hyper=NULL, NewHyper=NULL, meanModel=0, mean=NULL, 
+                gamma=NULL, nu=NULL,
                 useGradient=T, itermax=100,reltol=8e-10,trace=0,
                 nInitCandidates = 1000){
 
@@ -253,16 +366,31 @@ gprNEW <- function(Data, response, Cov='pow.ex',
   
   dimData <- ncol(Data)
   response <- as.matrix(response)
+  n <- nrow(response)
+  nrep <- ncol(response)
+  
+  if(!is.null(mean)){
+    if(!length(mean)==n){
+      stop("'mean' defined by the user must have the same length as the response variable.")
+    }
+    mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
+    meanModel <- 'userDefined'
+  }
+  
+  y.original <- response
+  Data.original <- Data
   
   idxSubset <- NULL
-  n <- nrow(response)
   if(!is.null(m)){
     if(m>n){stop("m cannot be bigger than n.")}
     idxSubset <- sort(sample(x=1:n, size=m, replace=F))
     response <- response[idxSubset,,drop=F]
     Data <- Data[idxSubset,,drop=F]
+    if(!is.null(mean)){
+      mean <- mean[idxSubset,,drop=F]
+    }
   }
-  y.original=response
+  
   
   
   if(is.null(hyper)){
@@ -271,6 +399,7 @@ gprNEW <- function(Data, response, Cov='pow.ex',
     hyper=list()
     if(any(Cov=='linear')){
       hyper$linear.a=rep(log(1e-4), dimData)
+      hyper$linear.i=log(1e-4)
     }
     if(any(Cov=='pow.ex')){
       hyper$pow.ex.v=log(1e-4)
@@ -292,6 +421,7 @@ gprNEW <- function(Data, response, Cov='pow.ex',
     hyper=list()
     if(any(Cov=='linear')){
       hyper$linear.a=rep(log(1e4), dimData)
+      hyper$linear.i=log(1e4)
     }
     if(any(Cov=='pow.ex')){
       hyper$pow.ex.v=log(1e4)
@@ -314,7 +444,7 @@ gprNEW <- function(Data, response, Cov='pow.ex',
     }
     
     
-    hyper.nam=names(hyper_low)
+    hyper.nam <- names(hyper_low)
     
     # # revise NewHyper later ----
     # if(!is.null(NewHyper)){
@@ -333,13 +463,29 @@ gprNEW <- function(Data, response, Cov='pow.ex',
   }  
   hp.name=names(unlist(hyper))
   
-  if(mean==0) {response=response; mean=0;lrm=0}
-  if(mean==1) {mean=mean(response);response=as.matrix(response-mean);lrm=1}
-  if(mean=='t') {
-    trend=data.frame(yyy=response,xxx=Data[,1])
-    lrm=lm(yyy~xxx,data=trend); 
-    response=as.matrix(resid(lrm));
-    mean=fitted(lrm)
+  if(meanModel==0) {response <- response; mean <- 0; meanModel <- 0}
+  if(meanModel==1) {
+    mean <- mean(response)
+    response <- as.matrix(response-mean)
+  }
+  meanLinearModel <- NULL
+  if(meanModel=='t') {
+    # trend <- data.frame(yyy=response, xxx=Data[,1])
+    trend <- data.frame(yyy=c(response), xxx=rep(c(Data), nrep))
+    meanLinearModel <- lm(yyy~xxx, data=trend)
+    response <- matrix(resid(meanLinearModel), nrow=nrow(response), byrow=F)
+    mean <- matrix(fitted(meanLinearModel), nrow=nrow(response), byrow=F)
+  }
+  
+  if(meanModel=='avg') {
+    if(nrep<3){
+      stop('Mean function can only be the average across replications when
+           there are more than two replications.')
+    }
+    # trend <- data.frame(yyy=response, xxx=Data[,1])
+    mean <- apply(response, 1, base::mean)
+    mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
+    response <- response - mean
   }
   
   #### Try a number of hp vector and start with the best
@@ -352,9 +498,12 @@ gprNEW <- function(Data, response, Cov='pow.ex',
   colnames(candidates) <- hyper.nam
   cat(c('\n','--------- Initialising ---------- \n'))
   resCand <- apply(candidates, 1, function(x){
-    cat(paste0(round(unlist(x),4)), paste0("\n"))
+    # cat(paste0(round(unlist(x),4)), paste0("\n"))
     gp.loglikelihood2NEW(hyper.p=x, Data=Data,response=response,
                          Cov=Cov,gamma=gamma, nu=nu)})
+  
+  # print(resCand)
+  
   best_init <- candidates[which.min(resCand),]
   ###
   
@@ -397,11 +546,11 @@ gprNEW <- function(Data, response, Cov='pow.ex',
   if(length(CovL)>1)
     Q=Reduce('+',CovL)
 
-  response <- as.matrix(response)
+  # response <- as.matrix(response)
   diag(Q) <- diag(Q)+exp(hyper.cg$vv)
   invQ <- chol2inv(chol(Q))
-  QR <- invQ%*%response
-  AlphaQ <- QR%*%t(QR)-invQ
+  
+
   
   
   if("matern"%in%Cov){
@@ -415,33 +564,56 @@ gprNEW <- function(Data, response, Cov='pow.ex',
   }
 
   if(calcVarHyperPar){
-    D2fx <- lapply(seq_along(hyper.cg),function(i){
-      Dp=hyper.cg[i]
-      name.Dp=names(Dp)
-      f=get(paste0('D2',name.Dp))
-      if(name.Dp%in%c('pow.ex.w','pow.ex.v') )
-        D2para=f(hyper=hyper.cg, data=Data, gamma=gamma, inv.Q=invQ, Alpha.Q=AlphaQ)
-      if(name.Dp%in%c('matern.w','matern.v') )
-        D2para=f(hyper=hyper.cg, data=Data, nu=nu, inv.Q=invQ, Alpha.Q=AlphaQ)
-      if(!name.Dp%in%c('pow.ex.w','pow.ex.v','matern.w','matern.v') & !name.Dp%in%c('linear.a'))
-        D2para=f(hyper=hyper.cg, data=Data, inv.Q=invQ, Alpha.Q=AlphaQ)
-      if(name.Dp%in%c('linear.a'))
-        D2para=f(hyper=hyper.cg, data=Data, Alpha.Q=AlphaQ)
-      return(D2para)
-    })
-    names(D2fx) <- names(hyper.cg)
-    II <- (-1/(unlist(D2fx)*dim(Data)[1]))
+
+    D2fxList <- vector('list',nrep)
+    for(irep in 1:nrep){
+      
+      QR <- invQ%*%as.matrix(response[,irep])
+      AlphaQ <- QR%*%t(QR)-invQ
+      
+      D2fx <- lapply(seq_along(hyper.cg),function(i){
+        Dp=hyper.cg[i]
+        name.Dp=names(Dp)
+        f=get(paste0('D2',name.Dp))
+        if(name.Dp%in%c('pow.ex.w','pow.ex.v') )
+          D2para=f(hyper=hyper.cg, data=Data, gamma=gamma, inv.Q=invQ, Alpha.Q=AlphaQ)
+        if(name.Dp%in%c('matern.w','matern.v') )
+          D2para=f(hyper=hyper.cg, data=Data, nu=nu, inv.Q=invQ, Alpha.Q=AlphaQ)
+        if(!name.Dp%in%c('pow.ex.w','pow.ex.v','matern.w','matern.v') & !name.Dp%in%c('linear.a','linear.i'))
+          D2para=f(hyper=hyper.cg, data=Data, inv.Q=invQ, Alpha.Q=AlphaQ)
+        if(name.Dp%in%c('linear.a'))
+          D2para=f(hyper=hyper.cg, data=Data, Alpha.Q=AlphaQ)
+        if(name.Dp%in%c('linear.i'))
+          D2para=f(hyper=hyper.cg, inv.Q=invQ, Alpha.Q=AlphaQ)
+        return(D2para)
+      })
+      names(D2fx) <- names(hyper.cg)
+      D2fx <- unlist(D2fx)  # minus?
+      D2fxList[[irep]] <- D2fx
+    }
+    
+    D2fx <- Reduce('+', D2fxList)
+    
+    var_hyper <- (-1/(unlist(D2fx)*dim(Data)[1]))
   }else{
-    II <- NULL
+    var_hyper <- NULL
   }
 
   
+  
   fitted <- (Q-diag(exp(hyper.cg$vv),dim(Q)[1]))%*%invQ%*%(response)+mean
   fitted.var <- exp(hyper.cg$vv)*rowSums((Q-diag(exp(hyper.cg$vv),dim(Q)[1]))*t(invQ))
-  result <- list('hyper'=hyper.cg,'I'=II,'fitted.mean'=fitted[,1],fitted.sd=sqrt(fitted.var),
-              'train.x'=Data,'train.y'=response,'train.yOri'=y.original, 
+  result <- list('hyper'=hyper.cg,'var.hyper'=var_hyper,
+                 # 'fitted.mean'=fitted[,1],
+                 'fitted.mean'=fitted,
+                 fitted.sd=sqrt(fitted.var),
+              'train.x'=Data,'train.y'=response,
+              'train.yOri'=y.original, 
+              'train.DataOri'=Data.original, 
+              'idxSubset'=idxSubset,
               'CovFun'=Cov,'gamma'=gamma,'nu'=nu,'Q'=Q,'inv'=invQ,'mean'=mean,
-              'lrm'=lrm,conv=CG0$convergence,'hyper0'=hyper, 'idxSubset'=idxSubset)
+              'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel,
+              conv=CG0$convergence,'hyper0'=hyper)
   class(result) <- 'gpr'
   return(result)
 }
@@ -711,7 +883,11 @@ Dloglik.linear.a <- function(hyper,data,AlphaQ){
   return(Dlinear.aj)
 }
 
-
+Dloglik.linear.i <- function(hyper,Alpha,invQ){
+  constMat <- matrix(exp(hyper$linear.i), nrow=nrow(invQ), ncol=ncol(invQ))
+  Dfa0 <- 0.5*sum(diag(  (Alpha%*%t(Alpha) - invQ)%*%constMat ))
+  return(Dfa0)
+}
 
 
 # Dloglik.pow.ex.w <- function(hyper,data,gamma=1,AlphaQ){
@@ -740,7 +916,7 @@ Dloglik.pow.ex.v <- function(hyper,data,AlphaQ,gamma){
 #######################
 
 Dloglik.matern.v <- function(hyper,data,AlphaQ,nu){
-  DDmatern.v <- cov.matern(hyper,data, nu=nu)
+  DDmatern.v <- cov.matern(hyper=hyper, Data=data, Data.new=NULL, nu=nu)
   Dmatern.v <- 0.5*sum(diag(AlphaQ%*%DDmatern.v))
   return(Dmatern.v)
 }
@@ -756,18 +932,32 @@ Dloglik.matern.w <- function(hyper,data,AlphaQ,nu){
     A <- diag((exp(hyper$matern.w)))
   }
   
-  dist_all <- DistMat_sq(X=data, A=A, power=1)
-  Dmatern.wj=sapply(1:ncol(data),function(i){
+  dist_C <- DistMat_sq(X=data, A=A, power=2)
+  dist_D <- sqrt(dist_C)
+  
+  Dmatern.wj <- sapply(1:ncol(data),function(i){
     Xi <- as.matrix(data[,i])
     A1 <- as.matrix(1)
-    dist_i <- DistMat_sq(X=Xi, A=A1, power=1)
+    dist_i <- DistMat_sq(X=Xi, A=A1, power=2)
     if(nu==3/2){
-      DPsi <- -3*cc*dist_i*dist_all*exp(-sqrt(3)*dist_all)
+      # DPsi <- -3*cc*dist_i*dist_all*exp(-sqrt(3)*dist_all)
+      DPsi <- -1.5*cc*exp(hyper$matern.w[i])*dist_i*exp(-sqrt(3)*dist_D)
+      # diag(DPsi) <- 0
     }
     if(nu==5/2){
-      expTerm52 <- exp(-sqrt(5)*DistMat_sq(X=data, A=A, power=1))
-      DPsi <- cc*((sqrt(5)*dist_i + (10/3)*dist_all*dist_i)*expTerm52 + 
-        (1+sqrt(5)*dist_all+(5/3)*(dist_all^2))*expTerm52*(-sqrt(5)*dist_i))
+      # expTerm52 <- exp(-sqrt(5)*DistMat_sq(X=data, A=A, power=1)) # CHANGE power to 2
+      # DPsi <- cc*((sqrt(5)*dist_i + (10/3)*dist_all*dist_i)*expTerm52 + 
+      #   (1+sqrt(5)*dist_all+(5/3)*(dist_all^2))*expTerm52*(-sqrt(5)*dist_i))
+      # DPsi <- cc*dist_i*(0.5*sqrt(5)*dist_C^(-0.5) + 
+      #                      exp(-sqrt(5)*dist_D)*(
+      #                        (5/3) - (sqrt(5)/2)*(dist_C^(-0.5) + sqrt(5) + (5/3)*dist_D)
+      #                      ))
+      # DPsi <- cc*dist_i*(0.5*sqrt(5)*dist_D^(-1) + 
+      #                      exp(-sqrt(5)*dist_D)*(
+      #                        (5/3) - (sqrt(5)/2)*(dist_D^(-1) + sqrt(5) + (5/3)*dist_D)
+      #                      ))
+      DPsi <- cc*exp(hyper$matern.w[i])*dist_i*exp(-sqrt(5)*dist_D)*(5/6)*(-1-sqrt(5)*dist_D)
+      # diag(DPsi) <- 0
     }
     res <- 0.5*sum(diag(AlphaQ%*%DPsi))
     # res <- sum(AlphaQ*DPsi)
@@ -851,6 +1041,9 @@ Dloglik.vv <- function(hyper,Alpha,invQ){
 }
 
 
+
+
+
 D2linear.a <- function(hyper,data,Alpha.Q){
   D2linear.aj=sapply(1:ncol(data),function(i){
     Xi <- as.matrix(data[,i])
@@ -861,6 +1054,14 @@ D2linear.a <- function(hyper,data,Alpha.Q){
   })
   return(D2linear.aj)
 }
+
+
+D2linear.i <- function(hyper,inv.Q, Alpha.Q){
+  constMat <- matrix(exp(hyper$linear.i), nrow=nrow(inv.Q), ncol=ncol(inv.Q))
+  D2flinear.i <- D2(constMat, constMat,inv.Q,Alpha.Q)
+  return(D2flinear.i)
+}
+
 
 
 D2pow.ex.w <- function(hyper,data,gamma,inv.Q,Alpha.Q){
@@ -895,14 +1096,10 @@ D2pow.ex.v <- function(hyper,data,gamma,inv.Q,Alpha.Q){
 }
 
 D2matern.v <- function(hyper,data,nu,inv.Q,Alpha.Q){
-  DDmatern.v <- cov.matern(hyper=hyper, Data=data,Data.new=NULL, nu=nu)
+  DDmatern.v <- cov.matern(hyper=hyper, Data=data, Data.new=NULL, nu=nu)
   D2matern.v <- D2(DDmatern.v,DDmatern.v,inv.Q,Alpha.Q)  
   return(D2matern.v)
 }
-
-
-
-######################################################################
 
 
 
@@ -916,30 +1113,31 @@ D2matern.w <- function(hyper,data,nu,inv.Q,Alpha.Q){
   }else{
     A <- diag((exp(hyper$matern.w)))
   }
-  dist_all <- DistMat_sq(X=data, A=A, power=1)
   
-  
+  # dist_all <- DistMat_sq(X=data, A=A, power=1)
+  dist_C <- DistMat_sq(X=data, A=A, power=2)
+  dist_D <- sqrt(dist_C)
+
   d1list <- vector("list", dimData)
   d2list <- vector("list", dimData)
   
   for(i in 1:dimData){
     Xi <- as.matrix(data[,i])
     A1 <- as.matrix(1)
-    dist_i <- DistMat_sq(X=Xi, A=A1, power=1)
+    dist_i <- DistMat_sq(X=Xi, A=A1, power=2)
     
     if(nu==3/2){
-      d1list[[i]] <- -3*cc*dist_i*dist_all*exp(-sqrt(3)*dist_all)
-      d2list[[i]] <- -3*cc*(dist_i^2)*exp(-sqrt(3)*dist_all)*(1 - sqrt(3)*dist_all)
+      d1list[[i]] <- -1.5*cc*exp(hyper$matern.w[i])*dist_i*exp(-sqrt(3)*dist_D)
+      d2list[[i]] <- d1list[[i]]*(1 - 0.5*sqrt(3)*dist_C^(-0.5))*exp(hyper$matern.w[i])*dist_i
+      diag(d2list[[i]]) <- 0
     }
     
     if(nu==5/2){
-      expTerm52 <- exp(-sqrt(5)*dist_all)
-      d1list[[i]] <- cc*((sqrt(5)*dist_i + (10/3)*dist_all*dist_i)*expTerm52 + 
-                  (1+sqrt(5)*dist_all+(5/3)*(dist_all^2))*expTerm52*(-sqrt(5)*dist_i))
-      
-      d2list[[i]] <- cc*((10/3)*dist_i^2*expTerm52 + 
-          2*(sqrt(5)*dist_i + (10/3)*dist_all*dist_i)*expTerm52*(-sqrt(5)*dist_i) + 
-          (1+sqrt(5)*dist_all+(5/3)*(dist_all^2))*expTerm52*(-sqrt(5)*dist_i))
+      d1list[[i]] <- cc*exp(hyper$matern.w[i])*dist_i*exp(-sqrt(5)*dist_D)*(5/6)*(-1-sqrt(5)*dist_D)
+      # diag(d1list[[i]]) <- 0
+      d2list[[i]] <- (-5/6)*cc*dist_i*exp(hyper$matern.w[i])*exp(-sqrt(5)*dist_D)*(
+        1+sqrt(5)*dist_D - 2.5*exp(hyper$matern.w[i])*dist_i)
+      # diag(d2list[[i]]) <- 0
     }
     
   }
@@ -1042,6 +1240,8 @@ D2rat.qu.v <- function(hyper,data,inv.Q,Alpha.Q){
 
 
 
+
+
 D2vv <- function(hyper,data,inv.Q,Alpha.Q){
   D2fvv=D2(diag(exp(hyper$vv),dim(data)[1]),diag(exp(hyper$vv),dim(data)[1]),inv.Q,Alpha.Q)
   return(D2fvv)
@@ -1055,7 +1255,7 @@ D2 <- function(d1,d2,inv.Q,Alpha.Q){
 }
 
 diag.linear <- function(hyper,data){
-  Qstar=data^2%*%matrix(exp(hyper$linear.a))
+  Qstar=exp(hyper$linear.i) + data^2%*%matrix(exp(hyper$linear.a))
   return(Qstar)
 }
 
@@ -1190,12 +1390,40 @@ gp.loglikelihood2NEW <- function(hyper.p,Data, response,Cov,gamma,nu){
   Q <- Reduce('+',CovL)
   diag(Q) <- diag(Q)+exp(hyper.p$vv) + 1e-8
   
-  response <- as.matrix(response)
+  # response <- as.matrix(response)
+  # G <- chol(Q)
+  # logdetQ <- 2*sum(log(diag(G)))
+  # tresp_invQ_resp <- t(response)%*%chol2inv(G)%*%response
+  # fX <- 0.5*logdetQ + 0.5*tresp_invQ_resp + 0.5*nrow(Data)*log(2*pi)
+  
+  
+  #  #   #   #   #   
+  n <- nrow(response)
+  nrep <- ncol(response)
+  
   G <- chol(Q)
   logdetQ <- 2*sum(log(diag(G)))
-  tresp_invQ_resp <- t(response)%*%chol2inv(G)%*%response
-  fX <- 0.5*logdetQ + 0.5*tresp_invQ_resp + 0.5*nrow(Data)*log(2*pi)
   
+  # tresp_invQ_resp <- t(response)%*%chol2inv(G)%*%response
+  # fX <- 0
+  # for(i in 1:nrep){
+  #   tresp_invQ_resp <- t(response[,i])%*%chol2inv(G)%*%response[,i]
+  #   fX_i <- 0.5*logdetQ + 0.5*tresp_invQ_resp + 0.5*n*log(2*pi)
+  #   fX <- fX + fX_i
+  # }
+  # fX
+  
+  tresp_invQ_resp <- t(response)%*%chol2inv(G)%*%response
+  if(nrep==1){
+    fX <- 0.5*logdetQ + 0.5*tresp_invQ_resp + 0.5*n*log(2*pi)
+  }else{
+    fX <- nrep*0.5*logdetQ + 0.5*sum(diag( tresp_invQ_resp )) + nrep*0.5*n*log(2*pi)
+  }
+  fX <- as.numeric(fX)
+  # fX
+  
+  #  #   #   #   #   
+
   return(fX)
 }
 
@@ -1223,11 +1451,17 @@ gp.Dlikelihood2NEW <- function(hyper.p,  Data, response, Cov, gamma, nu){
   Q <- Reduce('+',CovL)
   diag(Q) <- diag(Q)+exp(hyper.p$vv) + 1e-8
   
-  response <- as.matrix(response)
+  # response <- as.matrix(response)
   
   invQ <- chol2inv(chol(Q))
   
-  Alpha <- invQ%*%response
+  nrep <- ncol(response)
+  
+  
+  
+DfxList <- vector('list',nrep)
+for(irep in 1:nrep){
+  Alpha <- invQ%*%as.matrix(response[,irep])
   AlphaQ <- Alpha%*%t(Alpha)-invQ
   
   Dfx=lapply(seq_along(hyper.p),function(i){
@@ -1242,6 +1476,8 @@ gp.Dlikelihood2NEW <- function(hyper.p,  Data, response, Cov, gamma, nu){
       Dpara=f(hyper=hyper.p, data=Data, AlphaQ=AlphaQ)
     if(name.Dp%in%c('linear.a') )
       Dpara=f(hyper=hyper.p, data=Data, AlphaQ=AlphaQ)
+    if(name.Dp%in%c('linear.i') )
+      Dpara=f(hyper=hyper.p, Alpha=Alpha, invQ=invQ)
     if(name.Dp=='vv')
       Dpara=f(hyper=hyper.p, Alpha=Alpha, invQ=invQ)
     return(Dpara)
@@ -1250,6 +1486,13 @@ gp.Dlikelihood2NEW <- function(hyper.p,  Data, response, Cov, gamma, nu){
   names(Dfx)=names(hyper.p)
   # Dfx=-0.5*unlist(Dfx)
   Dfx <- - unlist(Dfx) # Minus loglik
+  
+  DfxList[[irep]] <- Dfx
+}
+  
+Dfx <- Reduce('+', DfxList)
+  
+  
   return(Dfx)
 }
 

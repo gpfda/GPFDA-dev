@@ -27,10 +27,11 @@ for(int i=0;i<nn;i++){
     double eucDist = sqrt(as_scalar(xsep*AA*xsep.t()));
     eucDist = sqrt(2*nuu)*eucDist;
     if(eucDist < 1e-10){
-      eucDist = 1e-10;
+      CovMat(i,j) = c;
+    }else{
+      double besselMod = Rf_bessel_k(eucDist, nuu, 1);
+      CovMat(i,j) = c*pow(eucDist, nuu)*besselMod/(tgamma(nuu)*pow(2, (nuu-1)));
     }
-    double besselMod = Rf_bessel_k(eucDist, nuu, 1);
-    CovMat(i,j) = c*pow(eucDist, nuu)*besselMod/(tgamma(nuu)*pow(2, (nuu-1)));
   }
 }
 
