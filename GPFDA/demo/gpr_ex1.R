@@ -21,3 +21,4 @@ plot(-100,-100,col=0,xlim=range(x[,1]),ylim=c(min(upper,lower,Y)-0.1*abs(min(upp
 polygon(c(x[,1], rev(x[,1])), c(upper, rev(lower)),col = "grey60", border = NA)
 points(X[,1],Y,pch=4,col=2,cex=.8)
 lines(x[,1],b$pred.mean,col=4,lwd=1.5)
+
