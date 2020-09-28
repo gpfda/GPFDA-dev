@@ -1,0 +1,943 @@
+
+# The main functions in this file are:
+
+# NSGPR: function for estimating the covariance structure of a zero-mean 
+# function-valued process with Q-dimensional input coordinates (covariates).
+
+# NSGPCovMat: function for calculating a covariance matrix given a vector of
+# hyperparameters hp
+
+# NSGPprediction: function for calculating predicions given a vector of
+# hyperparameters hp
+
+#--------------------------------------------------------------
+# Multiple realisations for the response variable can be used, provided they are
+# observed on the same grid of dimension n_1 x n_2 x ... x n_Q.
+# 
+# Let n = n_1 x n_2 x ... x n_Q and let nSamples be the number of realisations.
+# 
+# Arguments of these functions are described below:
+#--------------------------------------------------------------
+
+# response:  Response variable. This should be an (n x nSamples) matrix.
+
+# input:  Input variables. It must be a list with Q elements. If Q=2, for example, 
+# n1 <- 10
+# n2 <- 1000
+# input <- list()
+# input[[1]] <- seq(0,1,length.out = n1)
+# input[[2]] <- seq(0,1,length.out = n2)
+
+# inputSubsetIdx: a list identifying a subset of the input values to be 
+# used in the estimation. For example, if we want to use every third lattice 
+# point in the input variable 2, then we can set
+# inputSubsetIdx <- list()
+# inputSubsetIdx[[1]] <- 1:n1
+# inputSubsetIdx[[2]] <- seq(1,n2, by=3)
+
+# corrModel: correlation function specification used for g(.). It can be 
+# "pow.ex" or "matern".
+
+# gamma: smoothness parameter for powered exponential class. Only used if corrModel="pow.ex".
+# nu: smoothness parameter for Matern class. Only used if corrModel="matern".
+
+# whichTau: a logical vector of dimension Q identifying which input coordinates 
+# the parameters are function of. For example, if Q=2 and parameters change 
+# only with respect to the first coordinate, then we set whichTau <- c(T,F).
+
+# nBasis: number of basis functions in each coordinate direction along which 
+# parameters change
+
+# cyclic: a logical vector of dimension Q to define which covariates are cyclic 
+# (periodic). For example, if basis functions should be cyclic only in the first
+# coordinate direction, then cyclic <- c(T,F). cyclic must have the same
+# dimension of whichTau. If cyclic is TRUE for some coordinate direction, 
+# then cyclic B-spline functions will be used and the varying parameters 
+# (and their first two derivatives) will match at the boundaries of that coordinate 
+# direction.
+
+# unitSignalVariance: TRUE if we assume realisations have variance 1. This is 
+# useful when we want to estimate the NSGP correlation (not covariance) function.
+
+# zeroNoiseVariance: TRUE if we assume the realisations are noise-free.
+ 
+# sepcov2D: TRUE only if we fix to zero all off-diagonal elements of the varying
+# anisotropy matrix
+
+# nCandidatesInit: number of initial hyperparameter vectors which are used to 
+# evaluate the log-likelihood function at a first step. 
+# After evaluating the log-likelihood using these 'nCandidatesInit' vectors,
+# the optimisation via nlminb() begins with the best of these vectors.
+
+# abs_bounds: lower and upper boundaries for B-spline coefficients (if wanted). 
+
+NSGPR <- function( response,
+                   input,
+                   inputSubsetIdx = NULL,
+                   corrModel = "pow.ex",
+                   gamma = NULL,
+                   nu = NULL,
+                   whichTau = NULL,
+                   nBasis = 5,
+                   cyclic = NULL,
+                   unitSignalVariance = F,
+                   zeroNoiseVariance = F, 
+                   sepcov2D = F,
+                   nCandidatesInit = 300,
+                   abs_bounds = 6){
+  
+  if(!is.list(input)){
+    stop("The argument 'input' must be a list with Q elements")
+  }
+  n <- prod(sapply(input, length))
+  
+  response <- as.matrix(response)
+  
+  # number of realisations
+  nSamples <- ncol(response)
+  if(nrow(response)!=n){
+    stop("The argument 'response' must be a vector of n elements or a matrix 
+         with n rows, where n = prod(sapply(input, length))")
+  }
+  
+  
+  # number of input variables
+  Q <- length(input)
+
+  if(length(whichTau)!=Q){
+    stop("whichTau must be a vector with length(input) elements")
+  }
+  if(length(cyclic)!=Q){
+    stop("cyclic must be a vector with length(input) elements")
+  }
+  
+  
+  if(is.null(inputSubsetIdx)){
+    inputSubset <- input
+    inputMat <- as.matrix(expand.grid(input))
+    
+    inputIdx <- lapply(input, function(i) 1:length(i))
+    inputSubsetIdx <- inputIdx
+    inputIdxMat <- expand.grid(inputIdx)
+  }else{
+    
+    inputSubset <- list()
+    whichSubsetList <- list()
+    for(q in 1:Q){
+      inputSubset[[q]] <- input[[q]][ inputSubsetIdx[[q]] ]
+      whichSubsetList[[q]] <- inputIdx[[q]]%in%inputSubsetIdx[[q]]
+    }
+    n <- prod(sapply(inputSubset, length))
+    
+    whichSubsetMat <- expand.grid(whichSubsetList)
+    whichSubset <- apply(whichSubsetMat, 1, function(j){sum(j)==Q})
+    
+    inputMat <- as.matrix(expand.grid(inputSubset))
+    
+    inputIdx <- lapply(inputSubset, function(i) 1:length(i))
+    inputIdxMat <- expand.grid(inputSubsetIdx)
+    response <- response[whichSubset,]
+    
+  }
+
+
+  if( is.null(whichTau) ){
+cat("\nPlease specify 'whichTau' 
+    (i.e. the logical vector of length Q saying which are the 'tau' dimensions).\n")}
+  
+  cat(paste0("Parameters are varying in coordinate direction(s): "), which(whichTau==T), " \n")
+  
+  if(nBasis<5)stop("nBasis must be >= 5")
+  
+
+    
+  nTaus <- sum(whichTau)
+  if(!(nTaus%in%c(1,2)))stop("The code works only if dimension of tau is 1 or 2")
+  
+  if(is.null(cyclic)){
+    cyclic <- rep(F, Q)
+    cat(paste0("'cyclic' not used in any coordinate direction \n"))
+  }else{
+    if(length(cyclic)!=length(whichTau)){
+      stop("'cyclic' and 'whichTau' must have same length")
+    }
+  }
+  
+  #===========================================================================
+  # Specify lower, upper, and initial parameter values for nlminb()
+  #===========================================================================
+  
+  num_betas <- nBasis^nTaus
+  
+  num_coeffs_omegas <- num_betas*Q*(Q+1)/2
+  total_num_coeffs <- num_coeffs_omegas + num_betas # num omegas + num betas for logsig2
+  loc_coeffs <- matrix(1:total_num_coeffs, byrow=T, ncol=num_betas) # last row is for logsig2
+  
+  coeffs_omegas_LB <- rep(-abs_bounds, num_coeffs_omegas)
+  coeffs_omegas_UB <- rep(abs_bounds, num_coeffs_omegas)
+  if(sepcov2D){
+    whichZero <- (num_coeffs_omegas-num_betas+1):num_coeffs_omegas
+    coeffs_omegas_LB[whichZero] <- 0
+    coeffs_omegas_UB[whichZero] <- 0
+  }
+  
+  coeffs_logsig2_LB <- rep(-abs_bounds, num_betas)
+  coeffs_logsig2_UB <- rep(abs_bounds, num_betas)
+  if(unitSignalVariance){
+    coeffs_logsig2_LB <- rep(0, num_betas)
+    coeffs_logsig2_UB <- rep(0, num_betas)
+  }
+
+  log_vareps_LB <- log(1e-05)
+  log_vareps_UB <- log(10)
+  if(zeroNoiseVariance){
+    log_vareps_LB <- log(1e-10)
+    log_vareps_UB <- log(1e-10)
+  }
+  lower <- c(coeffs_omegas_LB, coeffs_logsig2_LB, log_vareps_LB)
+  upper <- c(coeffs_omegas_UB, coeffs_logsig2_UB, log_vareps_UB)
+  
+  
+  if(nTaus==1){
+    
+   tauVec <- input[[which(whichTau==T)]]
+   tauVecSub <- inputSubset[[which(whichTau==T)]]
+   lengthTaus <- length(tauVecSub)
+   if(cyclic[which(whichTau==T)]){
+     numIntKnots <- nBasis-1
+     quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+     bspl <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+   }else{
+     numIntKnots <- nBasis-4
+     quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+     quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
+     bspl <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+   }
+   
+  }else{
+    
+    bspl_j <- list()
+    lengthTaus <- rep(NA, nTaus)
+    for(j in 1:nTaus){
+      tauVec <- input[which(whichTau==T)][[j]]
+      tauVecSub <- inputSubset[which(whichTau==T)][[j]]
+      lengthTaus[j] <- length(tauVecSub)
+      if(cyclic[j]){
+        numIntKnots <- nBasis-1
+        quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+        bspl_j[[j]] <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+      }else{
+        numIntKnots <- nBasis-4
+        quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+        quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
+        bspl_j[[j]] <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+      }
+    }
+    
+    bspl <- kronecker(bspl_j[[2]], bspl_j[[1]])
+  }
+  
+  tauVecIdx <- 1:prod(lengthTaus)
+  
+  n_hp <- length(lower)
+  
+  candidates <- matrix(0, nCandidatesInit, n_hp)
+  for(ipar in 1:n_hp){
+    candidates[,ipar] <- runif(n=nCandidatesInit, min=lower[ipar], max=upper[ipar] )
+  }
+
+  resCand <- apply(candidates, 1, function(x) 
+    LogLikNSGP(hp=x, response = response, inputMat = inputMat, inputIdxMat = inputIdxMat,
+           inputSubsetIdx=inputSubsetIdx, bspl = bspl, 
+           loc_coeffs=loc_coeffs, tauVecIdx=tauVecIdx, 
+           corrModel=corrModel, gamma=gamma, nu=nu, whichTau=whichTau))
+
+  init_opt <- candidates[which.min(resCand),]
+  
+  MLEs <- nlminb( start = init_opt,
+                  objective = LogLikNSGP,
+                  lower = lower,
+                  upper = upper,
+                  response = response, inputMat = inputMat, inputIdxMat = inputIdxMat, 
+                  inputSubsetIdx=inputSubsetIdx, bspl = bspl, 
+                  loc_coeffs=loc_coeffs, tauVecIdx=tauVecIdx, corrModel=corrModel, 
+                  gamma=gamma, nu=nu, whichTau=whichTau)
+  
+  output <- list( MLEsts = MLEs$par,
+                  response = response,
+                  inputMat = inputMat,
+                  corrModel = corrModel)
+
+  return(output)
+}
+
+
+
+NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis = 5, 
+                          corrModel=corrModel, gamma=NULL, nu=NULL, cyclic=NULL, whichTau=NULL, calcCov=T){
+  
+  if(!is.list(input)){
+    stop("The argument 'input' must be a list with Q elements")
+  }
+  n <- prod(sapply(input, length))
+  
+  # number of input variables
+  Q <- length(input)
+  
+  if(is.null(inputSubsetIdx)){
+    inputSubset <- input
+    inputMat <- as.matrix(expand.grid(input))
+    
+    inputIdx <- lapply(input, function(i) 1:length(i))
+    inputIdxMat <- expand.grid(inputIdx)
+  }else{
+    
+    inputSubset <- list()
+    whichSubsetList <- list()
+    for(q in 1:Q){
+      inputSubset[[q]] <- input[[q]][ inputSubsetIdx[[q]] ]
+      whichSubsetList[[q]] <- inputIdx[[q]]%in%inputSubsetIdx[[q]]
+    }
+    n <- prod(sapply(inputSubset, length))
+    
+    whichSubsetMat <- expand.grid(whichSubsetList)
+    whichSubset <- apply(whichSubsetMat, 1, function(j){sum(j)==Q})
+    
+    inputMat <- as.matrix(expand.grid(inputSubset))
+    
+    inputIdx <- lapply(inputSubset, function(i) 1:length(i))
+    inputIdxMat <- expand.grid(inputSubsetIdx)
+    
+  }
+  
+  
+  if( is.null(whichTau) ){
+    cat("\nPlease specify 'whichTau' 
+    (i.e. the logical vector of length Q saying which are the 'tau' dimensions).\n")}
+  
+  cat(paste0("Parameters are varying in coordinate direction(s): "), which(whichTau==T), " \n")
+  
+  if(nBasis<5)stop("nBasis must be >= 5")
+  
+  
+  nTaus <- sum(whichTau)
+  if(!(nTaus%in%c(1,2)))stop("The code works only if dimension of tau is 1 or 2")
+  
+  if(is.null(cyclic)){
+    cyclic <- rep(F, Q)
+    cat(paste0("'cyclic' not used in any coordinate direction \n"))
+  }else{
+    if(length(cyclic)!=length(whichTau)){
+      stop("'cyclic' and 'whichTau' must have same length")
+    }
+  }
+  
+  
+  if(nTaus==1){
+    
+    tauVec <- input[[which(whichTau==T)]]
+    tauVecSub <- inputSubset[[which(whichTau==T)]]
+    lengthTaus <- length(tauVecSub)
+    if(cyclic[which(whichTau==T)]){
+      numIntKnots <- nBasis-1
+      quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+      bspl <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+    }else{
+      numIntKnots <- nBasis-4
+      quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+      quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
+      bspl <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+    }
+    
+  }else{
+    
+    bspl_j <- list()
+    lengthTaus <- rep(NA, nTaus)
+    for(j in 1:nTaus){
+      tauVec <- input[which(whichTau==T)][[j]]
+      tauVecSub <- inputSubset[which(whichTau==T)][[j]]
+      lengthTaus[j] <- length(tauVecSub)
+      if(cyclic[j]){
+        numIntKnots <- nBasis-1
+        quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+        bspl_j[[j]] <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+      }else{
+        numIntKnots <- nBasis-4
+        quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+        quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
+        bspl_j[[j]] <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+      }
+    }
+    
+    bspl <- kronecker(bspl_j[[2]], bspl_j[[1]])
+  }
+  
+  tauVecIdx <- 1:prod(lengthTaus)
+  
+###################################
+  vareps <- exp(hp[length(hp)])
+
+  num_betas <- nBasis^nTaus
+  
+  num_coeffs_omegas <- num_betas*Q*(Q+1)/2
+  total_num_coeffs <- num_coeffs_omegas + num_betas # num omegas + num betas for logsig2
+  loc_coeffs <- matrix(1:total_num_coeffs, byrow=T, ncol=num_betas) # last row is for logsig2
+  
+  if(Q==1){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[2,]]
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- as.matrix(exp(omega1[jtau]))
+    }
+  }
+  
+  if(Q==2){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]] # (ntau x 5) x (5 x 1) gives (ntau x 1) vector
+    omega2 <- bspl%*%hp[loc_coeffs[2,]]
+    omega3 <- bspl%*%hp[loc_coeffs[3,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[4,]]
+    
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- CalcA_Q2(theta=c(omega1[jtau], omega2[jtau], omega3[jtau]))  
+    }
+  }
+  
+  if(Q==3){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]]
+    omega2 <- bspl%*%hp[loc_coeffs[2,]]
+    omega3 <- bspl%*%hp[loc_coeffs[3,]]
+    omega4 <- bspl%*%hp[loc_coeffs[4,]]
+    omega5 <- bspl%*%hp[loc_coeffs[5,]]
+    omega6 <- bspl%*%hp[loc_coeffs[6,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[7,]]
+    
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- CalcA_Q3(theta=c(omega1[jtau], omega2[jtau], omega3[jtau],
+                                                  omega4[jtau], omega5[jtau], omega6[jtau]))  
+    }
+  }
+  
+  obs_variances_perTau <- exp(logsig2)
+  
+  if(calcCov==T){
+    nTaus <- sum(whichTau)
+    if(nTaus==1){
+      A_List <- list()
+      obs_variance <- rep(0, n)
+      for(n_i in 1:n){
+        
+        whitau <- which(whichTau==T)
+        k <- inputIdxMat[n_i,whitau]
+        k <- which(k==inputSubsetIdx[[whitau]])
+        # k <- which(k==unique(inputIdxMat[,which(whichTau==T)]))
+        A_List[[n_i]] <- As_perTau[[k]]
+        obs_variance[n_i] <- c(obs_variances_perTau[k])
+      }
+    }
+    if(nTaus==2){
+      if(Q!=2)stop("Q must equal 2 if nTaus=2")
+      A_List <- As_perTau
+      obs_variance <- c(obs_variances_perTau)
+    }
+    
+    ScaleDistMats <- CalcScaleDistMats(A_List = A_List, coords = inputMat)
+    
+    Scale.mat <- ScaleDistMats$Scale.mat
+    Dist.mat <- ScaleDistMats$Dist.mat
+    
+    Unscl.corr <- corr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
+
+    NS.corr <- Scale.mat*Unscl.corr
+    
+    
+    Cov <- diag( sqrt(obs_variance) ) %*% NS.corr %*% diag( sqrt(obs_variance) )
+    diag(Cov) <- diag(Cov) + vareps + 1e-8
+  }else{
+    Cov=NULL
+  }
+  
+  return(list(Cov=Cov, vareps=vareps, As_perTau=As_perTau, sig2_perTau=obs_variances_perTau, 
+              omega1=omega1, omega2=omega2, omega3=omega3))
+}
+
+
+
+
+LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx, bspl, 
+                   loc_coeffs, tauVecIdx, corrModel, gamma, nu, whichTau){
+  
+  n <- nrow(inputMat)
+  Q <- ncol(inputMat)
+  nrep <- length(response)/n
+  
+  vareps <- exp(hp[length(hp)])
+
+  if(Q==1){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[2,]]
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- as.matrix(exp(omega1[jtau]))
+    }
+  }
+  
+  if(Q==2){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]] # (ntau x 5) x (5 x 1) gives (ntau x 1) vector
+    omega2 <- bspl%*%hp[loc_coeffs[2,]]
+    omega3 <- bspl%*%hp[loc_coeffs[3,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[4,]]
+    
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- CalcA_Q2(theta=c(omega1[jtau], omega2[jtau], omega3[jtau]))  
+    }
+  }
+  
+  if(Q==3){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]]
+    omega2 <- bspl%*%hp[loc_coeffs[2,]]
+    omega3 <- bspl%*%hp[loc_coeffs[3,]]
+    omega4 <- bspl%*%hp[loc_coeffs[4,]]
+    omega5 <- bspl%*%hp[loc_coeffs[5,]]
+    omega6 <- bspl%*%hp[loc_coeffs[6,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[7,]]
+    
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- CalcA_Q3(theta=c(omega1[jtau], omega2[jtau], omega3[jtau],
+                                                  omega4[jtau], omega5[jtau], omega6[jtau]))  
+    }
+  }
+
+  obs_variances_perTau <- exp(logsig2)
+
+  nTaus <- sum(whichTau)
+  if(nTaus==1){
+    A_List <- list()
+    obs_variance <- rep(0, n)
+    for(n_i in 1:n){
+      
+      whitau <- which(whichTau==T)
+      k <- inputIdxMat[n_i,whitau]
+      k <- which(k==inputSubsetIdx[[whitau]])
+      
+      A_List[[n_i]] <- As_perTau[[k]]
+      obs_variance[n_i] <- c(obs_variances_perTau[k])
+    }
+  }
+  if(nTaus==2){
+    if(Q!=2)stop("Q must equal 2 if nTaus=2")
+    A_List <- As_perTau
+    obs_variance <- c(obs_variances_perTau)
+  }
+  
+  ScaleDistMats <- CalcScaleDistMats(A_List = A_List, coords = inputMat)
+  
+  Scale.mat <- ScaleDistMats$Scale.mat
+  Dist.mat <- ScaleDistMats$Dist.mat
+  
+  Unscl.corr <- corr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
+  NS.corr <- Scale.mat*Unscl.corr
+  
+  
+  Cov <- diag( sqrt(obs_variance) ) %*% NS.corr %*% diag( sqrt(obs_variance) )
+  diag(Cov) <- diag(Cov) + vareps + 1e-8
+  
+  cholA <- chol(Cov)
+  yt.invK.y <- t(response)%*%chol2inv(cholA)%*%response
+  logdetK <- 2*sum(log(diag(cholA)))
+  
+  if(nrep==1){
+    fX <- 0.5*logdetK + 0.5*yt.invK.y + 0.5*n*log(2*pi)
+  }else{
+    fX <- nrep*0.5*logdetK + 0.5*sum(diag( yt.invK.y )) + nrep*0.5*n*log(2*pi)
+  }
+  fX <- as.numeric(fX)
+  
+  return(fX)
+}
+
+
+
+
+
+NSGPprediction <- function(hp, response, input, input.new, 
+                      noiseFreePred=F, nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
+                      cyclic=cyclic, whichTau=whichTau){
+  
+  if(is.null(input.new)){
+    inputnew <- input
+  }
+  
+  Kobs <- NSGPCovMat(hp=hp, input=input, inputSubsetIdx=NULL,
+                        nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
+                        cyclic=cyclic, whichTau=whichTau, calcCov=T)$Cov
+  invQ <- chol2inv(chol(Kobs))
+  
+  Q1 <- NSGPCovMat_Asym(hp=hp, input=input, inputNew=input.new,
+                           nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
+                           cyclic=cyclic, whichTau=whichTau)$Cov
+  # response is a (n x nSamples) matrix
+  mu <- t(Q1)%*%invQ%*%response
+  
+  Qstar <- NSGPCovMat(hp=hp, input=input.new, inputSubsetIdx=NULL,
+                         nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
+                         cyclic=cyclic, whichTau=whichTau, calcCov=T)$Cov
+  
+  if(noiseFreePred){
+    sigma2 <- diag(Qstar) - diag(t(Q1)%*%invQ%*%Q1)
+  }else{
+    sigma2 <- diag(Qstar) - diag(t(Q1)%*%invQ%*%Q1) + exp(hp[length(hp)])
+  }
+  pred.sd <- sqrt(sigma2)
+  
+  result <- c(list('noiseFreePred'=noiseFreePred, 
+                   'pred.mean'=mu,
+                   'pred.sd'=pred.sd))
+  
+  return(result)
+}
+
+
+
+
+
+NSGPCovMat_Asym <- function(hp, input, inputNew,
+                               # inputSubsetIdx=NULL,
+                               nBasis = 5, 
+                               corrModel=corrModel, gamma=NULL, nu=NULL, cyclic=NULL, whichTau=NULL){
+  
+  if(!is.list(input)){
+    stop("The argument 'input' must be a list with Q elements")
+  }
+  if(!is.list(inputNew)){
+    stop("The argument 'inputNew' must be a list with Q elements")
+  }
+  n <- prod(sapply(input, length))
+  nStar <- prod(sapply(inputNew, length))
+  
+  # number of input variables
+  Q <- length(input)
+  
+  inputSubset <- input
+  inputSubsetStar <- inputNew
+  inputMat <- as.matrix(expand.grid(input))
+  inputMatStar <- as.matrix(expand.grid(inputNew))
+  
+  inputIdx <- lapply(input, function(i) 1:length(i))
+  inputIdxMat <- expand.grid(inputIdx)
+  inputIdxStar <- lapply(inputNew, function(i) 1:length(i))
+  inputIdxMatStar <- expand.grid(inputIdxStar)
+  
+  
+  if( is.null(whichTau) ){
+    cat("\nPlease specify 'whichTau' 
+    (i.e. the logical vector of length Q saying which are the 'tau' dimensions).\n")}
+  
+  cat(paste0("Parameters are varying in coordinate direction(s): "), which(whichTau==T), " \n")
+  
+  if(nBasis<5)stop("nBasis must be >= 5")
+  
+  
+  nTaus <- sum(whichTau)
+  if(!(nTaus%in%c(1,2)))stop("The code works only if dimension of tau is 1 or 2")
+  
+  if(is.null(cyclic)){
+    cyclic <- rep(F, Q)
+    cat(paste0("'cyclic' not used in any coordinate direction \n"))
+  }else{
+    if(length(cyclic)!=length(whichTau)){
+      stop("'cyclic' and 'whichTau' must have same length")
+    }
+  }
+  
+  vareps <- exp(hp[length(hp)])
+  
+  #######################################################################
+  ### Calculate obs_variance and A_List
+  
+  
+  if(nTaus==1){
+    
+    tauVec <- input[[which(whichTau==T)]]
+    tauVecSub <- inputSubset[[which(whichTau==T)]]
+    lengthTaus <- length(tauVecSub)
+    if(cyclic[which(whichTau==T)]){
+      numIntKnots <- nBasis-1
+      quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+      bspl <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+    }else{
+      numIntKnots <- nBasis-4
+      quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+      quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
+      bspl <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+    }
+    
+  }else{
+    
+    bspl_j <- list()
+    lengthTaus <- rep(NA, nTaus)
+    for(j in 1:nTaus){
+      tauVec <- input[which(whichTau==T)][[j]]
+      tauVecSub <- inputSubset[which(whichTau==T)][[j]]
+      lengthTaus[j] <- length(tauVecSub)
+      if(cyclic[j]){
+        numIntKnots <- nBasis-1
+        quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+        bspl_j[[j]] <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+      }else{
+        numIntKnots <- nBasis-4
+        quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+        quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
+        bspl_j[[j]] <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+      }
+    }
+    
+    bspl <- kronecker(bspl_j[[2]], bspl_j[[1]])
+  }
+  
+  tauVecIdx <- 1:prod(lengthTaus)
+  
+  ###################################
+  
+  
+  num_betas <- nBasis^nTaus
+  
+  num_coeffs_omegas <- num_betas*Q*(Q+1)/2
+  total_num_coeffs <- num_coeffs_omegas + num_betas # num omegas + num betas for logsig2
+  loc_coeffs <- matrix(1:total_num_coeffs, byrow=T, ncol=num_betas) # last row is for logsig2
+  
+  
+  if(Q==1){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[2,]]
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- as.matrix(exp(omega1[jtau]))
+    }
+  }
+  
+  if(Q==2){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]] # (ntau x 5) x (5 x 1) gives (ntau x 1) vector
+    omega2 <- bspl%*%hp[loc_coeffs[2,]]
+    omega3 <- bspl%*%hp[loc_coeffs[3,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[4,]]
+    
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- CalcA_Q2(theta=c(omega1[jtau], omega2[jtau], omega3[jtau]))  
+    }
+  }
+  
+  if(Q==3){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]]
+    omega2 <- bspl%*%hp[loc_coeffs[2,]]
+    omega3 <- bspl%*%hp[loc_coeffs[3,]]
+    omega4 <- bspl%*%hp[loc_coeffs[4,]]
+    omega5 <- bspl%*%hp[loc_coeffs[5,]]
+    omega6 <- bspl%*%hp[loc_coeffs[6,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[7,]]
+    
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- CalcA_Q3(theta=c(omega1[jtau], omega2[jtau], omega3[jtau],
+                                            omega4[jtau], omega5[jtau], omega6[jtau]))  
+    }
+  }
+  
+  obs_variances_perTau <- exp(logsig2)
+  
+  
+  nTaus <- sum(whichTau)
+  if(nTaus==1){
+    A_List <- list()
+    obs_variance <- rep(0, n)
+    for(n_i in 1:n){
+      
+      whitau <- which(whichTau==T)
+      k <- inputIdxMat[n_i,whitau]
+      k <- which(k==inputIdx[[whitau]])
+      
+      # k <- which(k==unique(inputIdxMat[,which(whichTau==T)]))
+      A_List[[n_i]] <- As_perTau[[k]]
+      obs_variance[n_i] <- c(obs_variances_perTau[k])
+    }
+  }
+  if(nTaus==2){
+    if(Q!=2)stop("Q must equal 2 if nTaus=2")
+    A_List <- As_perTau
+    obs_variance <- c(obs_variances_perTau)
+  }
+  
+  
+  ### finish calculation of obs_variance and A_List
+  #######################################################################
+  
+  
+  #######################################################################
+  ### Calculate obs_varianceList and Astar_List
+  
+  
+  if(nTaus==1){
+    
+    tauVec <- inputNew[[which(whichTau==T)]]
+    tauVecSub <- inputSubsetStar[[which(whichTau==T)]]
+    lengthTaus <- length(tauVecSub)
+    if(cyclic[which(whichTau==T)]){
+      numIntKnots <- nBasis-1
+      quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+      bspl <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+    }else{
+      numIntKnots <- nBasis-4
+      quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+      quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
+      bspl <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+    }
+    
+  }else{
+    
+    bspl_j <- list()
+    lengthTaus <- rep(NA, nTaus)
+    for(j in 1:nTaus){
+      tauVec <- inputNew[which(whichTau==T)][[j]]
+      tauVecSub <- inputSubsetStar[which(whichTau==T)][[j]]
+      lengthTaus[j] <- length(tauVecSub)
+      if(cyclic[j]){
+        numIntKnots <- nBasis-1
+        quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+        bspl_j[[j]] <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+      }else{
+        numIntKnots <- nBasis-4
+        quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
+        quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
+        bspl_j[[j]] <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+      }
+    }
+    
+    bspl <- kronecker(bspl_j[[2]], bspl_j[[1]])
+  }
+  
+  tauVecIdx <- 1:prod(lengthTaus)
+  
+  ###################################
+  
+  num_betas <- nBasis^nTaus
+  
+  num_coeffs_omegas <- num_betas*Q*(Q+1)/2
+  total_num_coeffs <- num_coeffs_omegas + num_betas # num omegas + num betas for logsig2
+  loc_coeffs <- matrix(1:total_num_coeffs, byrow=T, ncol=num_betas) # last row is for logsig2
+  
+  if(Q==1){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[2,]]
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- as.matrix(exp(omega1[jtau]))
+    }
+  }
+  
+  if(Q==2){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]] # (ntau x 5) x (5 x 1) gives (ntau x 1) vector
+    omega2 <- bspl%*%hp[loc_coeffs[2,]]
+    omega3 <- bspl%*%hp[loc_coeffs[3,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[4,]]
+    
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- CalcA_Q2(theta=c(omega1[jtau], omega2[jtau], omega3[jtau]))  
+    }
+  }
+  
+  if(Q==3){
+    omega1 <- bspl%*%hp[loc_coeffs[1,]]
+    omega2 <- bspl%*%hp[loc_coeffs[2,]]
+    omega3 <- bspl%*%hp[loc_coeffs[3,]]
+    omega4 <- bspl%*%hp[loc_coeffs[4,]]
+    omega5 <- bspl%*%hp[loc_coeffs[5,]]
+    omega6 <- bspl%*%hp[loc_coeffs[6,]]
+    logsig2 <- bspl%*%hp[loc_coeffs[7,]]
+    
+    As_perTau <- list()
+    for(jtau in seq_along(tauVecIdx)){
+      As_perTau[[jtau]] <- CalcA_Q3(theta=c(omega1[jtau], omega2[jtau], omega3[jtau],
+                                            omega4[jtau], omega5[jtau], omega6[jtau]))  
+    }
+  }
+  
+  obs_variances_perTau <- exp(logsig2)
+  
+  
+  nTaus <- sum(whichTau)
+  if(nTaus==1){
+    Astar_List <- list()
+    obs_varianceStar <- rep(0, nStar)
+    for(n_i in 1:nStar){
+      
+      whitau <- which(whichTau==T)
+      k <- inputIdxMatStar[n_i,whitau]
+      k <- which(k==inputIdxStar[[whitau]])
+      
+      # k <- which(k==unique(inputIdxMatStar[,which(whichTau==T)]))
+      A_List[[n_i]] <- As_perTau[[k]]
+      obs_varianceStar[n_i] <- c(obs_variances_perTau[k])
+    }
+  }
+  if(nTaus==2){
+    if(Q!=2)stop("Q must equal 2 if nTaus=2")
+    Astar_List <- As_perTau
+    obs_varianceStar <- c(obs_variances_perTau)
+  }
+  
+  
+  ### finish calculation of obs_varianceStar and Astar_List
+  #######################################################################
+  
+  # ScaleDistMats <- CalcScaleDistMats(A_List = A_List, coords = inputMat)
+  
+  ScaleDistMats <- CalcScaleDistMatsAsym(A_List=A_List, Astar_List=Astar_List, 
+                                         coords=inputMat, coordsStar=inputMatStar)
+  Scale.mat <- ScaleDistMats$Scale.mat
+  Dist.mat <- ScaleDistMats$Dist.mat
+  
+  Unscl.corr <- corr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
+  NS.corr <- Scale.mat*Unscl.corr
+  
+  
+  Cov <- diag( sqrt(obs_variance) ) %*% NS.corr %*% diag( sqrt(obs_varianceStar) )
+  diag(Cov) <- diag(Cov) + vareps + 1e-8
+  
+  return(list(Cov=Cov, vareps=vareps, As_perTau=As_perTau, sig2_perTau=obs_variances_perTau, 
+              omega1=omega1, omega2=omega2, omega3=omega3))
+}
+
+
+corr <- function(Dist.mat, corrModel, gamma=NULL, nu=NULL){
+  
+  if(!(corrModel%in%c("pow.ex", "matern"))){
+    stop("corrModel must be either 'pow.ex' or 'matern'")
+  }
+  if(corrModel=="pow.ex"){
+    if(!(gamma >0 & gamma<=2)){
+      stop("Parameter 'gamma' must be in (0,2]")
+    }
+  }
+  if(corrModel=="matern"){
+    if(!(nu >0)){
+      stop("Parameter 'nu' must be positive")
+    }
+  }
+  
+  if(corrModel=="pow.ex"){
+    Cor <- exp(-(Dist.mat)^gamma)  
+  }
+  if(corrModel=="matern"){
+    besselMod <- besselK(x=Dist.mat, nu=nu)
+    Cor <- (Dist.mat^nu)*besselMod/(base::gamma(nu)*(2^(nu-1)))
+    diag(Cor) <- 1
+  }
+  
+  return(Cor)
+}

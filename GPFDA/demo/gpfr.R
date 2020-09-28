@@ -1,4 +1,6 @@
 
+require("MASS")
+
 set.seed(100)
 traindata <- vector('list',20)
 for(i in 1:20) traindata[[i]]=i
@@ -47,10 +49,11 @@ time_new=td[[3]][,1]
 tfx=td[[3]][,c(2,3)]
 tx=td[[2]]
 
-system.time(a1<-gpfr(response=(fy1),lReg=lx,fReg=NULL,gpReg=list((fx1),(fx2)),fyList=
-                       list(nbasis=23,lambda=0.1),fbetaList_l=list(list(lambda=.01,nbasi=17)),
-                     hyper=NULL,Cov=c('pow.ex','linear'),fitting=T,time=seq(-3,3,len=50),
-                     rPreIdx=T,concurrent=T))
+system.time(a1<-gpfr(response=(fy1),lReg=lx,fReg=NULL,gpReg=list((fx1),(fx2)),
+                     fyList=list(nbasis=23,lambda=0.1),
+                     fbetaList_l=list(list(lambda=.01,nbasi=17)),
+                     hyper=NULL,Cov=c('pow.ex','linear'),fitting=T,
+                     time=seq(-3,3,len=50), rPreIdx=T,concurrent=T))
 # plot(a1,type='raw')
 # plot(a1,type='fitted')
 
@@ -86,3 +89,4 @@ lines(b3$predtime,b3$ypred[,1])
 lines(b3$predtime,b3$ypred[,2],lty=2,col=2)
 lines(b3$predtime,b3$ypred[,3],lty=2,col=2)
 points(xt,yt)
+

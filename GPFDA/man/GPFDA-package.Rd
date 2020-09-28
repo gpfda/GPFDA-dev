@@ -2,35 +2,31 @@
 \alias{GPFDA-package}
 \alias{GPFDA}
 \docType{package}
-\title{
-Gaussian Process in Functional Data Analysis
-}
-\description{
-uses functional regression to be the mean function, and the Gaussian Process to be the covariance structure. 
-
-\deqn{y_m(t)=mu_m(t)+tau_m(x)+epsilon_m(t)}
-
-Where \eqn{m} is the \eqn{m^{th}} data or curve; \eqn{\mu_m} is from functional regression; and \eqn{\tau_m} is from Gaussian Process regression with mean 0 covariance matrix \eqn{k({\bf\theta})}.
-}
+\title{\packageTitle{GPFDA}}
+\description{\packageDescription{GPFDA}}
 \details{
-\tabular{ll}{
-Package: \tab GPFDA\cr
-Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2013-09-30\cr
-License: \tab \cr
-}
+  The DESCRIPTION file: \packageDESCRIPTION{GPFDA}
+  \packageIndices{GPFDA}
+
+  This section should provide a more detailed overview of how to use the
+  package, including the most important functions.
 }
 \author{
-  Jian Qing Shi & Yafeng Cheng
-
-  Maintainer: yafeng.cheng@ncl.ac.uk
+  \packageAuthor{GPFDA}
+  
+  Maintainer: \packageMaintainer{GPFDA}
 }
 \references{
-  Shi, J Q., and Choi, T. (2011), \emph{Gaussian Process Regression Analysis for Functional Data}, Springer, New York.
-
-  Ramsay, James O., and Silverman, Bernard W. (2006), \emph{Functional
-    Data Analysis, 2nd ed.}, Springer, New York.
+  This optional section can contain literature or other references for
+  background information.
 }
-\keyword{functional, Gaussian Process}
-
+% Optionally other standard keywords, one per line,
+% from the file KEYWORDS in the R documentation.
+\keyword{package}
+\seealso{
+  Optional links to other man pages
+}
+\examples{
+  ## Optional simple examples of the most important functions
+  ## Use \dontrun{} around code to be shown but not executed
+}
