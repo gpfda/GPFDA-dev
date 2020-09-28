@@ -10,7 +10,7 @@ In 06/2019, Evandro Konzen joins the project. He brings non-stationary kernels a
 
 ## Changes after 06/2019
 * Improvement on computation efficiency using C++ functions
-* Addition of code for GP with nonstationary and/or nonseparable covariance structure -- See Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling Function-Valued Processes with Nonseparable and/or Nonstationary Covariance Structure" (https://arxiv.org/abs/1903.09981)
+* Addition of code for GP with nonstationary and/or nonseparable covariance structure -- see Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling Function-Valued Processes with Nonseparable and/or Nonstationary Covariance Structure" (https://arxiv.org/abs/1903.09981)
 * Addition of code for multivariate (convolved) GP  -- see Chapter 8 of Shi, J. Q., and Choi, T. (2011). "Gaussian process regression analysis for functional data". CRC Press. 
 
 An animation of a trivariate GP can be seen at https://ekonzen.shinyapps.io/CGP_N3/
