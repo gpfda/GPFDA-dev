@@ -49,7 +49,6 @@ cov.custom=function(hyper,Data,Data.new=NULL){
   hyper=lapply(hyper,exp);
   datadim=dim(Data)
   if(is.null(Data.new)) Data.new=Data
-  # A1=xixj_sta(Data,Data.new,hyper$custom.w) #exp(w)*||x-x'||^2
   A1 <- DistMat(X=Data, Xnew = Data.new, A=as.matrix(hyper$custom.w), power=2)
   mdim=dim(Data);mdim.new=dim(Data.new)
   cov.=sapply(1:mdim[1],function(i) matrix(rep(Data[i,],mdim.new[1]),nrow=mdim.new[1],byrow=T)-Data.new)
@@ -66,7 +65,6 @@ cov.custom=function(hyper,Data,Data.new=NULL){
 # Define the first derivative of the customized covariance matrix 
 Dloglik.custom.w=function(hyper,data,AlphaQ){
   Dcov=cov.custom(hyper,data)
-  # A1=-xixj_sta(data,data,hyper$custom.w)
   A1 <- -DistMat_sq(X=data, A=as.matrix(hyper$custom.w), power=2)
   out=Dcov %*% A1
   out=sum(out*AlphaQ)
@@ -99,7 +97,6 @@ Dloglik.custom.v=function(hyper,data,AlphaQ){
 # Define the second derivative of the customized covariance matrix 
 D2custom.w=function(hyper,data,inv.Q,Alpha.Q){
   Dcov=cov.custom(hyper,data)
-  # A1=-xixj_sta(data,data,hyper$custom.w)
   A1 <- -DistMat_sq(X=data, A=as.matrix(hyper$custom.w), power=2)
   wD2=Dcov%*%(A1^2+A1)
   wD1=Dcov%*%A1
@@ -109,7 +106,6 @@ D2custom.w=function(hyper,data,inv.Q,Alpha.Q){
 
 D2custom.w=function(hyper,data,inv.Q,Alpha.Q){
   Dcov=cov.custom(hyper,data)
-  # A1=-xixj_sta(data,data,hyper$custom.w)
   A1 <- -DistMat_sq(X=data, A=as.matrix(hyper$custom.w), power=2)
   wD2=Dcov%*%(A1^2+A1)
   wD1=Dcov%*%A1

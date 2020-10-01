@@ -1,6 +1,24 @@
 
 ######################## Covariance functions ############################ 
 
+#' Powered exponential covariance function.
+#'
+#' @param hyper The hyperparameters. Must be a list with certain names.
+#' @param Data The input data. Must be a vector or a matrix.
+#' @param Data.new The data for prediction. Must be a vector or a matrix.
+#'   Default to NULL.
+#' @param gamma Power parameter that cannot be estimated by simple non-linear
+#'   optimization.
+#'
+#' @details The names for the hyper parameters should be:"linear.a" for linear
+#'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
+#'   "rat.qu.s", "rat.qu.a" for rational quadratic, "vv" for white noise. All
+#'   hyper parameters should be in one list.
+#' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
+#'   Analysis for Functional Data'', CRC Press.
+#' @return Covariance matrix
+#' @export
+#'
 cov.pow.ex <- function(hyper,Data,Data.new=NULL,gamma=2){
   
   hyper <- lapply(hyper,exp)
@@ -25,6 +43,13 @@ cov.pow.ex <- function(hyper,Data,Data.new=NULL,gamma=2){
 }
 
 
+#' Rational quadratic covariance function
+#'
+#' @inheritParams cov.pow.ex
+#'
+#' @return Covariance matrix
+#' @export
+#'
 cov.rat.qu <- function(hyper,Data,Data.new=NULL){
   
   hyper <- lapply(hyper,exp)
@@ -48,6 +73,13 @@ cov.rat.qu <- function(hyper,Data,Data.new=NULL){
   return(covratqu)
 }
 
+#' Matern covariance function
+#'
+#' @inheritParams cov.pow.ex
+#' @param nu Smoothness parameter of the Matern class. Must be a positive value.
+#' @return Covariance matrix
+#' @export
+#'
 cov.matern <- function(hyper,Data,Data.new=NULL, nu){
   
   Data <- as.matrix(Data)
@@ -91,7 +123,13 @@ cov.matern <- function(hyper,Data,Data.new=NULL, nu){
   return(covmatern)
 }
 
-
+#' Linear covariance function
+#'
+#' @inheritParams cov.pow.ex
+#'
+#' @return Covariance matrix
+#' @export
+#'
 cov.linear <- function(hyper,Data,Data.new=NULL){
   
   hyper <- lapply(hyper,exp)
@@ -115,8 +153,371 @@ cov.linear <- function(hyper,Data,Data.new=NULL){
   return(cov.lin)
 }
 
-######################## Prediction ############################
 
+#' Gaussian Process regression
+#'
+#' Gaussian Process regression for a single or multiple independent
+#' realisations.
+#'
+#' @param Data The input data from train data. Matrix or vectors are both
+#'   acceptable. Some data.frames are not acceptable.
+#' @param response The response data from train data. Matrix or vectors are both
+#'   acceptable. Some data.frames are not acceptable.
+#' @param Cov Covariance function(s) to use. Default to 'power.ex'.
+#' @param m If Subset of Data is to be used, m denotes the subset size and
+#'   cannot be larger than the total sample size. Default set to NULL.
+#' @param hyper The hyperparameters. Default to NULL. If not NULL, then must be
+#'   a list with certain names.
+#' @param NewHyper Vector of the names of the new hyper parameters from
+#'   customized kernel function. The names of the hyper-parameters must have the
+#'   format: xxxxxx.x, i.e. '6 digit' plus 'a dot' plus '1 digit'. This is
+#'   required for both 'hyper' and 'NewHyper'
+#' @param meanModel Type of mean.
+#' @param mean Is the mean taken out when analysis? Default to be 0, which
+#'   assumes the mean is zero. if assume mean is a constant, mean=1; if assume
+#'   mean is a linear trend, mean='t'.
+#' @param gamma Power parameter used in powered exponential kernel function.
+#' @param nu Smoothness parameter of the Matern class. Must be a positive value.
+#' @param useGradient Logical. If TRUE, first derivatives will be used in the
+#'   optimization.
+#' @param itermax Number of maximum iteration in optimization function. Default
+#'   to be 100. Normally the number of optimization steps is around 20. If
+#'   reduce 'reltol', the iterations needed will be less.
+#' @param reltol Relative convergence tolerance. Smaller reltol means more
+#'   accurate and slower to converge.
+#' @param trace The value of the objective function and the parameters is
+#'   printed every trace'th iteration. Defaults to 0 which indicates no trace
+#'   information is to be printed.
+#' @param nInitCandidates Number of initial hyperparameter vectors. The
+#'   optimization starts with the best.
+#'
+#' @details The most important function in the package, for fitting the GP model
+#'   and store everything necessary for prediction. The optimization used in the
+#'   function is 'nlminb'. Optimization might break down if the noise for the
+#'   curve are too far away from normal. Jitter, LU decomposition and sparse
+#'   matrix inverse are used to ensure the matrix inverse can always get an
+#'   answer. The names for the hyper parameters should be:"linear.a" for linear
+#'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
+#'   "rat.qu.s", "rat.qu.a" for rational quadratic, "matern" for Matern, "vv"
+#'   for Gaussian white noise. All hyper parameters should be in one list.
+#'
+#' @return A list containing: \describe{ 
+#' \item{hyper}{Hyper-parameter estimated from training data}
+#' \item{var.hyper}{ Variance of the estimated hyper-parameters} 
+#' \item{fitted.mean }{Fitted value of training data } 
+#' \item{fitted.sd }{Standard deviation of the fitted value of training data} 
+#' \item{train.x }{ Training covariates} 
+#' \item{train.y }{ Training response} 
+#' \item{ train.yOri}{Original training response } 
+#' \item{train.DataOri }{ } 
+#' \item{idxSubset }{Index vector identifying which observations were selected 
+#' if Subset of Data was used.} 
+#' \item{ CovFun}{ Covariance function type} 
+#' \item{ gamma}{Parameter used in powered exponential covariance function } 
+#' \item{nu }{Parameter used in Matern covariance function } 
+#' \item{Q}{Covariance matrix } 
+#' \item{mean}{Mean function } 
+#' \item{meanModel}{ CHECK: 'lm' object if mean is a linear regression. NULL otherwise.} 
+#' \item{meanLinearModel}{ } 
+#' \item{conv}{0 means converge; 1 otherwise. } 
+#' \item{hyper0}{ starting point of the hyper-parameters}
+#'  }
+#'
+#' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
+#'   Analysis for Functional Data'', CRC Press.
+#'
+#' @export
+#' 
+gpr <- function(Data, response, Cov='pow.ex', 
+                m = NULL, hyper=NULL, NewHyper=NULL, meanModel=0, mean=NULL, 
+                gamma=NULL, nu=NULL,
+                useGradient=T, itermax=100, reltol=8e-10, trace=0,
+                nInitCandidates = 1000){
+  
+  
+  if("pow.ex"%in%Cov & is.null(gamma)){
+    stop("Argument 'gamma' must be informed for pow.ex kernel")
+  }
+  if("matern"%in%Cov & is.null(nu)){
+    stop("Argument 'nu' must be informed for matern kernel")
+  }
+  
+  if("matern"%in%Cov & !is.null(nu)){
+    if("matern"%in%Cov & !(nu%in%c(3/2, 5/2)) & useGradient){
+      useGradient <- F
+      warning("Gradient was not used.
+      For Matern kernel, the gradient is only available if either nu=3/2 or nu=5/2.
+      For other values of 'nu', useGradient is automatically set to FALSE.")
+    }}
+  Data <- as.matrix(Data)
+  
+  dimData <- ncol(Data)
+  response <- as.matrix(response)
+  n <- nrow(response)
+  nrep <- ncol(response)
+  
+  if(!is.null(mean)){
+    if(!length(mean)==n){
+      stop("'mean' defined by the user must have the same length as the response variable.")
+    }
+    mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
+    meanModel <- 'userDefined'
+  }
+  
+  y.original <- response
+  Data.original <- Data
+  
+  idxSubset <- NULL
+  if(!is.null(m)){
+    if(m>n){stop("m cannot be bigger than n.")}
+    idxSubset <- sort(sample(x=1:n, size=m, replace=F))
+    response <- response[idxSubset,,drop=F]
+    Data <- Data[idxSubset,,drop=F]
+    if(!is.null(mean)){
+      mean <- mean[idxSubset,,drop=F]
+    }
+  }
+  
+  
+  
+  if(is.null(hyper)){
+    
+    ## lower bounds for candidates
+    hyper=list()
+    if(any(Cov=='linear')){
+      hyper$linear.a=rep(log(1e-4), dimData)
+      hyper$linear.i=log(1e-4)
+    }
+    if(any(Cov=='pow.ex')){
+      hyper$pow.ex.v=log(1e-4)
+      hyper$pow.ex.w=rep(log(1e-4), dimData)
+    }
+    if(any(Cov=='matern')){
+      hyper$matern.v=log(1e-4)
+      hyper$matern.w=rep(log(1e-4), dimData)
+    }
+    if(any(Cov=='rat.qu')){
+      hyper$rat.qu.a=log(1e-4)
+      hyper$rat.qu.v=log(1e-4)
+      hyper$rat.qu.w=rep(log(1e-4), dimData)
+    }
+    hyper$vv=log(1e-4)
+    hyper_low <- unlist(hyper)
+    
+    if(!is.null(NewHyper)){
+      hyper.nam <- c(names(hyper_low),NewHyper)
+      for(i in 1:length(NewHyper)){
+        hyper_low <- c(hyper_low, -1)
+      }
+      names(hyper_low) <- hyper.nam
+    }
+    
+    ## upper bounds for candidates
+    hyper=list()
+    if(any(Cov=='linear')){
+      hyper$linear.a=rep(log(1e4), dimData)
+      hyper$linear.i=log(1e4)
+    }
+    if(any(Cov=='pow.ex')){
+      hyper$pow.ex.v=log(1e4)
+      hyper$pow.ex.w=rep(log(1e4), dimData)
+    }
+    if(any(Cov=='matern')){
+      hyper$matern.v=log(1e4)
+      hyper$matern.w=rep(log(1e4), dimData)
+    }
+    if(any(Cov=='rat.qu')){
+      hyper$rat.qu.a=log(1e4)
+      hyper$rat.qu.v=log(1e4)
+      hyper$rat.qu.w=rep(log(1e4), dimData)
+    }
+    hyper$vv=log(1e4)
+    hyper_upp <- unlist(hyper)
+    
+    if(!is.null(NewHyper)){
+      hyper.nam <- c(names(hyper_upp),NewHyper)
+      for(i in 1:length(NewHyper)){
+        hyper_upp <- c(hyper_upp, 1)
+      }
+      names(hyper_upp) <- hyper.nam
+    }
+    
+    if(length(hyper_upp)!=length(hyper_low)){
+      stop("hyper_upp and hyper_low must have the same dimension")
+    }
+    
+    hyper <- hyper_low
+    hyper.nam <- names(hyper_low)
+    hp.name <- hyper.nam
+  }
+  
+  if(!is.null(hyper)){
+    hyper=hyper[substr(names(hyper),1,6)%in%c(Cov,'vv')]
+  }  
+  hp.name=names(unlist(hyper))
+  
+  if(meanModel==0) {response <- response; mean <- 0}
+  if(meanModel==1) {
+    mean <- mean(response)
+    response <- as.matrix(response-mean)
+  }
+  meanLinearModel <- NULL
+  if(meanModel=='t') {
+    trend <- data.frame(yyy=c(response), xxx=rep(c(Data), nrep))
+    meanLinearModel <- lm(yyy~xxx, data=trend)
+    response <- matrix(resid(meanLinearModel), nrow=nrow(response), byrow=F)
+    mean <- matrix(fitted(meanLinearModel), nrow=nrow(response), byrow=F)
+  }
+  
+  if(meanModel=='avg') {
+    if(nrep<3){
+      stop('Mean function can only be the average across replications when
+           there are more than two replications.')
+    }
+    mean <- apply(response, 1, base::mean)
+    mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
+    response <- response - mean
+  }
+  
+  #### Try a number of hp vector and start with the best
+  candidates <- matrix(0, nInitCandidates, length(hyper_upp))
+  for(iCand in 1:nInitCandidates){
+    candidates[iCand,] <- runif(n = length(hyper_upp), min = hyper_low, max = hyper_upp)
+  }
+  colnames(candidates) <- hp.name
+  cat(c('\n','--------- Initialising ---------- \n'))
+  resCand <- apply(candidates, 1, function(x){
+    gp.loglikelihood2(hyper.p=x, Data=Data,response=response,
+                      Cov=Cov,gamma=gamma, nu=nu)})
+  
+  best_init <- candidates[which.min(resCand),]
+  
+  trace=round(trace)
+  if(trace>0)
+    # cat(c('\n','title: -likelihood:',hp.name,'\n'),sep='     ')
+    cat(c('iter:  -loglik:',hp.name,'\n'),sep='     ')
+  
+  if(!useGradient){gp.Dlikelihood2 <- NULL}
+  CG0 <- nlminb(start=best_init, objective=gp.loglikelihood2, 
+                gradient=gp.Dlikelihood2,
+                Data=Data,response=response,Cov=Cov,gamma=gamma,nu=nu,
+                control=list(iter.max=itermax,rel.tol=reltol,trace=trace))
+  
+  # if(trace!=F&CG0$convergence==0)
+  #   cat('\n','    optimization finished. Converged.','\n')
+  # if(trace!=F&CG0$convergence==1)
+  #   cat('\n','    optimization finished. Failed Converge.','\n')
+  if(trace>0)
+    cat('\n','    optimization finished.','\n')
+  CG=CG0[[1]]
+  names(CG)=hp.name
+  CG.df=data.frame(CG=CG,CG.N=substr(hp.name,1,8))
+  names(CG.df)=c('CG','CG.N')
+  hyper.cg=split(CG.df$CG,CG.df$CG.N)
+  
+  nkernels=length(Cov)
+  CovList=vector('list',nkernels)
+  for(i in 1:nkernels) CovList[i]=list(paste0('cov.',Cov[i]))
+  CovL=lapply(CovList,function(j){
+    f=get(j)
+    if(j=='cov.pow.ex'){return(f(hyper=hyper.cg, Data=Data, gamma=gamma))}
+    if(j=='cov.matern'){return(f(hyper=hyper.cg, Data=Data, nu=nu))}
+    if(!(j%in%c('cov.pow.ex', 'cov.matern'))){return(f(hyper=hyper.cg, Data=Data))}
+  })
+  if(length(CovL)==1)
+    Q=CovL[[1]]
+  if(length(CovL)>1)
+    Q=Reduce('+',CovL)
+  
+  diag(Q) <- diag(Q)+exp(hyper.cg$vv)
+  invQ <- chol2inv(chol(Q))
+  
+  if("matern"%in%Cov){
+    if(nu%in%c(3/2, 5/2)){
+      calcVarHyperPar <- T
+    }else{
+      calcVarHyperPar <- F
+    }
+  }else{
+    calcVarHyperPar <- T
+  }
+  
+  if(calcVarHyperPar){
+    
+    D2fxList <- vector('list',nrep)
+    for(irep in 1:nrep){
+      
+      QR <- invQ%*%as.matrix(response[,irep])
+      AlphaQ <- QR%*%t(QR)-invQ
+      
+      D2fx <- lapply(seq_along(hyper.cg),function(i){
+        Dp=hyper.cg[i]
+        name.Dp=names(Dp)
+        f=get(paste0('D2',name.Dp))
+        if(name.Dp%in%c('pow.ex.w','pow.ex.v') )
+          D2para=f(hyper=hyper.cg, data=Data, gamma=gamma, inv.Q=invQ, Alpha.Q=AlphaQ)
+        if(name.Dp%in%c('matern.w','matern.v') )
+          D2para=f(hyper=hyper.cg, data=Data, nu=nu, inv.Q=invQ, Alpha.Q=AlphaQ)
+        if(!name.Dp%in%c('pow.ex.w','pow.ex.v','matern.w','matern.v') & !name.Dp%in%c('linear.a','linear.i'))
+          D2para=f(hyper=hyper.cg, data=Data, inv.Q=invQ, Alpha.Q=AlphaQ)
+        if(name.Dp%in%c('linear.a'))
+          D2para=f(hyper=hyper.cg, data=Data, Alpha.Q=AlphaQ)
+        if(name.Dp%in%c('linear.i'))
+          D2para=f(hyper=hyper.cg, inv.Q=invQ, Alpha.Q=AlphaQ)
+        return(D2para)
+      })
+      names(D2fx) <- names(hyper.cg)
+      D2fx <- unlist(D2fx)
+      D2fxList[[irep]] <- D2fx
+    }
+    
+    D2fx <- Reduce('+', D2fxList)
+    
+    var_hyper <- (-1/(unlist(D2fx)*dim(Data)[1]))
+  }else{
+    var_hyper <- NULL
+  }
+  
+  
+  
+  fitted <- (Q-diag(exp(hyper.cg$vv),dim(Q)[1]))%*%invQ%*%(response)+mean
+  fitted.var <- exp(hyper.cg$vv)*rowSums((Q-diag(exp(hyper.cg$vv),dim(Q)[1]))*t(invQ))
+  result <- list('hyper'=hyper.cg,'var.hyper'=var_hyper,
+                 'fitted.mean'=fitted,
+                 fitted.sd=sqrt(fitted.var),
+                 'train.x'=Data,'train.y'=response,
+                 'train.yOri'=y.original, 
+                 'train.DataOri'=Data.original, 
+                 'idxSubset'=idxSubset,
+                 'CovFun'=Cov,'gamma'=gamma,'nu'=nu,'Q'=Q,'inv'=invQ,'mean'=mean,
+                 'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel,
+                 conv=CG0$convergence,'hyper0'=hyper)
+  class(result) <- 'gpr'
+  return(result)
+}
+
+
+
+
+
+#' Prediction using Gaussian Process
+#'
+#' @inheritParams gpr
+#' @param train Result from training which is a 'gpr' object. Default to be
+#'   NULL. If NULL, do training based on the other given arguments; if TRUE,
+#'   other arguments (except for Data.new) will replaced by NULL; if FALSE, only
+#'   do prediction based on the other given arguments.
+#' @param Data.new The test data. Must be a vector or a matrix.
+#' @param noiseFreePred Logical. If TRUE, predictions will be noise-free.
+#' @param Y  --------- CHECK   Same as Data????  The input data from train data.
+#'   Matrix or vectors are both acceptable. Some data.frames are not acceptable.
+#'   --------------
+#' @param mSR Subset size m if Subset of Regressors method is used. It must be
+#'   smaller than the total sample size.
+#'
+#' @return
+#' @export
+#'
 gppredict <- function(train=NULL,Data.new=NULL,noiseFreePred=F,hyper=NULL, 
                          Data=NULL, Y=NULL, mSR=NULL,
                          Cov=NULL,gamma=NULL,nu=NULL,meanModel=0,mean=0){
@@ -298,273 +699,6 @@ if(is.null(mSR)){
   return(result)
 }
 
-gpr <- function(Data, response, Cov='pow.ex', 
-                m = NULL, hyper=NULL, NewHyper=NULL, meanModel=0, mean=NULL, 
-                gamma=NULL, nu=NULL,
-                useGradient=T, itermax=100, reltol=8e-10, trace=0,
-                nInitCandidates = 1000){
-
-  
-  if("pow.ex"%in%Cov & is.null(gamma)){
-    stop("Argument 'gamma' must be informed for pow.ex kernel")
-  }
-  if("matern"%in%Cov & is.null(nu)){
-    stop("Argument 'nu' must be informed for matern kernel")
-  }
-  
-  if("matern"%in%Cov & !is.null(nu)){
-    if("matern"%in%Cov & !(nu%in%c(3/2, 5/2)) & useGradient){
-      useGradient <- F
-      warning("Gradient was not used.
-      For Matern kernel, the gradient is only available if either nu=3/2 or nu=5/2.
-      For other values of 'nu', useGradient is automatically set to FALSE.")
-    }}
-  Data <- as.matrix(Data)
-  
-  dimData <- ncol(Data)
-  response <- as.matrix(response)
-  n <- nrow(response)
-  nrep <- ncol(response)
-  
-  if(!is.null(mean)){
-    if(!length(mean)==n){
-      stop("'mean' defined by the user must have the same length as the response variable.")
-    }
-    mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
-    meanModel <- 'userDefined'
-  }
-  
-  y.original <- response
-  Data.original <- Data
-  
-  idxSubset <- NULL
-  if(!is.null(m)){
-    if(m>n){stop("m cannot be bigger than n.")}
-    idxSubset <- sort(sample(x=1:n, size=m, replace=F))
-    response <- response[idxSubset,,drop=F]
-    Data <- Data[idxSubset,,drop=F]
-    if(!is.null(mean)){
-      mean <- mean[idxSubset,,drop=F]
-    }
-  }
-  
-  
-  
-  if(is.null(hyper)){
-    
-    ## lower bounds for candidates
-    hyper=list()
-    if(any(Cov=='linear')){
-      hyper$linear.a=rep(log(1e-4), dimData)
-      hyper$linear.i=log(1e-4)
-    }
-    if(any(Cov=='pow.ex')){
-      hyper$pow.ex.v=log(1e-4)
-      hyper$pow.ex.w=rep(log(1e-4), dimData)
-    }
-    if(any(Cov=='matern')){
-      hyper$matern.v=log(1e-4)
-      hyper$matern.w=rep(log(1e-4), dimData)
-    }
-    if(any(Cov=='rat.qu')){
-      hyper$rat.qu.a=log(1e-4)
-      hyper$rat.qu.v=log(1e-4)
-      hyper$rat.qu.w=rep(log(1e-4), dimData)
-    }
-    hyper$vv=log(1e-4)
-    hyper_low <- unlist(hyper)
-
-    if(!is.null(NewHyper)){
-      hyper.nam <- c(names(hyper_low),NewHyper)
-      for(i in 1:length(NewHyper)){
-        hyper_low <- c(hyper_low, -1)
-      }
-      names(hyper_low) <- hyper.nam
-    }
-    
-    ## upper bounds for candidates
-    hyper=list()
-    if(any(Cov=='linear')){
-      hyper$linear.a=rep(log(1e4), dimData)
-      hyper$linear.i=log(1e4)
-    }
-    if(any(Cov=='pow.ex')){
-      hyper$pow.ex.v=log(1e4)
-      hyper$pow.ex.w=rep(log(1e4), dimData)
-    }
-    if(any(Cov=='matern')){
-      hyper$matern.v=log(1e4)
-      hyper$matern.w=rep(log(1e4), dimData)
-    }
-    if(any(Cov=='rat.qu')){
-      hyper$rat.qu.a=log(1e4)
-      hyper$rat.qu.v=log(1e4)
-      hyper$rat.qu.w=rep(log(1e4), dimData)
-    }
-    hyper$vv=log(1e4)
-    hyper_upp <- unlist(hyper)
-    
-    if(!is.null(NewHyper)){
-      hyper.nam <- c(names(hyper_upp),NewHyper)
-      for(i in 1:length(NewHyper)){
-        hyper_upp <- c(hyper_upp, 1)
-      }
-      names(hyper_upp) <- hyper.nam
-    }
-    
-    if(length(hyper_upp)!=length(hyper_low)){
-      stop("hyper_upp and hyper_low must have the same dimension")
-    }
-    
-    hyper <- hyper_low
-    hyper.nam <- names(hyper_low)
-    hp.name <- hyper.nam
-  }
-  
-  if(!is.null(hyper)){
-    hyper=hyper[substr(names(hyper),1,6)%in%c(Cov,'vv')]
-  }  
-  hp.name=names(unlist(hyper))
-  
-  if(meanModel==0) {response <- response; mean <- 0}
-  if(meanModel==1) {
-    mean <- mean(response)
-    response <- as.matrix(response-mean)
-  }
-  meanLinearModel <- NULL
-  if(meanModel=='t') {
-    trend <- data.frame(yyy=c(response), xxx=rep(c(Data), nrep))
-    meanLinearModel <- lm(yyy~xxx, data=trend)
-    response <- matrix(resid(meanLinearModel), nrow=nrow(response), byrow=F)
-    mean <- matrix(fitted(meanLinearModel), nrow=nrow(response), byrow=F)
-  }
-  
-  if(meanModel=='avg') {
-    if(nrep<3){
-      stop('Mean function can only be the average across replications when
-           there are more than two replications.')
-    }
-    mean <- apply(response, 1, base::mean)
-    mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
-    response <- response - mean
-  }
-  
-  #### Try a number of hp vector and start with the best
-  candidates <- matrix(0, nInitCandidates, length(hyper_upp))
-  for(iCand in 1:nInitCandidates){
-    candidates[iCand,] <- runif(n = length(hyper_upp), min = hyper_low, max = hyper_upp)
-  }
-  colnames(candidates) <- hp.name
-  cat(c('\n','--------- Initialising ---------- \n'))
-  resCand <- apply(candidates, 1, function(x){
-    gp.loglikelihood2(hyper.p=x, Data=Data,response=response,
-                         Cov=Cov,gamma=gamma, nu=nu)})
-  
-  best_init <- candidates[which.min(resCand),]
-
-  trace=round(trace)
-  if(trace>0)
-    # cat(c('\n','title: -likelihood:',hp.name,'\n'),sep='     ')
-    cat(c('iter:  -loglik:',hp.name,'\n'),sep='     ')
-
-  if(!useGradient){gp.Dlikelihood2 <- NULL}
-  CG0 <- nlminb(start=best_init, objective=gp.loglikelihood2, 
-                gradient=gp.Dlikelihood2,
-                Data=Data,response=response,Cov=Cov,gamma=gamma,nu=nu,
-                control=list(iter.max=itermax,rel.tol=reltol,trace=trace))
-  
-  # if(trace!=F&CG0$convergence==0)
-  #   cat('\n','    optimization finished. Converged.','\n')
-  # if(trace!=F&CG0$convergence==1)
-  #   cat('\n','    optimization finished. Failed Converge.','\n')
-  if(trace>0)
-    cat('\n','    optimization finished.','\n')
-  CG=CG0[[1]]
-  names(CG)=hp.name
-  CG.df=data.frame(CG=CG,CG.N=substr(hp.name,1,8))
-  names(CG.df)=c('CG','CG.N')
-  hyper.cg=split(CG.df$CG,CG.df$CG.N)
-
-  nkernels=length(Cov)
-  CovList=vector('list',nkernels)
-  for(i in 1:nkernels) CovList[i]=list(paste0('cov.',Cov[i]))
-  CovL=lapply(CovList,function(j){
-    f=get(j)
-    if(j=='cov.pow.ex'){return(f(hyper=hyper.cg, Data=Data, gamma=gamma))}
-    if(j=='cov.matern'){return(f(hyper=hyper.cg, Data=Data, nu=nu))}
-    if(!(j%in%c('cov.pow.ex', 'cov.matern'))){return(f(hyper=hyper.cg, Data=Data))}
-  })
-  if(length(CovL)==1)
-    Q=CovL[[1]]
-  if(length(CovL)>1)
-    Q=Reduce('+',CovL)
-
-  diag(Q) <- diag(Q)+exp(hyper.cg$vv)
-  invQ <- chol2inv(chol(Q))
-
-  if("matern"%in%Cov){
-    if(nu%in%c(3/2, 5/2)){
-      calcVarHyperPar <- T
-    }else{
-      calcVarHyperPar <- F
-    }
-  }else{
-    calcVarHyperPar <- T
-  }
-
-  if(calcVarHyperPar){
-
-    D2fxList <- vector('list',nrep)
-    for(irep in 1:nrep){
-      
-      QR <- invQ%*%as.matrix(response[,irep])
-      AlphaQ <- QR%*%t(QR)-invQ
-      
-      D2fx <- lapply(seq_along(hyper.cg),function(i){
-        Dp=hyper.cg[i]
-        name.Dp=names(Dp)
-        f=get(paste0('D2',name.Dp))
-        if(name.Dp%in%c('pow.ex.w','pow.ex.v') )
-          D2para=f(hyper=hyper.cg, data=Data, gamma=gamma, inv.Q=invQ, Alpha.Q=AlphaQ)
-        if(name.Dp%in%c('matern.w','matern.v') )
-          D2para=f(hyper=hyper.cg, data=Data, nu=nu, inv.Q=invQ, Alpha.Q=AlphaQ)
-        if(!name.Dp%in%c('pow.ex.w','pow.ex.v','matern.w','matern.v') & !name.Dp%in%c('linear.a','linear.i'))
-          D2para=f(hyper=hyper.cg, data=Data, inv.Q=invQ, Alpha.Q=AlphaQ)
-        if(name.Dp%in%c('linear.a'))
-          D2para=f(hyper=hyper.cg, data=Data, Alpha.Q=AlphaQ)
-        if(name.Dp%in%c('linear.i'))
-          D2para=f(hyper=hyper.cg, inv.Q=invQ, Alpha.Q=AlphaQ)
-        return(D2para)
-      })
-      names(D2fx) <- names(hyper.cg)
-      D2fx <- unlist(D2fx)
-      D2fxList[[irep]] <- D2fx
-    }
-    
-    D2fx <- Reduce('+', D2fxList)
-    
-    var_hyper <- (-1/(unlist(D2fx)*dim(Data)[1]))
-  }else{
-    var_hyper <- NULL
-  }
-
-  
-  
-  fitted <- (Q-diag(exp(hyper.cg$vv),dim(Q)[1]))%*%invQ%*%(response)+mean
-  fitted.var <- exp(hyper.cg$vv)*rowSums((Q-diag(exp(hyper.cg$vv),dim(Q)[1]))*t(invQ))
-  result <- list('hyper'=hyper.cg,'var.hyper'=var_hyper,
-                 'fitted.mean'=fitted,
-                 fitted.sd=sqrt(fitted.var),
-              'train.x'=Data,'train.y'=response,
-              'train.yOri'=y.original, 
-              'train.DataOri'=Data.original, 
-              'idxSubset'=idxSubset,
-              'CovFun'=Cov,'gamma'=gamma,'nu'=nu,'Q'=Q,'inv'=invQ,'mean'=mean,
-              'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel,
-              conv=CG0$convergence,'hyper0'=hyper)
-  class(result) <- 'gpr'
-  return(result)
-}
 
 
 
@@ -892,6 +1026,31 @@ D2vv <- function(hyper,data,inv.Q,Alpha.Q){
 }
 
 
+#'Second derivative of the likelihood
+#'
+#'Calculates the second derivative of the likelihood function with respect to
+#'one of the hyperparameters, given the first and second derivative of the
+#'kernel with respect to that hyperparameter.
+#'
+#'@param d1 First derivative of the kernel function with respect to the required
+#'  hyper-parameter.
+#'@param d2 Second derivative of the kernel function with respect to the
+#'  required hyper-parameter.
+#'@param inv.Q Inverse matrix of the covariance matrix
+#'@param Alpha.Q  This is iQY %*% t(iQY)-iQ, where iQ is the inverse of the
+#'  covariance matrix, Y is the response.
+#'
+#'@details The function is to calculate the second derivative of the normal
+#'  likelihood, using the first and second derivative of the kernel functions.
+#'  The first and second derivative need to be pre-defined, for example of
+#'  customized covariance function, see "demo('co2')".
+#'@return A number
+#'
+#'@references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
+#'  Analysis for Functional Data'', CRC Press.
+#'
+#'@export
+#'
 D2 <- function(d1,d2,inv.Q,Alpha.Q){
   Aii=t(d1)%*%inv.Q%*%d1
   al=Alpha.Q+inv.Q
@@ -918,8 +1077,25 @@ diag.rat.qu <- function(hyper,data){
   return(Qstar)
 }
 
-##################### plot ##########################
-plot.gpr <- function(x,...,fitted=F,col.no=1, ylim=NULL, realisation=NULL){
+
+#' Plot Gaussian Process regression -- training and prediction
+#'
+#' Plot Gaussian Process for a given an object of class 'gpr'.
+#'
+#' @param x The 'gpr' object from either training or predicting of the Gaussian
+#'   Process.
+#' @param fitted Logical. Plot fitted value or not. Default to FALSE, which is
+#'   to plot the predictions.
+#' @param col.no Column number of the input matrix. If the input matrix has more
+#'   than one columns, than one of them will be used in the plot. Default to be
+#'   the first one.
+#' @param ylim Range value for y-axis.
+#' @param realisation Which realisation should be plotted (if there are multiple).
+#' @param ... Graphical parameters passed to plot().
+#' @return A plot
+#' @export
+#'
+plot.gpr <- function(x,fitted=F,col.no=1, ylim=NULL, realisation=NULL, ...){
   obj=x
   if(fitted==T){
     if(is.null(obj$fitted.mean)){
