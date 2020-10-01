@@ -20,7 +20,7 @@ gppredict(
 )
 }
 \arguments{
-\item{train}{Result from training which is a 'gpr' object. Default to be
+\item{train}{List resulting from training which is a 'gpr' object. Default to be
 NULL. If NULL, do training based on the other given arguments; if TRUE,
 other arguments (except for Data.new) will replaced by NULL; if FALSE, only
 do prediction based on the other given arguments.}
@@ -44,9 +44,10 @@ smaller than the total sample size.}
 
 \item{Cov}{Covariance function(s) to use. Default to 'power.ex'.}
 
-\item{gamma}{Power parameter used in powered exponential kernel function.}
+\item{gamma}{Power parameter used in powered exponential kernel function.
+It must be 0<gamma<=2.}
 
-\item{nu}{Smoothness parameter of the Matern class. Must be a positive value.}
+\item{nu}{Smoothness parameter of the Matern class. It must be a positive value.}
 
 \item{meanModel}{Type of mean.}
 
@@ -55,7 +56,13 @@ assumes the mean is zero. if assume mean is a constant, mean=1; if assume
 mean is a linear trend, mean='t'.}
 }
 \value{
-
+A list containing  \describe{ 
+\item{pred.mean}{Mean of predictions}
+\item{pred.sd}{Standard deviation of predictions}
+\item{newdata}{New data}
+\item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
+\item{...}{Objects of 'gpr' class. }
+  }
 }
 \description{
 Prediction using Gaussian Process

@@ -1,10 +1,36 @@
 
-TransfToNatScaleCGP <- function(hp, N){
-  hp[(N+1):length(hp)] <- exp(hp[(N+1):length(hp)])
-  return(hp)
-}
 
 
+
+#' Convolved (multivariate) Gaussian process regression
+#'
+#' @param Data List of two elements: (1) response variable; and (2) input
+#'   variables
+#' @param m If Subset of Data is to be used, m denotes the subset size and
+#'   cannot be larger than the total sample size. Default set to NULL.
+#' @param Type of mean.
+#' @param meanModel Model for mean.
+#' @param mean Is the mean taken out when analysis? Default to be 0, which
+#'   assumes the mean is zero. if assume mean is a constant, mean=1; if assume
+#'   mean is a linear trend, mean='t'.
+#'
+#' @return A list containing: \describe{ 
+#' \item{fitted.mean }{Fitted value of training data } 
+#' \item{fitted.sd }{Standard deviation of the fitted value of training data} 
+#' \item{X}{Original input variables}
+#' \item{Y}{Original response}
+#' \item{idx}{Original response}
+#' 
+#' \item{Cov}{Original response}
+#' \item{mean}{CHECK}
+#' \item{meanModel}{CHECK  Mean function type}
+#' \item{meanLinearModel}{CHECK Mean model}
+#' }
+#' 
+#' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
+#'  Analysis for Functional Data'', CRC Press.
+#' @export
+#'
 CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
   
   N <- length(Data$input)
@@ -141,6 +167,22 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
 
 
 
+#' Prediction of Convolved Gaussian process
+#'
+#' @inheritParams CGPR
+#' @param train List resulting from training which is an 'mgpr' object.
+#' @param Data.train List of training data
+#' @param Data.new List of test input data
+#' @param noiseFreePred Logical. If TRUE, predictions will be noise-free.
+#'
+#' @export
+#'
+#' @return A list containing  \describe{ 
+#' \item{pred.mean}{Mean of predictions}
+#' \item{pred.sd}{Standard deviation of predictions}
+#' \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
+#' }
+#' 
 CGPprediction <- function(train=NULL, 
                        Data.train=NULL,
                        Data.new=NULL,
@@ -257,9 +299,9 @@ CGPprediction <- function(train=NULL,
   }
   
   
-  result=c(list('noiseFreePred'=noiseFreePred, 
-                'pred.mean'=pred.mean,
-                'pred.sd'=pred.sd))
+  result=c(list('pred.mean'=pred.mean,
+                'pred.sd'=pred.sd,
+                'noiseFreePred'=noiseFreePred))
   class(result)='mgpr'
   return(result)
   
@@ -267,6 +309,16 @@ CGPprediction <- function(train=NULL,
 
 
 
+#' Calculation of a Convolved Gaussian processes covariance matrix given a
+#' vector of hyperparameters
+#'
+#' @inheritParams CGPR
+#' 
+#' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
+#'  Analysis for Functional Data'', CRC Press.
+#'  
+#' @return Covariance matrix
+#' @export
 CGPCovMat <- function(Data, hp){
 
   N <- length(Data$input)
@@ -300,7 +352,10 @@ CGPCovMat <- function(Data, hp){
 }
 
 
-
+TransfToNatScaleCGP <- function(hp, N){
+  hp[(N+1):length(hp)] <- exp(hp[(N+1):length(hp)])
+  return(hp)
+}
 
 
 
@@ -348,14 +403,29 @@ LogLikCGP <- function(hp, response, X, idx){
 
 
 
+
+#' Plot Convolved (multivariate) Gaussian Process regression
+#'
+#' Plot Gaussian Process for a given an object of class 'gpr'.
+#'
+#' @param train The 'mgpr' object 
+#' @param Data.train List of training data
+#' @param Data.new List of test data
+#' @param i Which realisation should be plotted.
+#' @param ylim Range of y-axis
+#' @param mfrow Graphical parameter
+#' @param cex  Graphical parameter
+#' @param cex.lab  Graphical parameter
+#' @param cex.axis  Graphical parameter
+#'
+#' @return A plot showing predictions of each element of the multivariate process.
+#' @export
 plot.CGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=NULL,
                                cex=1, cex.lab=1, cex.axis=1){
-  
   
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
             oma=c(0,0,0,0),
             cex.lab=2, cex.axis=2, cex.main=2)
-  
   
   predCGP <- CGPprediction(train=train, 
                         Data.train=Data.train,
@@ -399,6 +469,26 @@ plot.CGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=
 }
 
 
+
+
+
+#' Plot of auto- or cross-covariance function of a Convolved (multivariate)
+#' Gaussian process
+#'
+#' @param type Logical. It can be either 'Cov' (for covariance function) or
+#'   'Cor' (for corresponding correlation function)
+#' @param output Integer identifying one element of the multivariate process
+#' @param outputp Integer identifying one element of the multivariate process.
+#'   If 'output' and 'outputp' are the same, the auto-covariance function will
+#'   be plotted. Otherwise, the cross-covariance function will be plotted.
+#' @param Data List of Data
+#' @param hp Vector of hyperparameters
+#' @param ylim Graphical parameter
+#' @param xlim Graphical parameter
+#'
+#' @return A plot
+#' @export
+#' 
 plot.CGPCovFun <- function(type="Cov", output, outputp, Data, hp, ylim=NULL, xlim=NULL){
   
   op <- par(mar=c(4.5,5.1,0.2,0.8), 

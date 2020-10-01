@@ -2,7 +2,7 @@
 % Please edit documentation in R/gp.functions6.R
 \name{cov.rat.qu}
 \alias{cov.rat.qu}
-\title{Rational quadratic covariance function}
+\title{Stationary rational quadratic covariance function}
 \usage{
 cov.rat.qu(hyper, Data, Data.new = NULL)
 }
@@ -18,5 +18,5 @@ Default to NULL.}
 Covariance matrix
 }
 \description{
-Rational quadratic covariance function
+Stationary rational quadratic covariance function
 }

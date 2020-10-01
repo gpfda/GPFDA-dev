@@ -1,7 +1,7 @@
 
 ######################## Covariance functions ############################ 
 
-#' Powered exponential covariance function.
+#' Stationary powered exponential covariance function.
 #'
 #' @param hyper The hyperparameters. Must be a list with certain names.
 #' @param Data The input data. Must be a vector or a matrix.
@@ -43,7 +43,7 @@ cov.pow.ex <- function(hyper,Data,Data.new=NULL,gamma=2){
 }
 
 
-#' Rational quadratic covariance function
+#' Stationary rational quadratic covariance function
 #'
 #' @inheritParams cov.pow.ex
 #'
@@ -73,7 +73,7 @@ cov.rat.qu <- function(hyper,Data,Data.new=NULL){
   return(covratqu)
 }
 
-#' Matern covariance function
+#' Stationary Matern covariance function
 #'
 #' @inheritParams cov.pow.ex
 #' @param nu Smoothness parameter of the Matern class. Must be a positive value.
@@ -177,7 +177,8 @@ cov.linear <- function(hyper,Data,Data.new=NULL){
 #'   assumes the mean is zero. if assume mean is a constant, mean=1; if assume
 #'   mean is a linear trend, mean='t'.
 #' @param gamma Power parameter used in powered exponential kernel function.
-#' @param nu Smoothness parameter of the Matern class. Must be a positive value.
+#' It must be 0<gamma<=2.
+#' @param nu Smoothness parameter of the Matern class. It must be a positive value.
 #' @param useGradient Logical. If TRUE, first derivatives will be used in the
 #'   optimization.
 #' @param itermax Number of maximum iteration in optimization function. Default
@@ -503,7 +504,7 @@ gpr <- function(Data, response, Cov='pow.ex',
 #' Prediction using Gaussian Process
 #'
 #' @inheritParams gpr
-#' @param train Result from training which is a 'gpr' object. Default to be
+#' @param train List resulting from training which is a 'gpr' object. Default to be
 #'   NULL. If NULL, do training based on the other given arguments; if TRUE,
 #'   other arguments (except for Data.new) will replaced by NULL; if FALSE, only
 #'   do prediction based on the other given arguments.
@@ -515,7 +516,13 @@ gpr <- function(Data, response, Cov='pow.ex',
 #' @param mSR Subset size m if Subset of Regressors method is used. It must be
 #'   smaller than the total sample size.
 #'
-#' @return
+#' @return A list containing  \describe{ 
+#' \item{pred.mean}{Mean of predictions}
+#' \item{pred.sd}{Standard deviation of predictions}
+#' \item{newdata}{New data}
+#' \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
+#' \item{...}{Objects of 'gpr' class. }
+#'   }
 #' @export
 #'
 gppredict <- function(train=NULL,Data.new=NULL,noiseFreePred=F,hyper=NULL, 
@@ -691,10 +698,11 @@ if(is.null(mSR)){
   
 }
 
-  result=c(list('noiseFreePred'=noiseFreePred,
-                'pred.mean'=mu,
+  result=c(list('pred.mean'=mu,
                 'pred.sd'=pred.sd,
-                'newdata'=Data.new),unclass(train))
+                'newdata'=Data.new),
+           'noiseFreePred'=noiseFreePred,
+           unclass(train))
   class(result)='gpr'
   return(result)
 }

@@ -48,9 +48,10 @@ required for both 'hyper' and 'NewHyper'}
 assumes the mean is zero. if assume mean is a constant, mean=1; if assume
 mean is a linear trend, mean='t'.}
 
-\item{gamma}{Power parameter used in powered exponential kernel function.}
+\item{gamma}{Power parameter used in powered exponential kernel function.
+It must be 0<gamma<=2.}
 
-\item{nu}{Smoothness parameter of the Matern class. Must be a positive value.}
+\item{nu}{Smoothness parameter of the Matern class. It must be a positive value.}
 
 \item{useGradient}{Logical. If TRUE, first derivatives will be used in the
 optimization.}

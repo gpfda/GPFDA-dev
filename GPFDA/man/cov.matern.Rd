@@ -2,7 +2,7 @@
 % Please edit documentation in R/gp.functions6.R
 \name{cov.matern}
 \alias{cov.matern}
-\title{Matern covariance function}
+\title{Stationary Matern covariance function}
 \usage{
 cov.matern(hyper, Data, Data.new = NULL, nu)
 }
@@ -20,5 +20,5 @@ Default to NULL.}
 Covariance matrix
 }
 \description{
-Matern covariance function
+Stationary Matern covariance function
 }
