@@ -1,0 +1,213 @@
+* using log directory ‘/home/evandro/gitreps/GPFDA-dev/GPFDA.Rcheck’
+* using R version 3.6.3 (2020-02-29)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* using options ‘--no-manual --as-cran’
+* checking for file ‘GPFDA/DESCRIPTION’ ... OK
+* checking extension type ... Package
+* this is package ‘GPFDA’ version ‘3.0’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking serialization versions ... OK
+* checking whether package ‘GPFDA’ can be installed ... OK
+* checking installed package size ... NOTE
+  installed size is  7.2Mb
+  sub-directories of 1Mb or more:
+    libs   6.8Mb
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' import not declared from: ‘mgcv’
+Packages in Depends field not imported from:
+  ‘fda’ ‘fda.usc’ ‘spam’
+  These packages need to be imported from (in the NAMESPACE file)
+  for when this namespace is loaded but not attached.
+':::' call which should be '::': ‘splines:::bs’
+  See the note in ?`:::` about the use of this operator.
+* checking S3 generic/method consistency ... WARNING
+plot:
+  function(x, ...)
+plot.CGPCovFun:
+  function(type, output, outputp, Data, hp, ylim, xlim)
+
+plot:
+  function(x, ...)
+plot.CGPprediction:
+  function(train, Data.train, Data.new, i, ylim, mfrow, cex, cex.lab,
+           cex.axis)
+
+See section ‘Generic functions and methods’ in the ‘Writing R
+Extensions’ manual.
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+CGPR: no visible global function definition for ‘lm’
+CGPR: no visible global function definition for ‘resid’
+CGPR: no visible global function definition for ‘runif’
+CGPR: no visible global function definition for ‘nlminb’
+CGPprediction: no visible global function definition for ‘predict’
+LogLikNSGP: no visible global function definition for ‘CalcA_Q2’
+LogLikNSGP: no visible global function definition for ‘CalcA_Q3’
+NSGPCovMat: no visible global function definition for ‘quantile’
+NSGPCovMat: no visible global function definition for ‘CalcA_Q2’
+NSGPCovMat: no visible global function definition for ‘CalcA_Q3’
+NSGPCovMat_Asym: no visible global function definition for ‘quantile’
+NSGPCovMat_Asym: no visible global function definition for ‘CalcA_Q2’
+NSGPCovMat_Asym: no visible global function definition for ‘CalcA_Q3’
+NSGPR: no visible global function definition for ‘quantile’
+NSGPR: no visible global function definition for ‘runif’
+NSGPR: no visible global function definition for ‘nlminb’
+betaPar: no visible global function definition for
+  ‘create.bspline.basis’
+betaPar: no visible global function definition for
+  ‘create.fourier.basis’
+betaPar: no visible global function definition for ‘vec2Lfd’
+betaPar: no visible global function definition for ‘fdPar’
+betaPar: no visible global function definition for ‘bifdPar’
+betaPar: no visible global function definition for ‘bifd’
+freg1: no visible global function definition for ‘fdata’
+freg1: no visible global function definition for ‘create.bspline.basis’
+freg1: no visible global function definition for ‘fregre.basis’
+freg2: no visible global function definition for ‘fRegress’
+gpfr: no visible global function definition for ‘rnorm’
+gpfr: no visible global function definition for ‘runif’
+gpfrpred: no visible global function definition for ‘eval.fd’
+gpfrpred : <anonymous>: no visible global function definition for
+  ‘predict’
+gpfrpred: no visible global function definition for ‘is.fdata’
+gpfrpred: no visible global function definition for ‘is.fd’
+gpfrpred : <anonymous>: no visible global function definition for
+  ‘eval.fd’
+gpfrpred: no visible global function definition for ‘smooth.basis’
+gpfrpred : <anonymous>: no visible global function definition for
+  ‘eval.bifd’
+gpfrtrain: no visible global function definition for ‘is.fd’
+gpfrtrain: no visible global function definition for ‘is.fdata’
+gpfrtrain: no visible global function definition for ‘eval.fd’
+gpfrtrain : <anonymous>: no visible global function definition for
+  ‘eval.fd’
+gpfrtrain : <anonymous>: no visible global function definition for
+  ‘inprod’
+gpfrtrain: no visible global function definition for ‘nlminb’
+gppredict: no visible global function definition for ‘predict’
+gpr: no visible global function definition for ‘lm’
+gpr: no visible global function definition for ‘resid’
+gpr: no visible global function definition for ‘runif’
+gpr: no visible global function definition for ‘nlminb’
+main1: no visible global function definition for ‘lm’
+main1: no visible global function definition for ‘resid’
+main2: no visible global function definition for ‘fRegress’
+main2 : <anonymous>: no visible global function definition for
+  ‘predict’
+main2: no visible global function definition for ‘eval.fd’
+main2: no visible global function definition for ‘predict’
+main2: no visible global function definition for ‘linmod’
+main2: no visible global function definition for ‘eval.bifd’
+main3: no visible global function definition for ‘lm’
+main3: no visible global function definition for ‘resid’
+mat2fd: no visible global function definition for
+  ‘create.bspline.basis’
+mat2fd: no visible global function definition for
+  ‘create.fourier.basis’
+mat2fd: no visible global function definition for ‘vec2Lfd’
+mat2fd: no visible global function definition for ‘smooth.basisPar’
+mymatrix2: no visible global function definition for ‘as.spam’
+mymatrix2: no visible global function definition for ‘solve.spam’
+plot.CGPCovFun: no visible global function definition for ‘par’
+plot.CGPCovFun: no visible global function definition for ‘cov2cor’
+plot.CGPCovFun: no visible binding for global variable ‘idx’
+plot.CGPCovFun: no visible global function definition for ‘plot’
+plot.CGPprediction: no visible global function definition for ‘par’
+plot.CGPprediction: no visible global function definition for ‘plot’
+plot.CGPprediction: no visible global function definition for ‘lines’
+plot.CGPprediction: no visible global function definition for ‘polygon’
+plot.CGPprediction: no visible global function definition for ‘rgb’
+plot.gpfr: no visible global function definition for ‘matplot’
+plot.gpfr: no visible global function definition for ‘polygon’
+plot.gpfr: no visible global function definition for ‘rgb’
+plot.gpfr: no visible global function definition for ‘matpoints’
+plot.gpfr: no visible global function definition for ‘matlines’
+plot.gpfr: no visible global function definition for ‘lines’
+plot.gpr: no visible global function definition for ‘plot’
+plot.gpr: no visible global function definition for ‘polygon’
+plot.gpr: no visible global function definition for ‘rgb’
+plot.gpr: no visible global function definition for ‘points’
+plot.gpr: no visible global function definition for ‘lines’
+Undefined global functions or variables:
+  CalcA_Q2 CalcA_Q3 as.spam bifd bifdPar cov2cor create.bspline.basis
+  create.fourier.basis eval.bifd eval.fd fRegress fdPar fdata
+  fregre.basis idx inprod is.fd is.fdata lines linmod lm matlines
+  matplot matpoints nlminb par plot points polygon predict quantile
+  resid rgb rnorm runif smooth.basis smooth.basisPar solve.spam vec2Lfd
+Consider adding
+  importFrom("grDevices", "rgb")
+  importFrom("graphics", "lines", "matlines", "matplot", "matpoints",
+             "par", "plot", "points", "polygon")
+  importFrom("stats", "cov2cor", "lm", "nlminb", "predict", "quantile",
+             "resid", "rnorm", "runif")
+to your NAMESPACE file.
+* checking Rd files ... NOTE
+prepare_Rd: betaPar.Rd:20-22: Dropping empty section \value
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented data sets:
+  ‘co2’
+All user-level objects in a package should have documentation entries.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'CGPCovMat'
+  ‘hp’
+
+Documented arguments not in \usage in documentation object 'CGPR':
+  ‘Type’
+
+Undocumented arguments in documentation object 'NSGPprediction'
+  ‘noiseFreePred’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... OK
+* checking data for non-ASCII characters ... OK
+* checking data for ASCII and uncompressed saves ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking line endings in Makefiles ... OK
+* checking compilation flags in Makevars ... OK
+* checking for GNU extensions in Makefiles ... OK
+* checking for portable use of $(BLAS_LIBS) and $(LAPACK_LIBS) ... OK
+* checking use of SHLIB_OPENMP_*FLAGS in Makefiles ... OK
+* checking pragmas in C/C++ headers and code ... OK
+* checking compilation flags used ... OK
+* checking compiled code ... OK
+* checking examples ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+Status: 4 WARNINGs, 3 NOTEs

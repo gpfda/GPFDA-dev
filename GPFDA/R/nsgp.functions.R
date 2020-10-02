@@ -584,6 +584,7 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx, bspl
 #' @inheritParams NSGPR
 #' @param hp Vector of hyperparameters estimated by function NSGPR.
 #' @param input.new List of Q test set input variables.
+#' @param noiseFreePred Logical. Should be the predictions noise-free or not?
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance

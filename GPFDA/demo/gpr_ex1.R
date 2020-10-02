@@ -6,7 +6,7 @@ hp <- list('pow.ex.w'=log(10),'pow.ex.v'=log(5),
 n <- 40
 input <- seq(0, 1, length.out=n)
 idx <- sort(sample(1:40, 21))
-X <- as.matrix(c[idx])
+X <- as.matrix(input[idx])
 Sigma <- cov.linear(hyper=hp, Data=input) + 
   cov.pow.ex(hyper=hp, Data=input, gamma=2) + 
   diag(exp(hp$vv), n, n)

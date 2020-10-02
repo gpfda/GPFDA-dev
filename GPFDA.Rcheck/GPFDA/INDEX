@@ -1,0 +1,37 @@
+CGPCovMat               Calculation of a Convolved Gaussian processes
+                        covariance matrix given a vector of
+                        hyperparameters
+CGPR                    Convolved (multivariate) Gaussian process
+                        regression
+CGPprediction           Prediction of Convolved Gaussian process
+D2                      Second derivative of the likelihood
+GPFDA-package           Gaussian Process Regression for Functional Data
+                        Analysis
+NSGPCovMat              Calculation of a NSGP covariance matrix given a
+                        vector of hyperparameters
+NSGPR                   Estimation of a nonseparable and/or
+                        nonstationary covariance structure
+NSGPprediction          NSGP predicion given a vector of
+                        hyperparameters
+betaPar                 Create an fdPar object
+cov.linear              Linear covariance function
+cov.matern              Stationary Matern covariance function
+cov.pow.ex              Stationary powered exponential covariance
+                        function.
+cov.rat.qu              Stationary rational quadratic covariance
+                        function
+gpfr                    Gaussian Process for functional data.
+gpfrpred                Prediction of the Gaussian Process using
+                        functional regression
+gppredict               Prediction using Gaussian Process
+gpr                     Gaussian Process regression
+mat2fd                  Create an fd object from a matrix
+plot.CGPCovFun          Plot of auto- or cross-covariance function of a
+                        Convolved (multivariate) Gaussian process
+plot.CGPprediction      Plot Convolved (multivariate) Gaussian Process
+                        regression
+plot.gpfr               Plot Gaussian Process regression with
+                        functional mean for either training or
+                        predicting
+plot.gpr                Plot Gaussian Process regression - training and
+                        prediction

@@ -33,22 +33,22 @@ hp <- c(nu0s, log(nu1s), log(a0s), log(a1s), log(sigm))
 Psi <- CGPCovMat(Data=Data, hp=hp)
 
 # Plot auto-covariance functions
-plot.CGPCovFun(type="Cov", output=1, outputp=1, Data=Data, hp=hp)
-plot.CGPCovFun(type="Cov", output=2, outputp=2, Data=Data, hp=hp)
-plot.CGPCovFun(type="Cov", output=3, outputp=3, Data=Data, hp=hp)
+plotCGPCovFun(type="Cov", output=1, outputp=1, Data=Data, hp=hp)
+plotCGPCovFun(type="Cov", output=2, outputp=2, Data=Data, hp=hp)
+plotCGPCovFun(type="Cov", output=3, outputp=3, Data=Data, hp=hp)
 # Plot cross-covariance functions
-plot.CGPCovFun(type="Cov", output=1, outputp=2, Data=Data, hp=hp)
-plot.CGPCovFun(type="Cov", output=1, outputp=3, Data=Data, hp=hp)
-plot.CGPCovFun(type="Cov", output=3, outputp=1, Data=Data, hp=hp)
+plotCGPCovFun(type="Cov", output=1, outputp=2, Data=Data, hp=hp)
+plotCGPCovFun(type="Cov", output=1, outputp=3, Data=Data, hp=hp)
+plotCGPCovFun(type="Cov", output=3, outputp=1, Data=Data, hp=hp)
 
 # Plot auto-correlation functions
-plot.CGPCovFun(type="Cor", output=1, outputp=1, Data=Data, hp=hp)
-plot.CGPCovFun(type="Cor", output=2, outputp=2, Data=Data, hp=hp)
-plot.CGPCovFun(type="Cor", output=3, outputp=3, Data=Data, hp=hp)
+plotCGPCovFun(type="Cor", output=1, outputp=1, Data=Data, hp=hp)
+plotCGPCovFun(type="Cor", output=2, outputp=2, Data=Data, hp=hp)
+plotCGPCovFun(type="Cor", output=3, outputp=3, Data=Data, hp=hp)
 # Plot cross-correlation functions
-plot.CGPCovFun(type="Cor", output=1, outputp=2, Data=Data, hp=hp)
-plot.CGPCovFun(type="Cor", output=1, outputp=3, Data=Data, hp=hp)
-plot.CGPCovFun(type="Cor", output=2, outputp=3, Data=Data, hp=hp)
+plotCGPCovFun(type="Cor", output=1, outputp=2, Data=Data, hp=hp)
+plotCGPCovFun(type="Cor", output=1, outputp=3, Data=Data, hp=hp)
+plotCGPCovFun(type="Cor", output=2, outputp=3, Data=Data, hp=hp)
 
 
 # Simulate data
@@ -94,7 +94,7 @@ Data.train$response[[3]] <- Data$response[[3]][trainSet[[3]], ]
 # str(predCGP)
 
 # Plot prediction of the 5-th realisation
-plot.CGPprediction(train=res,
+plotCGPprediction(train=res,
                    Data.train=Data.train,
                    Data.new=Data.new, i=5,
                    cex=2, cex.lab=2, cex.axis=2)

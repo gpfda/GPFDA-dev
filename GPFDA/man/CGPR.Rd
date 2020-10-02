@@ -18,8 +18,6 @@ cannot be larger than the total sample size. Default set to NULL.}
 \item{mean}{Is the mean taken out when analysis? Default to be 0, which
 assumes the mean is zero. if assume mean is a constant, mean=1; if assume
 mean is a linear trend, mean='t'.}
-
-\item{Type}{of mean.}
 }
 \value{
 A list containing: \describe{ 

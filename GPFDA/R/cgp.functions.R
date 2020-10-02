@@ -8,7 +8,6 @@
 #'   variables
 #' @param m If Subset of Data is to be used, m denotes the subset size and
 #'   cannot be larger than the total sample size. Default set to NULL.
-#' @param Type of mean.
 #' @param meanModel Model for mean.
 #' @param mean Is the mean taken out when analysis? Default to be 0, which
 #'   assumes the mean is zero. if assume mean is a constant, mean=1; if assume
@@ -313,7 +312,7 @@ CGPprediction <- function(train=NULL,
 #' vector of hyperparameters
 #'
 #' @inheritParams CGPR
-#' 
+#' @param hp Vector of hyperparameters
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'  Analysis for Functional Data'', CRC Press.
 #'  
@@ -420,7 +419,7 @@ LogLikCGP <- function(hp, response, X, idx){
 #'
 #' @return A plot showing predictions of each element of the multivariate process.
 #' @export
-plot.CGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=NULL,
+plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=NULL,
                                cex=1, cex.lab=1, cex.axis=1){
   
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
@@ -489,7 +488,7 @@ plot.CGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=
 #' @return A plot
 #' @export
 #' 
-plot.CGPCovFun <- function(type="Cov", output, outputp, Data, hp, ylim=NULL, xlim=NULL){
+plotCGPCovFun <- function(type="Cov", output, outputp, Data, hp, ylim=NULL, xlim=NULL){
   
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
             oma=c(0,0,0,0),

@@ -1,0 +1,6 @@
+name	user	system	elapsed
+GPFDA-package	0.000	0.000	0.001	
+betaPar	0.003	0.000	0.003	
+gpfr	0.021	0.000	0.022	
+gpfrpred	0.016	0.000	0.017	
+mat2fd	0.120	0.129	0.037	

@@ -1,0 +1,17 @@
+Package: GPFDA
+Type: Package
+Title: Gaussian Process Regression for Functional Data Analysis
+Version: 3.0
+Date: 2020-09-28
+Author: Jian Qing Shi, Yafeng Cheng, Evandro Konzen
+Maintainer: GPFDA's authors <gpfda.r@gmail.com>
+Description: Gaussian Process Regression for Functional Data Analysis.
+License: GPL (>= 2)
+Depends: R (>= 3.1), fda.usc, spam, fda
+Imports: Rcpp (>= 1.0.2), MASS, mvtnorm, fields, akima
+LinkingTo: Rcpp, RcppArmadillo
+RoxygenNote: 7.0.2
+Encoding: UTF-8
+NeedsCompilation: yes
+Packaged: 2020-10-02 15:10:30 UTC; evandro
+Built: R 3.6.3; x86_64-pc-linux-gnu; 2020-10-02 15:10:34 UTC; unix
