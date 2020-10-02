@@ -375,7 +375,7 @@ gpr <- function(Data, response, Cov='pow.ex',
       stop('Mean function can only be the average across replications when
            there are more than two replications.')
     }
-    mean <- apply(response, 1, base::mean)
+    mean <- apply(response, 1, mean)
     mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
     response <- response - mean
   }
@@ -1100,6 +1100,12 @@ diag.rat.qu <- function(hyper,data){
 #' @param ylim Range value for y-axis.
 #' @param realisation Which realisation should be plotted (if there are multiple).
 #' @param ... Graphical parameters passed to plot().
+#' @importFrom  graphics polygon
+#' @importFrom  graphics points
+#' @importFrom  graphics matpoints
+#' @importFrom  graphics matlines
+#' @importFrom  graphics lines
+#' @importFrom  grDevices rgb
 #' @return A plot
 #' @export
 #'

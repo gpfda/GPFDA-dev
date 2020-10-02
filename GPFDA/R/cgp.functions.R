@@ -101,7 +101,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
       stop('Mean function can only be the average across replications when
            there are more than two replications.')
     }
-    mean <- apply(response, 1, base::mean)
+    mean <- apply(response, 1, mean)
     mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
     response <- response - mean
   }
@@ -416,6 +416,12 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @param cex  Graphical parameter
 #' @param cex.lab  Graphical parameter
 #' @param cex.axis  Graphical parameter
+#' 
+#' @importFrom  graphics polygon
+#' @importFrom  graphics lines
+#' @importFrom  graphics plot
+#' @importFrom  graphics par
+#' @importFrom  grDevices rgb
 #'
 #' @return A plot showing predictions of each element of the multivariate process.
 #' @export
@@ -482,13 +488,17 @@ plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=N
 #'   be plotted. Otherwise, the cross-covariance function will be plotted.
 #' @param Data List of Data
 #' @param hp Vector of hyperparameters
+#' @param idx Index vector
 #' @param ylim Graphical parameter
 #' @param xlim Graphical parameter
-#'
+#' 
+#' @importFrom  graphics plot
+#' @importFrom  graphics par
+#' 
 #' @return A plot
 #' @export
 #' 
-plotCGPCovFun <- function(type="Cov", output, outputp, Data, hp, ylim=NULL, xlim=NULL){
+plotCGPCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL, xlim=NULL){
   
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
             oma=c(0,0,0,0),
@@ -513,5 +523,3 @@ plotCGPCovFun <- function(type="Cov", output, outputp, Data, hp, ylim=NULL, xlim
 
   par(op)
 }
-
-

@@ -3,12 +3,22 @@
 \docType{package}
 \name{GPFDA}
 \alias{GPFDA}
-\title{GPFDA: A package for Gaussian Process Regression for Functional Data Analysis.}
+\title{GPFDA: A package for Gaussian Process Regression for Functional Data Analysis}
 \description{
-Gaussian Process Regression for Functional Data Analysis
+Gaussian Process Regression for Functional Data Analysis, using functional
+regression for the mean function
 }
-\section{Mypackage functions}{
-
-The GPFDA functions ...
+\details{
+\deqn{y_m(t)=mu_m(t)+tau_m(x)+epsilon_m(t),}
+where \eqn{m} is the
+\eqn{m^{th}} data or curve; \eqn{\mu_m} is from functional regression; and
+\eqn{\tau_m} is from Gaussian Process regression with mean 0 covariance
+matrix \eqn{k({\bf\theta})}.
 }
-
+\references{
+Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
+  Analysis for Functional Data'', CRC Press.
+}
+\author{
+Jian Qing Shi, Yafeng Cheng, Evandro Konzen
+}

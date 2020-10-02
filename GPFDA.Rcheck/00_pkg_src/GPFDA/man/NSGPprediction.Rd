@@ -28,6 +28,8 @@ is a realisation}
 
 \item{input.new}{List of Q test set input variables.}
 
+\item{noiseFreePred}{Logical. Should be the predictions noise-free or not?}
+
 \item{nBasis}{Number of B-spline basis functions in each coordinate direction 
 along which parameters change}
 

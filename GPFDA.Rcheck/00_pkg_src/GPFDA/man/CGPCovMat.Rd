@@ -10,6 +10,8 @@ CGPCovMat(Data, hp)
 \arguments{
 \item{Data}{List of two elements: (1) response variable; and (2) input
 variables}
+
+\item{hp}{Vector of hyperparameters}
 }
 \value{
 Covariance matrix

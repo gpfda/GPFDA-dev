@@ -42,6 +42,8 @@
 # the optimisation via nlminb() begins with the best of these vectors.
 #' @param abs_bounds lower and upper boundaries for B-spline coefficients (if wanted). 
 #'
+#' @importFrom mgcv cSplineDes
+#' @importFrom splines bs
 #' @details The input argument for Q=2 can be, for example, 
 # n1 <- 10
 # n2 <- 1000
@@ -202,12 +204,12 @@ cat("\nPlease specify 'whichTau'
    if(cyclic[which(whichTau==T)]){
      numIntKnots <- nBasis-1
      quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
-     bspl <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+     bspl <- cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
    }else{
      numIntKnots <- nBasis-4
      quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
      quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
-     bspl <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+     bspl <- bs(tauVecSub, knots = quantiles_tau, intercept = T)
    }
    
   }else{
@@ -221,12 +223,12 @@ cat("\nPlease specify 'whichTau'
       if(cyclic[j]){
         numIntKnots <- nBasis-1
         quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
-        bspl_j[[j]] <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+        bspl_j[[j]] <- cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
       }else{
         numIntKnots <- nBasis-4
         quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
         quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
-        bspl_j[[j]] <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+        bspl_j[[j]] <- bs(tauVecSub, knots = quantiles_tau, intercept = T)
       }
     }
     
@@ -278,7 +280,8 @@ cat("\nPlease specify 'whichTau'
 #' @param hp Vector of hyperparameters estimated by function NSGPR.
 #' @param calcCov Logical. Calculate covariance matrix or not. If FALSE, time or
 #'   spatially-varying parameters are still provided.
-#'
+#' @importFrom mgcv cSplineDes
+#' @importFrom splines bs
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
 #'   Structure" (https://arxiv.org/abs/1903.09981)
@@ -358,12 +361,12 @@ NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis = 5,
     if(cyclic[which(whichTau==T)]){
       numIntKnots <- nBasis-1
       quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
-      bspl <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+      bspl <- cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
     }else{
       numIntKnots <- nBasis-4
       quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
       quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
-      bspl <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+      bspl <- bs(tauVecSub, knots = quantiles_tau, intercept = T)
     }
     
   }else{
@@ -377,12 +380,12 @@ NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis = 5,
       if(cyclic[j]){
         numIntKnots <- nBasis-1
         quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
-        bspl_j[[j]] <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+        bspl_j[[j]] <- cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
       }else{
         numIntKnots <- nBasis-4
         quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
         quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
-        bspl_j[[j]] <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+        bspl_j[[j]] <- bs(tauVecSub, knots = quantiles_tau, intercept = T)
       }
     }
     
@@ -465,9 +468,9 @@ NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis = 5,
     Scale.mat <- ScaleDistMats$Scale.mat
     Dist.mat <- ScaleDistMats$Dist.mat
     
-    Unscl.corr <- corr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
+    UnscalCorr <- UnscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
 
-    NS.corr <- Scale.mat*Unscl.corr
+    NS.corr <- Scale.mat*UnscalCorr
     
     
     Cov <- diag( sqrt(obs_variance) ) %*% NS.corr %*% diag( sqrt(obs_variance) )
@@ -555,8 +558,8 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx, bspl
   Scale.mat <- ScaleDistMats$Scale.mat
   Dist.mat <- ScaleDistMats$Dist.mat
   
-  Unscl.corr <- corr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
-  NS.corr <- Scale.mat*Unscl.corr
+  UnscalCorr <- UnscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
+  NS.corr <- Scale.mat*UnscalCorr
   
   
   Cov <- diag( sqrt(obs_variance) ) %*% NS.corr %*% diag( sqrt(obs_variance) )
@@ -584,6 +587,7 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx, bspl
 #' @inheritParams NSGPR
 #' @param hp Vector of hyperparameters estimated by function NSGPR.
 #' @param input.new List of Q test set input variables.
+#' @param noiseFreePred Logical. Should be the predictions noise-free or not?
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
@@ -635,10 +639,21 @@ NSGPprediction <- function(hp, response, input, input.new,
 
 
 
-
-
+#' Calculate an asymmetric NSGP covariance matrix
+#' 
+#' @inheritParams NSGPCovMat 
+#' 
+#' @param inputNew  List of Q test set input variables.
+#'
+#' @importFrom mgcv cSplineDes
+#' @importFrom splines bs
+#' 
+#' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
+#'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
+#'   Structure" (https://arxiv.org/abs/1903.09981)
+#' @return A (asymmetric) covariance matrix
+#' @export
 NSGPCovMat_Asym <- function(hp, input, inputNew,
-                               # inputSubsetIdx=NULL,
                                nBasis = 5, 
                                corrModel=corrModel, gamma=NULL, nu=NULL, cyclic=NULL, whichTau=NULL){
   
@@ -700,12 +715,12 @@ NSGPCovMat_Asym <- function(hp, input, inputNew,
     if(cyclic[which(whichTau==T)]){
       numIntKnots <- nBasis-1
       quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
-      bspl <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+      bspl <- cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
     }else{
       numIntKnots <- nBasis-4
       quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
       quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
-      bspl <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+      bspl <- bs(tauVecSub, knots = quantiles_tau, intercept = T)
     }
     
   }else{
@@ -719,12 +734,12 @@ NSGPCovMat_Asym <- function(hp, input, inputNew,
       if(cyclic[j]){
         numIntKnots <- nBasis-1
         quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
-        bspl_j[[j]] <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+        bspl_j[[j]] <- cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
       }else{
         numIntKnots <- nBasis-4
         quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
         quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
-        bspl_j[[j]] <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+        bspl_j[[j]] <- bs(tauVecSub, knots = quantiles_tau, intercept = T)
       }
     }
     
@@ -821,12 +836,12 @@ NSGPCovMat_Asym <- function(hp, input, inputNew,
     if(cyclic[which(whichTau==T)]){
       numIntKnots <- nBasis-1
       quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
-      bspl <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+      bspl <- cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
     }else{
       numIntKnots <- nBasis-4
       quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
       quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
-      bspl <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+      bspl <- bs(tauVecSub, knots = quantiles_tau, intercept = T)
     }
     
   }else{
@@ -840,12 +855,12 @@ NSGPCovMat_Asym <- function(hp, input, inputNew,
       if(cyclic[j]){
         numIntKnots <- nBasis-1
         quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
-        bspl_j[[j]] <- mgcv::cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
+        bspl_j[[j]] <- cSplineDes(x = tauVecSub, knots = quantiles_tau, ord = 4, derivs = 0)
       }else{
         numIntKnots <- nBasis-4
         quantiles_tau <- quantile(tauVec, probs = seq(0,1,length.out = 2+numIntKnots))
         quantiles_tau <- quantiles_tau[c(-1, -length(quantiles_tau))]
-        bspl_j[[j]] <- splines:::bs(tauVecSub, knots = quantiles_tau, intercept = T)
+        bspl_j[[j]] <- bs(tauVecSub, knots = quantiles_tau, intercept = T)
       }
     }
     
@@ -934,19 +949,26 @@ NSGPCovMat_Asym <- function(hp, input, inputNew,
   Scale.mat <- ScaleDistMats$Scale.mat
   Dist.mat <- ScaleDistMats$Dist.mat
   
-  Unscl.corr <- corr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
-  NS.corr <- Scale.mat*Unscl.corr
+  UnscalCorr <- UnscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
+  NS.corr <- Scale.mat*UnscalCorr
   
   
   Cov <- diag( sqrt(obs_variance) ) %*% NS.corr %*% diag( sqrt(obs_varianceStar) )
   diag(Cov) <- diag(Cov) + vareps + 1e-8
   
-  return(list(Cov=Cov, vareps=vareps, As_perTau=As_perTau, sig2_perTau=obs_variances_perTau, 
-              omega1=omega1, omega2=omega2, omega3=omega3))
+  return(Cov=Cov)
 }
 
 
-corr <- function(Dist.mat, corrModel, gamma=NULL, nu=NULL){
+#' Calculate unscaled NSGP correlation matrix
+#'
+#' @inheritParams NSGPR
+#' @param Dist.mat Distance matrix
+#'
+#' @return A matrix
+#' @export
+#'
+UnscaledCorr <- function(Dist.mat, corrModel, gamma=NULL, nu=NULL){
   
   if(!(corrModel%in%c("pow.ex", "matern"))){
     stop("corrModel must be either 'pow.ex' or 'matern'")
@@ -967,9 +989,41 @@ corr <- function(Dist.mat, corrModel, gamma=NULL, nu=NULL){
   }
   if(corrModel=="matern"){
     besselMod <- besselK(x=Dist.mat, nu=nu)
-    Cor <- (Dist.mat^nu)*besselMod/(base::gamma(nu)*(2^(nu-1)))
+    Cor <- (Dist.mat^nu)*besselMod/(gamma(nu)*(2^(nu-1)))
     diag(Cor) <- 1
   }
   
   return(Cor)
 }
+
+CalcA_Q2 <- function(theta){
+  
+  l1 <- c(exp(theta[1]), 0)
+  l2 <- c(exp(theta[2]), pi*exp(theta[3])/(1+exp(theta[3])))
+  
+  L1 <- c(l1[1]*cos(l1[2]), 0)
+  L2 <- c(l2[1]*cos(l2[2]), l2[1]*sin(l2[2]))
+  
+  myL <- cbind(L1,L2, deparse.level = 0)
+  A <- crossprod(myL)
+  diag(A) <- diag(A) + 1e-4
+  
+  return(A)
+}
+
+CalcA_Q3 <- function(theta){
+  
+  l1 <- c(exp(theta[1]),0,0)
+  l2 <- c(exp(theta[2]),pi*exp(theta[4])/(1+exp(theta[4])),0)
+  l3 <- c(exp(theta[3]),pi*exp(theta[5])/(1+exp(theta[5])),pi*exp(theta[6])/(1+exp(theta[6])))
+  
+  L1 <- c(l1[1]*cos(l1[2]), 0, 0)
+  L2 <- c(l2[1]*cos(l2[2]), l2[1]*sin(l2[2])*cos(l2[3]), 0)
+  L3 <- c(l3[1]*cos(l3[2]), l3[1]*sin(l3[2])*cos(l3[3]), l3[1]*sin(l3[2])*sin(l3[3]))
+  
+  myL <- cbind(L1,L2,L3, deparse.level = 0)
+  A <- crossprod(myL)
+  diag(A) <- diag(A) + 1e-4
+  
+  return(A)
+} 

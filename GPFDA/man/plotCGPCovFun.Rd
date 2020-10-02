@@ -11,6 +11,7 @@ plotCGPCovFun(
   outputp,
   Data,
   hp,
+  idx,
   ylim = NULL,
   xlim = NULL
 )
@@ -28,6 +29,8 @@ be plotted. Otherwise, the cross-covariance function will be plotted.}
 \item{Data}{List of Data}
 
 \item{hp}{Vector of hyperparameters}
+
+\item{idx}{Index vector}
 
 \item{ylim}{Graphical parameter}
 

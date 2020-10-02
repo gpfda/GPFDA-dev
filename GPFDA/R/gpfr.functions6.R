@@ -111,6 +111,9 @@ main1=function(response,lReg=NULL,fReg=NULL,fxList=NULL,fbetaList=NULL){
   return(out)
 }
 
+#' @importFrom  fda.usc fdata
+#' @importFrom  fda.usc fregre.basis
+#' @importFrom  fda create.bspline.basis
 freg1=function(y,fx,nx_bas,nbeta_bas){
   ### works for scaler response and single functional covariates, 
   ### return the regression model.
@@ -412,9 +415,9 @@ mat2fd=function(mat,fdList=NULL){
 #'   betaPar{list(nbasis=11)}
 #' @references   Ramsay, James O., and Silverman, Bernard W. (2006),
 #'   ``FunctionalData Analysis, 2nd ed.'', Springer, New York.
-#' @return
+#' @return A list
 #' @export
-#'
+#' @import fda
 #' @examples
 #' library(GPFDA)
 #' beta1=betaPar()
@@ -492,7 +495,8 @@ fisherinfo=function(pp.cg,X,Y,Cov,gamma,nu){
   response=as.matrix(Y)
   X=as.matrix(X)
   Q=Q+diag(exp(pp.cg$vv),dim(Q)[1])
-  invQ=mymatrix2(Q)$res
+  invQ=chol2inv(chol(Q))
+  
   QR=invQ%*%response
   AlphaQ=QR%*%t(QR)-invQ
   
@@ -523,6 +527,7 @@ fisherinfo=function(pp.cg,X,Y,Cov,gamma,nu){
   return(II)
 }
 
+#' @importFrom  fda.usc is.fdata
 gpfrtrain=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,fxList=NULL,
                    fbetaList=NULL,concurrent=TRUE,fbetaList_f=NULL,gpReg=NULL,hyper=NULL,
                    Cov,gamma=2,nu=1.5,useGradient=T,
@@ -544,7 +549,8 @@ gpfrtrain=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,fxL
     model=main2(response=response,lReg=lReg,fReg=fReg,fyList=fyList,fbetaList_l=fbetaList_l,
                 fxList=fxList,concurrent=concurrent,fbetaList_f=fbetaList_f,time=time)  
   iuuL=NULL
-  iuuL=mymatrix2(crossprod(cbind(lReg)))$res
+  iuuL=chol2inv(chol(crossprod(cbind(lReg))))
+  
   fittedFM=model$fittedFM
   
   ## convert fd/fdata class to matrix
@@ -668,7 +674,7 @@ gpfrtrain=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,fxL
         Q=Reduce('+',CovL)
       
       Q=Q+diag(exp(hyper.cg$vv),dim(Q)[1])
-      invQ=mymatrix2(Q)$res
+      invQ=chol2inv(chol(Q))
       QR=invQ%*%yy
       AlphaQ=QR%*%t(QR)-invQ
       yfit=(Q-diag(exp(hyper.cg$vv),dim(Q)[1]))%*%invQ%*%(yy)+mean[,i]
@@ -896,6 +902,8 @@ gpfr=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,fxList=N
 #'   II prediction will be carried out.
 #' @param GP_predict Logical. If true, GP prediction is carried out, otherwise
 #'   functional prediction is carried out. Default to TRUE.
+#'
+#' @importFrom  fda.usc is.fdata
 #'
 #' @details Two types of prediction are supplied. Type one is the new batch has
 #'   a few observations, type two is the new batch has no observations.
@@ -1236,6 +1244,12 @@ gpfrpred=function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,gpReg=NULL,GP
 #' @param x Plot Gaussian Process with functional mean for training or predicting with 'gpfr' class object.
 #' @param type Function provides three types of plots: raw, fitted and prediction.
 #' @param ... Graphical parameters passed to plot().
+#' @importFrom graphics polygon
+#' @importFrom graphics matpoints
+#' @importFrom graphics matlines
+#' @importFrom graphics lines
+#' @importFrom grDevices rgb
+#' @importFrom fda matplot
 #' @return A plot
 #' @export
 #'
@@ -1270,25 +1284,3 @@ plot.gpfr=function (x, type=c('raw','fitted','prediction'), ...)
   }
 }
 
-
-mymatrix2=function(smatrix,sB='sB',det=F,log=T,jitter=1e-10){
-  # mat=smatrix+diag(jitter,dim(smatrix)[1])
-  diag(smatrix)=diag(smatrix)+jitter
-  mat=smatrix
-  
-  smatrix=as.spam(mat,eps=1e-8)
-  if(is.character(sB)) sB=diag(1,dim(mat)[1])
-  else sB=as.matrix(sB)
-  sB=as.spam(sB,eps=1e-8)
-  x=solve.spam(smatrix,sB)
-  d=NULL
-  if(det==T){
-    L=chol(smatrix)
-    if(log==T)
-      # d=2*log(prod(diag(L)))
-      d=2*sum(log(diag(L)))
-    if(log==F)
-      d=prod(diag(L))
-  }
-  return(list('res'=as.matrix(x),'det'=d))
-}

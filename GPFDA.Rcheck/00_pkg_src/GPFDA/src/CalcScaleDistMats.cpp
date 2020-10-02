@@ -4,6 +4,13 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
+//' Calculate ScaleMat and DistMat matrices
+//' @param A_List List of anisotropy matrices
+//' @param coords Matrix of input coordinates (covariates)
+//' 
+//' @return A list of ScaleMat and DistMat.Mat matrices
+//' 
+//' @export
 // [[Rcpp::export]]
 List CalcScaleDistMats(List A_List, NumericMatrix coords) {
   

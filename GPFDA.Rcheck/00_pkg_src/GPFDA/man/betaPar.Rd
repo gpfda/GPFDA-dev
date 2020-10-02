@@ -18,7 +18,7 @@ basis will be calculated, otherwise normal basis, default to be FALSE;
 default to be 1e4.}
 }
 \value{
-
+A list
 }
 \description{
 Easy setting up for create a fdPar object.

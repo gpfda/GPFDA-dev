@@ -10,19 +10,3 @@ g++ -std=gnu++11 -I"/usr/share/R/include" -DNDEBUG  -I"/home/evandro/R/x86_64-pc
 g++ -std=gnu++11 -I"/usr/share/R/include" -DNDEBUG  -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/Rcpp/include" -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/RcppArmadillo/include"  -fopenmp  -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-V28x5H/r-base-3.6.3=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  -c DistMatLinear_sq.cpp -o DistMatLinear_sq.o
 g++ -std=gnu++11 -I"/usr/share/R/include" -DNDEBUG  -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/Rcpp/include" -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/RcppArmadillo/include"  -fopenmp  -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-V28x5H/r-base-3.6.3=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  -c DistMat_sq.cpp -o DistMat_sq.o
 g++ -std=gnu++11 -I"/usr/share/R/include" -DNDEBUG  -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/Rcpp/include" -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/RcppArmadillo/include"  -fopenmp  -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-V28x5H/r-base-3.6.3=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  -c KCGP.cpp -o KCGP.o
-g++ -std=gnu++11 -I"/usr/share/R/include" -DNDEBUG  -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/Rcpp/include" -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/RcppArmadillo/include"  -fopenmp  -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-V28x5H/r-base-3.6.3=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  -c KCGPnm.cpp -o KCGPnm.o
-g++ -std=gnu++11 -I"/usr/share/R/include" -DNDEBUG  -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/Rcpp/include" -I"/home/evandro/R/x86_64-pc-linux-gnu-library/3.6/RcppArmadillo/include"  -fopenmp  -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-V28x5H/r-base-3.6.3=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  -c RcppExports.cpp -o RcppExports.o
-g++ -std=gnu++11 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -Wl,-z,relro -o GPFDA.so CalcScaleDistMats.o CalcScaleDistMatsAsym.o CovMaternCpp.o CovMaternCpp_sq.o DistMat.o DistMatLinear.o DistMatLinear_sq.o DistMat_sq.o KCGP.o KCGPnm.o RcppExports.o -fopenmp -llapack -lblas -lgfortran -lm -lquadmath -L/usr/lib/R/lib -lR
-installing to /home/evandro/gitreps/GPFDA-dev/GPFDA.Rcheck/00LOCK-GPFDA/00new/GPFDA/libs
-** R
-** data
-** demo
-** byte-compile and prepare package for lazy loading
-** help
-*** installing help indices
-** building package indices
-** testing if installed package can be loaded from temporary location
-** checking absolute paths in shared objects and dynamic libraries
-** testing if installed package can be loaded from final location
-** testing if installed package keeps a record of temporary installation path
-* DONE (GPFDA)

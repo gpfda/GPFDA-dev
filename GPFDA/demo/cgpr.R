@@ -33,22 +33,22 @@ hp <- c(nu0s, log(nu1s), log(a0s), log(a1s), log(sigm))
 Psi <- CGPCovMat(Data=Data, hp=hp)
 
 # Plot auto-covariance functions
-plotCGPCovFun(type="Cov", output=1, outputp=1, Data=Data, hp=hp)
-plotCGPCovFun(type="Cov", output=2, outputp=2, Data=Data, hp=hp)
-plotCGPCovFun(type="Cov", output=3, outputp=3, Data=Data, hp=hp)
+plotCGPCovFun(type="Cov", output=1, outputp=1, Data=Data, hp=hp, idx=idx)
+plotCGPCovFun(type="Cov", output=2, outputp=2, Data=Data, hp=hp, idx=idx)
+plotCGPCovFun(type="Cov", output=3, outputp=3, Data=Data, hp=hp, idx=idx)
 # Plot cross-covariance functions
-plotCGPCovFun(type="Cov", output=1, outputp=2, Data=Data, hp=hp)
-plotCGPCovFun(type="Cov", output=1, outputp=3, Data=Data, hp=hp)
-plotCGPCovFun(type="Cov", output=3, outputp=1, Data=Data, hp=hp)
+plotCGPCovFun(type="Cov", output=1, outputp=2, Data=Data, hp=hp, idx=idx)
+plotCGPCovFun(type="Cov", output=1, outputp=3, Data=Data, hp=hp, idx=idx)
+plotCGPCovFun(type="Cov", output=3, outputp=1, Data=Data, hp=hp, idx=idx)
 
 # Plot auto-correlation functions
-plotCGPCovFun(type="Cor", output=1, outputp=1, Data=Data, hp=hp)
-plotCGPCovFun(type="Cor", output=2, outputp=2, Data=Data, hp=hp)
-plotCGPCovFun(type="Cor", output=3, outputp=3, Data=Data, hp=hp)
+plotCGPCovFun(type="Cor", output=1, outputp=1, Data=Data, hp=hp, idx=idx)
+plotCGPCovFun(type="Cor", output=2, outputp=2, Data=Data, hp=hp, idx=idx)
+plotCGPCovFun(type="Cor", output=3, outputp=3, Data=Data, hp=hp, idx=idx)
 # Plot cross-correlation functions
-plotCGPCovFun(type="Cor", output=1, outputp=2, Data=Data, hp=hp)
-plotCGPCovFun(type="Cor", output=1, outputp=3, Data=Data, hp=hp)
-plotCGPCovFun(type="Cor", output=2, outputp=3, Data=Data, hp=hp)
+plotCGPCovFun(type="Cor", output=1, outputp=2, Data=Data, hp=hp, idx=idx)
+plotCGPCovFun(type="Cor", output=1, outputp=3, Data=Data, hp=hp, idx=idx)
+plotCGPCovFun(type="Cor", output=2, outputp=3, Data=Data, hp=hp, idx=idx)
 
 
 # Simulate data
