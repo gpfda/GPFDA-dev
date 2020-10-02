@@ -49,11 +49,11 @@ for(i in 1:n){
 }
 
 # Construct the (n x n) covariance matrix  ---------------------------------
-ScaleDistMats <- CalcScaleDistMats(A_List=A_List, coords=inputMat)
+ScaleDistMats <- GPFDA:::CalcScaleDistMats(A_List=A_List, coords=inputMat)
 Scale.mat <- ScaleDistMats$Scale.mat
 Dist.mat <- ScaleDistMats$Dist.mat
 
-K <- Scale.mat*corr(Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
+K <- Scale.mat*GPFDA:::corr(Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
 diag(K) <- diag(K) + 1e-8
 
 # Generate response surfaces ----------------------------------------------
