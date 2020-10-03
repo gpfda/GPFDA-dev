@@ -453,7 +453,7 @@ repgp.loglikelihood=function(hyper.p,response,Data,Cov,gamma=1,nu=1.5,time=NULL,
   single=rep(0,ncol(response))
   for(i in 1:ncol(response)){
     old_input=as.matrix(do.call('cbind',lapply(Data,function(j) j=j[,i])))
-    single[i]=gp.loglikelihood2(hyper.p,Data=old_input,response=response[,i,drop=F],Cov=Cov,gamma=gamma,nu=nu,...)  
+    single[i]=gp.loglikelihood2(hyper.p,input=old_input,response=response[,i,drop=F],Cov=Cov,gamma=gamma,nu=nu,...)  
   }
   out=sum(single)
   return(out)
@@ -468,7 +468,7 @@ repgp.Dloglikelihood=function(hyper.p, response,Data,Cov,gamma=1,nu=1.5,time=NUL
   single=matrix(0,ncol=length(hyper.p),nrow=ncol(response))
   for(i in 1:nrow(single)){
     old_input=as.matrix(do.call('cbind',lapply(Data,function(j) j=j[,i])))
-    single[i,]=gp.Dlikelihood2(hyper.p,Data=old_input,response=response[,i,drop=F],Cov=Cov,gamma=gamma,nu=nu,...)  
+    single[i,]=gp.Dlikelihood2(hyper.p,input=old_input,response=response[,i,drop=F],Cov=Cov,gamma=gamma,nu=nu,...)  
   }
   out=apply(single,2,sum)
 }
@@ -1197,7 +1197,7 @@ gpfrpred=function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,gpReg=NULL,GP
     gpresp=as.matrix(gpReg$response)
     if(nrow(gpresp)==1) gpresp=t(gpresp)
     ygpobs=as.matrix(gpresp)-gpyhat_ml-apply(gpyhat_mf,1,sum)    
-    y_gppred=gppredict(train=FALSE,hyper=object$hyper, Data=as.matrix(gpReg$input), Y=as.matrix(ygpobs), Data.new=t(as.matrix(test)), 
+    y_gppred=gppredict(train=FALSE,hyper=object$hyper, input=as.matrix(gpReg$input), Y=as.matrix(ygpobs), input.new=t(as.matrix(test)), 
                        Cov=object$CovFun,gamma=object$gamma, nu=object$nu)
     ygppred=y_gppred$pred.mean
     s2 = ((y_gppred$pred.sd)^2-exp(object$hyper$vv))%*%(1 + ml_var)#+sum(mf_var))
@@ -1213,7 +1213,7 @@ gpfrpred=function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,gpReg=NULL,GP
     
     for(i in 1:ncol(object$resid_resp)){
       input=do.call('cbind',lapply(object$gpTrain,function(j) j=j[,i]))
-      y_gppred=gppredict(train=FALSE,Data.new=t(as.matrix(test)),hyper=object$hyper,Data=as.matrix(input), Y=as.matrix(object$resid_resp[,i]),
+      y_gppred=gppredict(train=FALSE,input.new=t(as.matrix(test)),hyper=object$hyper,input=as.matrix(input), Y=as.matrix(object$resid_resp[,i]),
                          Cov=object$CovFun,gamma=object$gamma, nu=object$nu)
       ygppred = y_gppred$pred.mean
       s2 = ((y_gppred$pred.sd)^2-exp(object$hyper$vv))#%*%(1 + ml_var+sum(mf_var))

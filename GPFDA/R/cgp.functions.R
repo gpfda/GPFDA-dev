@@ -1,36 +1,36 @@
 
-
-
-
 #' Convolved (multivariate) Gaussian process regression
+#'
+#' Convolved (multivariate) Gaussian process regression where each output is
+#' unidimensional.
 #'
 #' @param Data List of two elements: (1) response variable; and (2) input
 #'   variables
 #' @param m If Subset of Data is to be used, m denotes the subset size and
 #'   cannot be larger than the total sample size. Default set to NULL.
-#' @param meanModel Model for mean.
-#' @param mean Is the mean taken out when analysis? Default to be 0, which
-#'   assumes the mean is zero. if assume mean is a constant, mean=1; if assume
-#'   mean is a linear trend, mean='t'.
+#' @param meanModel Type of mean function for each output. It can be \describe{
+#'   \item{0}{Zero mean function} \item{1}{Constant mean function to be
+#'   estimated} \item{'t'}{Linear model for mean function} \item{'avg'}{The
+#'   average across replications is used as the mean function. This is only used
+#'   if there are more than two realisations observed at the same input
+#'   coordinate values.} } Default to 0. If argument 'mu' is specified, then
+#'   'meanModel' will be set to 'userDefined'.
+#' @param mu Vector having the mean function values defined by the user. Its
+#'   length must be the same as the sample size, that is, ncol(response).
 #'
-#' @return A list containing: \describe{ 
-#' \item{fitted.mean }{Fitted value of training data } 
-#' \item{fitted.sd }{Standard deviation of the fitted value of training data} 
-#' \item{X}{Original input variables}
-#' \item{Y}{Original response}
-#' \item{idx}{Original response}
-#' 
-#' \item{Cov}{Original response}
-#' \item{mean}{CHECK}
-#' \item{meanModel}{CHECK  Mean function type}
-#' \item{meanLinearModel}{CHECK Mean model}
-#' }
-#' 
+#' @return A list containing: \describe{ \item{fitted.mean }{Fitted value of
+#'   training data } \item{fitted.sd }{Standard deviation of the fitted value of
+#'   training data} \item{X}{Original input variables} \item{Y}{Original
+#'   response} \item{idx}{Original response}
+#'
+#'   \item{Cov}{Original response} \item{mean}{CHECK} \item{meanModel}{CHECK
+#'   Mean function type} \item{meanLinearModel}{CHECK Mean model} }
+#'
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
-#'  Analysis for Functional Data'', CRC Press.
+#'   Analysis for Functional Data'', CRC Press.
 #' @export
-#'
-CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
+#' 
+CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
   
   N <- length(Data$input)
   X <- as.matrix(unlist(Data$input))
@@ -39,7 +39,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
   
   response <- Reduce('rbind', Data$response)
   
-  Q <- ncol(X)
+  Q <- 1
   nrep <- ncol(response)
   n <- nrow(response)
   
@@ -48,22 +48,23 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
   idx.original <- idx
   n.original <- n
   
-  if(!is.null(mean)){
-    if(!length(mean)==n){
-      stop("'mean' defined by the user must have the same length as the response variable.")
+  if(!is.null(mu)){
+    if(!length(mu)==n){
+      stop("'mu' defined by the user must have the same length as the response 
+           variable.")
     }
-    mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
+    mu <- matrix(rep(mu, nrep), ncol=nrep, byrow=F)
     meanModel <- 'userDefined'
   }
   
   if(meanModel==0) {
-    mean <- 0
-    mean <- matrix(mean, nrow=n, ncol=nrep, byrow=F)
+    mu <- 0
+    mu <- matrix(mu, nrow=n, ncol=nrep, byrow=F)
   }
 
   if(meanModel==1) {
     responseNew <- NULL
-    mean <- NULL
+    mu <- NULL
     for(j in 1:N){
       
       mean_j <- mean(response[idx==j,])
@@ -71,7 +72,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
       mean_j <- matrix( rep(mean_j, nj*nrep), nrow=nj, byrow=F)
       response_j <- response[idx==j,,drop=F] - mean_j
       responseNew <- rbind(responseNew, response_j)
-      mean <- rbind(mean, mean_j)
+      mu <- rbind(mu, mean_j)
     }
     response <- responseNew
     
@@ -80,7 +81,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
   if(meanModel=='t') {
     meanLinearModel <- list()  
     responseNew <- NULL
-    mean <- NULL
+    mu <- NULL
     for(j in 1:N){
       trend <- data.frame(yyy=c(response[idx==j,]), xxx=rep(c(X[idx==j,]), nrep))
       meanLinearModel_j <- lm(yyy~xxx, data=trend)
@@ -89,7 +90,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
       mean_j <- matrix(fitted(meanLinearModel_j), nrow=nrow(response[idx==j,,drop=F]), byrow=F)
       
       responseNew <- rbind(responseNew, response_j)
-      mean <- rbind(mean, mean_j)
+      mu <- rbind(mu, mean_j)
     }
     response <- responseNew
   }else{
@@ -101,12 +102,12 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
       stop('Mean function can only be the average across replications when
            there are more than two replications.')
     }
-    mean <- apply(response, 1, mean)
-    mean <- matrix(rep(mean, nrep), ncol=nrep, byrow=F)
-    response <- response - mean
+    mu <- apply(response, 1, mean)
+    mu <- matrix(rep(mu, nrep), ncol=nrep, byrow=F)
+    response <- response - mu
   }
   
-  mean.original <- mean
+  mean.original <- mu
   
   idxSubset <- NULL
   if(!is.null(m)){
@@ -115,8 +116,8 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
     response <- response[idxSubset,,drop=F]
     X <- X[idxSubset,,drop=F]
     idx <- idx[idxSubset]
-    # if(!is.null(mean)){
-      mean <- mean[idxSubset,,drop=F]
+    # if(!is.null(mu)){
+      mu <- mu[idxSubset,,drop=F]
     # }
     n <- nrow(response)
   }
@@ -158,7 +159,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mean=NULL){
   result <- list('hyper'=hp_opt,
               'fitted.mean'=fitted,
               'fitted.sd'=sqrt(fitted.var),
-              'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 'mean'=mean.original[,1], 
+              'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 'mu'=mean.original[,1], 
               'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel)
   class(result)='mgpr'
   return(result=result)
@@ -186,7 +187,7 @@ CGPprediction <- function(train=NULL,
                        Data.train=NULL,
                        Data.new=NULL,
                        noiseFreePred=F, 
-                       meanModel=NULL, mean=0){
+                       meanModel=NULL, mu=0){
   
   if(class(train)=='mgpr'){
     hyper=train$hyper
@@ -194,7 +195,7 @@ CGPprediction <- function(train=NULL,
     Y=train$Y
     idx=train$idx
     Cov=train$Cov
-    mean=train$mean
+    mu=train$mu
     meanModel=train$meanModel
     meanLinearModel=train$meanLinearModel
   }
@@ -235,7 +236,7 @@ CGPprediction <- function(train=NULL,
   
   hp <- TransfToNatScaleCGP(hyper, N)
   
-  Q <- ncol(X)
+  Q <- 1
   va0s <- hp[1:N]
   va1s <- hp[(N+1):(2*N)]
   AparsMat <- matrix(hp[seq(2*N+1, by=1, length.out=2*N*Q)], ncol=2*Q, byrow=T)
@@ -268,7 +269,7 @@ CGPprediction <- function(train=NULL,
     for(j in 1:N){
       meanList[[j]] <- rep(0, nsTest[j])
     }
-    mean <- do.call(cbind, replicate(nrep, unlist(meanList), simplify=FALSE))
+    mu <- do.call(cbind, replicate(nrep, unlist(meanList), simplify=FALSE))
   }
   if(meanModel=='t'){
     meanList <- list()
@@ -276,10 +277,10 @@ CGPprediction <- function(train=NULL,
       newtrend <- data.frame(xxx=Data.new$input[[j]])
       meanList[[j]] <- predict(meanLinearModel[[j]], newdata=newtrend)
     }
-    mean <- do.call(cbind, replicate(nrep, unlist(meanList), simplify=FALSE))
+    mu <- do.call(cbind, replicate(nrep, unlist(meanList), simplify=FALSE))
   }
   
-  mu <- t(Knm)%*%QR + mean
+  pred.mu. <- t(Knm)%*%QR + mu
   
   if(noiseFreePred){
     sigma2 <- diag(Kstar)-diag(t(Knm)%*%invPsi%*%Knm) - sig^2
@@ -293,7 +294,7 @@ CGPprediction <- function(train=NULL,
   pred.mean <- list()
   pred.sd <- list()
   for(j in 1:N){
-    pred.mean[[j]] <- mu[idx.new==j,,drop=F]
+    pred.mean[[j]] <- pred.mu.[idx.new==j,,drop=F]
     pred.sd[[j]] <- pred.sd.[idx.new==j]
   }
   
@@ -327,7 +328,7 @@ CGPCovMat <- function(Data, hp){
   idx <- c(unlist(sapply(1:N, function(i) rep(i, ns[i]))))
   hp <- TransfToNatScaleCGP(hp, N)
   
-  Q <- ncol(X)
+  Q <- 1
   va0s <- hp[1:N]
   va1s <- hp[(N+1):(2*N)]
   AparsMat <- matrix(hp[seq(2*N+1, by=1, length.out=2*N*Q)], ncol=2*Q, byrow=T)
@@ -360,7 +361,7 @@ TransfToNatScaleCGP <- function(hp, N){
 
 LogLikCGP <- function(hp, response, X, idx){
   
-  Q <- ncol(X)
+  Q <- 1
   N <- length(unique(idx))
   hp <- TransfToNatScaleCGP(hp, N)
   
@@ -403,11 +404,13 @@ LogLikCGP <- function(hp, response, X, idx){
 
 
 
-#' Plot Convolved (multivariate) Gaussian Process regression
+#' Plot predictions of a convolved (multivariate) Gaussian Process regression
+#' model
 #'
-#' Plot Gaussian Process for a given an object of class 'gpr'.
+#' Plot predicitons of each element of the multivariate Gaussian Process for a
+#' given an object of class 'gpr'.
 #'
-#' @param train The 'mgpr' object 
+#' @param train The 'mgpr' object
 #' @param Data.train List of training data
 #' @param Data.new List of test data
 #' @param i Which realisation should be plotted.
@@ -416,14 +419,15 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @param cex  Graphical parameter
 #' @param cex.lab  Graphical parameter
 #' @param cex.axis  Graphical parameter
-#' 
+#'
 #' @importFrom  graphics polygon
 #' @importFrom  graphics lines
 #' @importFrom  graphics plot
 #' @importFrom  graphics par
 #' @importFrom  grDevices rgb
 #'
-#' @return A plot showing predictions of each element of the multivariate process.
+#' @return A plot showing predictions of each element of the multivariate
+#'   process.
 #' @export
 plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=NULL,
                                cex=1, cex.lab=1, cex.axis=1){

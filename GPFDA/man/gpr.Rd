@@ -5,14 +5,14 @@
 \title{Gaussian Process regression}
 \usage{
 gpr(
-  Data,
+  input,
   response,
   Cov = "pow.ex",
   m = NULL,
   hyper = NULL,
   NewHyper = NULL,
   meanModel = 0,
-  mean = NULL,
+  mu = NULL,
   gamma = NULL,
   nu = NULL,
   useGradient = T,
@@ -23,7 +23,7 @@ gpr(
 )
 }
 \arguments{
-\item{Data}{The input data from train data. Matrix or vectors are both
+\item{input}{The input data from train data. Matrix or vectors are both
 acceptable. Some data.frames are not acceptable.}
 
 \item{response}{The response data from train data. Matrix or vectors are both
@@ -42,16 +42,22 @@ customized kernel function. The names of the hyper-parameters must have the
 format: xxxxxx.x, i.e. '6 digit' plus 'a dot' plus '1 digit'. This is
 required for both 'hyper' and 'NewHyper'}
 
-\item{meanModel}{Type of mean.}
+\item{meanModel}{Type of mean function. It can be \describe{ \item{0}{Zero
+mean function} \item{1}{Constant mean function to be estimated}
+\item{'t'}{Linear model for mean function} \item{'avg'}{The average across
+replications is used as the mean function. This is only used if there are
+more than two realisations observed at the same input coordinate values.} }
+Default to 0. If argument 'mu' is specified, then 'meanModel' will be set
+to 'userDefined'.}
 
-\item{mean}{Is the mean taken out when analysis? Default to be 0, which
-assumes the mean is zero. if assume mean is a constant, mean=1; if assume
-mean is a linear trend, mean='t'.}
+\item{mu}{Vector having the mean function values defined by the user. Its
+length must be the same as the sample size, that is, ncol(response).}
 
-\item{gamma}{Power parameter used in powered exponential kernel function.
-It must be 0<gamma<=2.}
+\item{gamma}{Power parameter used in powered exponential kernel function. It
+must be 0<gamma<=2.}
 
-\item{nu}{Smoothness parameter of the Matern class. It must be a positive value.}
+\item{nu}{Smoothness parameter of the Matern class. It must be a positive
+value.}
 
 \item{useGradient}{Logical. If TRUE, first derivatives will be used in the
 optimization.}
@@ -71,27 +77,20 @@ information is to be printed.}
 optimization starts with the best.}
 }
 \value{
-A list containing: \describe{ 
-\item{hyper}{Hyper-parameter estimated from training data}
-\item{var.hyper}{ Variance of the estimated hyper-parameters} 
-\item{fitted.mean }{Fitted value of training data } 
-\item{fitted.sd }{Standard deviation of the fitted value of training data} 
-\item{train.x }{ Training covariates} 
-\item{train.y }{ Training response} 
-\item{ train.yOri}{Original training response } 
-\item{train.DataOri }{ } 
-\item{idxSubset }{Index vector identifying which observations were selected 
-if Subset of Data was used.} 
-\item{ CovFun}{ Covariance function type} 
-\item{ gamma}{Parameter used in powered exponential covariance function } 
-\item{nu }{Parameter used in Matern covariance function } 
-\item{Q}{Covariance matrix } 
-\item{mean}{Mean function } 
-\item{meanModel}{ CHECK: 'lm' object if mean is a linear regression. NULL otherwise.} 
-\item{meanLinearModel}{ } 
-\item{conv}{0 means converge; 1 otherwise. } 
-\item{hyper0}{ starting point of the hyper-parameters}
- }
+A list containing: \describe{ \item{hyper}{Hyper-parameter estimated
+  from training data} \item{var.hyper}{ Variance of the estimated
+  hyper-parameters} \item{fitted.mean }{Fitted value of training data }
+  \item{fitted.sd }{Standard deviation of the fitted value of training data}
+  \item{train.x }{ Training covariates} \item{train.y }{ Training response}
+  \item{ train.yOri}{Original training response } \item{train.DataOri }{ }
+  \item{idxSubset }{Index vector identifying which observations were selected
+  if Subset of Data was used.} \item{ CovFun}{ Covariance function type}
+  \item{ gamma}{Parameter used in powered exponential covariance function }
+  \item{nu }{Parameter used in Matern covariance function }
+  \item{Q}{Covariance matrix } \item{mean}{Mean function } \item{meanModel}{
+  CHECK: 'lm' object if mean is a linear regression. NULL otherwise.}
+  \item{meanLinearModel}{ } \item{conv}{0 means converge; 1 otherwise. }
+  \item{hyper0}{ starting point of the hyper-parameters} }
 }
 \description{
 Gaussian Process regression for a single or multiple independent

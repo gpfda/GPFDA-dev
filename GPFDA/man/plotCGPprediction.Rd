@@ -2,7 +2,8 @@
 % Please edit documentation in R/cgp.functions.R
 \name{plotCGPprediction}
 \alias{plotCGPprediction}
-\title{Plot Convolved (multivariate) Gaussian Process regression}
+\title{Plot predictions of a convolved (multivariate) Gaussian Process regression
+model}
 \usage{
 plotCGPprediction(
   train,
@@ -36,8 +37,10 @@ plotCGPprediction(
 \item{cex.axis}{Graphical parameter}
 }
 \value{
-A plot showing predictions of each element of the multivariate process.
+A plot showing predictions of each element of the multivariate
+  process.
 }
 \description{
-Plot Gaussian Process for a given an object of class 'gpr'.
+Plot predicitons of each element of the multivariate Gaussian Process for a
+given an object of class 'gpr'.
 }

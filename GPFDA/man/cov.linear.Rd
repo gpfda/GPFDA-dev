@@ -4,14 +4,14 @@
 \alias{cov.linear}
 \title{Linear covariance function}
 \usage{
-cov.linear(hyper, Data, Data.new = NULL)
+cov.linear(hyper, input, input.new = NULL)
 }
 \arguments{
 \item{hyper}{The hyperparameters. Must be a list with certain names.}
 
-\item{Data}{The input data. Must be a vector or a matrix.}
+\item{input}{The input data. Must be a vector or a matrix.}
 
-\item{Data.new}{The data for prediction. Must be a vector or a matrix.
+\item{input.new}{The data for prediction. Must be a vector or a matrix.
 Default to NULL.}
 }
 \value{
@@ -19,4 +19,11 @@ Covariance matrix
 }
 \description{
 Linear covariance function
+}
+\details{
+The names for the hyperparameters should be:"linear.a" for linear
+  covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
+  "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
+  rational quadratic, "vv" for white noise. All hyper parameters should be in
+  one list.
 }

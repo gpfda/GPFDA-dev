@@ -4,7 +4,7 @@
 \alias{CGPR}
 \title{Convolved (multivariate) Gaussian process regression}
 \usage{
-CGPR(Data, m = NULL, meanModel = 0, mean = NULL)
+CGPR(Data, m = NULL, meanModel = 0, mu = NULL)
 }
 \arguments{
 \item{Data}{List of two elements: (1) response variable; and (2) input
@@ -13,30 +13,31 @@ variables}
 \item{m}{If Subset of Data is to be used, m denotes the subset size and
 cannot be larger than the total sample size. Default set to NULL.}
 
-\item{meanModel}{Model for mean.}
+\item{meanModel}{Type of mean function for each output. It can be \describe{
+\item{0}{Zero mean function} \item{1}{Constant mean function to be
+estimated} \item{'t'}{Linear model for mean function} \item{'avg'}{The
+average across replications is used as the mean function. This is only used
+if there are more than two realisations observed at the same input
+coordinate values.} } Default to 0. If argument 'mu' is specified, then
+'meanModel' will be set to 'userDefined'.}
 
-\item{mean}{Is the mean taken out when analysis? Default to be 0, which
-assumes the mean is zero. if assume mean is a constant, mean=1; if assume
-mean is a linear trend, mean='t'.}
+\item{mu}{Vector having the mean function values defined by the user. Its
+length must be the same as the sample size, that is, ncol(response).}
 }
 \value{
-A list containing: \describe{ 
-\item{fitted.mean }{Fitted value of training data } 
-\item{fitted.sd }{Standard deviation of the fitted value of training data} 
-\item{X}{Original input variables}
-\item{Y}{Original response}
-\item{idx}{Original response}
+A list containing: \describe{ \item{fitted.mean }{Fitted value of
+  training data } \item{fitted.sd }{Standard deviation of the fitted value of
+  training data} \item{X}{Original input variables} \item{Y}{Original
+  response} \item{idx}{Original response}
 
-\item{Cov}{Original response}
-\item{mean}{CHECK}
-\item{meanModel}{CHECK  Mean function type}
-\item{meanLinearModel}{CHECK Mean model}
-}
+  \item{Cov}{Original response} \item{mean}{CHECK} \item{meanModel}{CHECK
+  Mean function type} \item{meanLinearModel}{CHECK Mean model} }
 }
 \description{
-Convolved (multivariate) Gaussian process regression
+Convolved (multivariate) Gaussian process regression where each output is
+unidimensional.
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
- Analysis for Functional Data'', CRC Press.
+  Analysis for Functional Data'', CRC Press.
 }

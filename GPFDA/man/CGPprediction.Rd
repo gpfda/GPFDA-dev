@@ -10,7 +10,7 @@ CGPprediction(
   Data.new = NULL,
   noiseFreePred = F,
   meanModel = NULL,
-  mean = 0
+  mu = 0
 )
 }
 \arguments{
@@ -22,11 +22,16 @@ CGPprediction(
 
 \item{noiseFreePred}{Logical. If TRUE, predictions will be noise-free.}
 
-\item{meanModel}{Model for mean.}
+\item{meanModel}{Type of mean function for each output. It can be \describe{
+\item{0}{Zero mean function} \item{1}{Constant mean function to be
+estimated} \item{'t'}{Linear model for mean function} \item{'avg'}{The
+average across replications is used as the mean function. This is only used
+if there are more than two realisations observed at the same input
+coordinate values.} } Default to 0. If argument 'mu' is specified, then
+'meanModel' will be set to 'userDefined'.}
 
-\item{mean}{Is the mean taken out when analysis? Default to be 0, which
-assumes the mean is zero. if assume mean is a constant, mean=1; if assume
-mean is a linear trend, mean='t'.}
+\item{mu}{Vector having the mean function values defined by the user. Its
+length must be the same as the sample size, that is, ncol(response).}
 }
 \value{
 A list containing  \describe{ 

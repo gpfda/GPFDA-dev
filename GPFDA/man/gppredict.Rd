@@ -6,37 +6,36 @@
 \usage{
 gppredict(
   train = NULL,
-  Data.new = NULL,
+  input.new = NULL,
   noiseFreePred = F,
   hyper = NULL,
-  Data = NULL,
+  input = NULL,
   Y = NULL,
   mSR = NULL,
   Cov = NULL,
   gamma = NULL,
   nu = NULL,
   meanModel = 0,
-  mean = 0
+  mu = 0
 )
 }
 \arguments{
 \item{train}{List resulting from training which is a 'gpr' object. Default to be
 NULL. If NULL, do training based on the other given arguments; if TRUE,
-other arguments (except for Data.new) will replaced by NULL; if FALSE, only
+other arguments (except for input.new) will replaced by NULL; if FALSE, only
 do prediction based on the other given arguments.}
 
-\item{Data.new}{The test data. Must be a vector or a matrix.}
+\item{input.new}{The test data. Must be a vector or a matrix.}
 
 \item{noiseFreePred}{Logical. If TRUE, predictions will be noise-free.}
 
 \item{hyper}{The hyperparameters. Default to NULL. If not NULL, then must be
 a list with certain names.}
 
-\item{Data}{The input data from train data. Matrix or vectors are both
+\item{input}{The input data from train data. Matrix or vectors are both
 acceptable. Some data.frames are not acceptable.}
 
-\item{Y}{--------- CHECK   Same as Data????  The input data from train data.
-Matrix or vectors are both acceptable. Some data.frames are not acceptable.
+\item{Y}{Training response.
 --------------}
 
 \item{mSR}{Subset size m if Subset of Regressors method is used. It must be
@@ -44,16 +43,22 @@ smaller than the total sample size.}
 
 \item{Cov}{Covariance function(s) to use. Default to 'power.ex'.}
 
-\item{gamma}{Power parameter used in powered exponential kernel function.
-It must be 0<gamma<=2.}
+\item{gamma}{Power parameter used in powered exponential kernel function. It
+must be 0<gamma<=2.}
 
-\item{nu}{Smoothness parameter of the Matern class. It must be a positive value.}
+\item{nu}{Smoothness parameter of the Matern class. It must be a positive
+value.}
 
-\item{meanModel}{Type of mean.}
+\item{meanModel}{Type of mean function. It can be \describe{ \item{0}{Zero
+mean function} \item{1}{Constant mean function to be estimated}
+\item{'t'}{Linear model for mean function} \item{'avg'}{The average across
+replications is used as the mean function. This is only used if there are
+more than two realisations observed at the same input coordinate values.} }
+Default to 0. If argument 'mu' is specified, then 'meanModel' will be set
+to 'userDefined'.}
 
-\item{mean}{Is the mean taken out when analysis? Default to be 0, which
-assumes the mean is zero. if assume mean is a constant, mean=1; if assume
-mean is a linear trend, mean='t'.}
+\item{mu}{Vector having the mean function values defined by the user. Its
+length must be the same as the sample size, that is, ncol(response).}
 }
 \value{
 A list containing  \describe{ 

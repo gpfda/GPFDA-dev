@@ -4,14 +4,14 @@
 \alias{cov.pow.ex}
 \title{Stationary powered exponential covariance function.}
 \usage{
-cov.pow.ex(hyper, Data, Data.new = NULL, gamma = 2)
+cov.pow.ex(hyper, input, input.new = NULL, gamma = 2)
 }
 \arguments{
 \item{hyper}{The hyperparameters. Must be a list with certain names.}
 
-\item{Data}{The input data. Must be a vector or a matrix.}
+\item{input}{The input data. Must be a vector or a matrix.}
 
-\item{Data.new}{The data for prediction. Must be a vector or a matrix.
+\item{input.new}{The data for prediction. Must be a vector or a matrix.
 Default to NULL.}
 
 \item{gamma}{Power parameter that cannot be estimated by simple non-linear
@@ -24,12 +24,13 @@ Covariance matrix
 Stationary powered exponential covariance function.
 }
 \details{
-The names for the hyper parameters should be:"linear.a" for linear
+The names for the hyperparameters should be:"linear.a" for linear
   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
-  "rat.qu.s", "rat.qu.a" for rational quadratic, "vv" for white noise. All
-  hyper parameters should be in one list.
+  "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
+  rational quadratic, "vv" for white noise. All hyper parameters should be in
+  one list.
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
-  Analysis for Functional Data'', CRC Press.
+  Analysis for Functional input'', CRC Press.
 }
