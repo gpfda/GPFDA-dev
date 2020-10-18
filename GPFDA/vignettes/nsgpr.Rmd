@@ -11,7 +11,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-        echo = TRUE, results = 'hold', cache=F, #dev = 'pdf', 
+        echo=TRUE, results='hold', warning=F, cache=F, 
+  #dev = 'pdf', 
   message=F, 
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=TRUE
@@ -27,8 +28,10 @@ library(akima)
 library(fields)
 ```
 
+
+## Simulating data from a GP with nonstationary and nonseparable covariance structure
+
 ```{r}
-# Simulate data
 set.seed(123)
 Q <- 2 # number of input coordinates (covariates)
 n1 <- 30 # sample size for covariate 1
@@ -38,8 +41,7 @@ n_s <- c(n1,n2)
 input <- list()
 input[[1]] <- seq(0,1,length.out = n1)
 input[[2]] <- seq(0,1,length.out = n2)
-# inputs in a matrix
-inputMat <- as.matrix(expand.grid(input))
+inputMat <- as.matrix(expand.grid(input)) # inputs in a matrix form
 
 corrModel <- "pow.ex"
 gamma <- 1
@@ -72,7 +74,7 @@ for(i in 1:n){
   R12_vec[i] <- A_i12/sqrt(A_i11*A_i22)
 }
 
-# Construct the (n x n) covariance matrix  ---------------------------------
+# Construct the (n x n) covariance matrix
 ScaleDistMats <- CalcScaleDistMats(A_List=A_List, coords=inputMat)
 Scale.mat <- ScaleDistMats$Scale.mat
 Dist.mat <- ScaleDistMats$Dist.mat
@@ -80,17 +82,17 @@ Dist.mat <- ScaleDistMats$Dist.mat
 K <- Scale.mat*UnscaledCorr(Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
 diag(K) <- diag(K) + 1e-8
 
-# Generate response surfaces ----------------------------------------------
+# Generate response surfaces
 meanFunction <- rep(0, n)
 nSamples <- 10
 response <- t(mvtnorm::rmvnorm(nSamples, meanFunction, K))
 ```
 
+## Estimating NSGP covariance function 
 
 ```{r}
-# Estimating NSGP covariance function 
-# 
-# # NOT RUN ----------------------------------------------------------
+### NOT RUN
+
 # fit <- NSGPR(response = response,
 #               input = input,
 #               corrModel = corrModel,
@@ -104,9 +106,12 @@ response <- t(mvtnorm::rmvnorm(nSamples, meanFunction, K))
 #               unitSignalVariance = T,
 #               zeroNoiseVariance = T,
 #               sepcov2D = F)
-# hp <- fit$MLEsts # ML estimates of B-spline coefficients
-# end NOT RUN  ----------------------------------------------------------------
 
+## Taking ML estimates of B-spline coefficients
+
+# hp <- fit$MLEsts
+
+###  end NOT RUN
 
 hp <- c(5.60699, 1.14865, -6.61148, 8, -4.44439, -2.14159, 3.98823, 
         5.42213, -8, 6.91389, -0.17032, -6.29215, 0.48661, 8, -2.84537, 
@@ -125,11 +130,13 @@ hp <- c(5.60699, 1.14865, -6.61148, 8, -4.44439, -2.14159, 3.98823,
         5.1746, -5.04487, 7.5953, 0.16564, -1.16696, 0, 0, 0, 0, 0, 0, 
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
         0, 0, 0, 0, 0, 0, 0, 0, 0, -23.02585)
+```
 
 
-############## Prediction
+## Prediction
 
-# Test set
+```{r}
+# Creating test set
 n1test <- n1*2
 n2test <- n2*2
 input.new <- list()
@@ -144,7 +151,7 @@ pred <- NSGPprediction(hp=hp, response=response, input=input,
 ```
 
 
-```{r}
+```{r, fig.width=10, fig.height=5}
 #### Plot predictions for the i-th realisation
 i <- 1
 YtrainMat <- matrix(response[,i], nrow=n1, ncol=n2, byrow=F)
@@ -182,15 +189,13 @@ par(opar)
 ```
 
 
-```{r}
-################################################################
+### Plotting true and fitted covariance functions
+
+```{r, fig.width=10, fig.height=5}
 # Calculate Covariance matrix based on the hp estimates found above
 FittedCovMat <- NSGPCovMat(hp=hp, input=input, corrModel=corrModel, 
                               gamma=gamma, nu=nu, nBasis=6, cyclic=c(F,F), 
                               whichTau=c(T,T), calcCov=T)$Cov
-
-
-### Plotting a slice of the true and fitted covariance functions
 
 # centre points for the covariance functions
 input1cent <- input[[1]][8]

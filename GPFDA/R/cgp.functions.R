@@ -522,7 +522,7 @@ plotCGPCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL,
   }
   plot(Data$input[[output]] - tp0, toPlot, ylim=ylim, xlim=xlim, type="l",
        xlab=bquote("t-("*.(tp0)*")"),
-       ylab=bquote(.(type)*"["~X[.(output)]*"(t),"~
+       ylab=bquote(.(type)*"["*X[.(output)]*"(t),"~
                      X[.(outputp)]*"("*.(tp0)*")]"))
 
   par(op)

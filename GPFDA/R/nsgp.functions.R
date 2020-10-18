@@ -334,8 +334,7 @@ NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis = 5,
   if( is.null(whichTau) ){
     cat("\nPlease specify 'whichTau' 
     (i.e. the logical vector of length Q saying which are the 'tau' dimensions).\n")}
-  
-  cat(paste0("Parameters are varying in coordinate direction(s): "), which(whichTau==T), " \n")
+
   
   if(nBasis<5)stop("nBasis must be >= 5")
   
@@ -684,10 +683,7 @@ NSGPCovMat_Asym <- function(hp, input, inputNew,
     cat("\nPlease specify 'whichTau' 
     (i.e. the logical vector of length Q saying which are the 'tau' dimensions).\n")}
   
-  cat(paste0("Parameters are varying in coordinate direction(s): "), which(whichTau==T), " \n")
-  
   if(nBasis<5)stop("nBasis must be >= 5")
-  
   
   nTaus <- sum(whichTau)
   if(!(nTaus%in%c(1,2)))stop("The code works only if dimension of tau is 1 or 2")

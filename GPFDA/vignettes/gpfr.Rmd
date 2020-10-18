@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-        echo = TRUE, results = 'hold', cache=F, #dev = 'pdf', 
+        echo = TRUE, results = 'hold', warning=F, cache=F, #dev = 'pdf', 
   message=F, 
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=TRUE
@@ -59,8 +59,6 @@ xt2 <- cos(xt^3)+0.2*rnorm(n,0,3)
 mat_t <- cbind(xt,xt1,xt2)
 colnames(mat_t) <- c('time','xt1','xt2')
 td <- list(mat,scale,mat_t)
-
-
 
 lx=do.call('rbind',lapply(traindata,function(i)i[[2]]))
 fx1=do.call('rbind',lapply(traindata,function(i)i[[1]][,2]))

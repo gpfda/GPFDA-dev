@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-        echo = TRUE, results = 'hold', cache=F, #dev = 'pdf', 
+        echo = TRUE, results = 'hold', warning=F, cache=F, #dev = 'pdf', 
   message=F, 
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=TRUE
@@ -24,12 +24,12 @@ library(GPFDA)
 require(MASS)
 ```
 
+## Simulating data from a multiple convolved GP with three outputs
 ```{r}
 set.seed(123)
 
 # settings
 nSamples <- 30
-
 Q <- 1
 n1 <- 250
 n2 <- 250
@@ -62,23 +62,16 @@ Psi <- CGPCovMat(Data=Data, hp=hp)
 ```{r}
 # Plot auto-covariance functions
 plotCGPCovFun(type="Cov", output=1, outputp=1, Data=Data, hp=hp, idx=idx)
-plotCGPCovFun(type="Cov", output=2, outputp=2, Data=Data, hp=hp, idx=idx)
-plotCGPCovFun(type="Cov", output=3, outputp=3, Data=Data, hp=hp, idx=idx)
 # Plot cross-covariance functions
 plotCGPCovFun(type="Cov", output=1, outputp=2, Data=Data, hp=hp, idx=idx)
-plotCGPCovFun(type="Cov", output=1, outputp=3, Data=Data, hp=hp, idx=idx)
-plotCGPCovFun(type="Cov", output=3, outputp=1, Data=Data, hp=hp, idx=idx)
-
 # Plot auto-correlation functions
 plotCGPCovFun(type="Cor", output=1, outputp=1, Data=Data, hp=hp, idx=idx)
-plotCGPCovFun(type="Cor", output=2, outputp=2, Data=Data, hp=hp, idx=idx)
-plotCGPCovFun(type="Cor", output=3, outputp=3, Data=Data, hp=hp, idx=idx)
 # Plot cross-correlation functions
 plotCGPCovFun(type="Cor", output=1, outputp=2, Data=Data, hp=hp, idx=idx)
-plotCGPCovFun(type="Cor", output=1, outputp=3, Data=Data, hp=hp, idx=idx)
-plotCGPCovFun(type="Cor", output=2, outputp=3, Data=Data, hp=hp, idx=idx)
+```
 
 
+```{r}
 # Simulate data
 mu <- c( 5*input1, 10*input2, -3*input3)
 Y <- t(mvrnorm(n=nSamples, mu=mu, Sigma=Psi))
@@ -88,13 +81,12 @@ for(j in 1:N){
 }
 Data$response <- response
 
-
 # CGPR estimation 
-system.time(res <- CGPR(Data=Data, m=200, meanModel = 't'))
+res <- CGPR(Data=Data, m=200, meanModel = 't')
 ```
 
 
-```{r}
+```{r, fig.width=12, fig.height=4}
 # Test set
 n_star <- 60*3
 input1star <- seq(min(input1), max(input1), length.out = n_star/N)

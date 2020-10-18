@@ -11,7 +11,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-        echo = TRUE, results = 'hold', cache=F, #dev = 'pdf', 
+        echo = TRUE, results = 'hold', warning=F, cache=F, 
+  #dev = 'pdf', 
   message=F, 
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=TRUE
@@ -23,16 +24,15 @@ options(scipen = 1, digits = 4)
 library(GPFDA)
 ```
 
-## loading data
+## Loading co2 data
 ```{r}
 data(co2)
-data_co2=co2
 ```
 
 
 ```{r}
 # store data into matrix and remove missing values
-y=data.matrix(data_co2[,!names(data_co2)%in%'Annual_Average'])
+y=data.matrix(co2[,!names(co2)%in%'Annual_Average'])
 y=matrix(t(y),ncol=1)
 x=1:612/12; x[y<0]=NA
 mat=cbind(y,x)
@@ -41,12 +41,18 @@ mat=na.omit(mat)
 X=as.matrix(mat[,2])
 Y=as.matrix(mat[,1])
 x=as.matrix(seq(1,612,len=1000)/12)
+```
 
+### Using powered exponential covariance kernel
+```{r, message=F}
 # First covariance matrix
 system.time(a1 <- gpr(as.matrix(X),as.matrix(Y),'pow.ex', gamma=2, meanModel='t',
                       nInitCandidates=50, trace=2))
 system.time(b1 <- gppredict(a1, input.new=as.matrix(x)))
+```
 
+
+```{r}
 # plot(a1)
 # plot(b1)
 upper=b1$pred.mean+1.96*b1$pred.sd;
@@ -60,10 +66,9 @@ lines(x,b1$pred.mean,col=4,lwd=0.8)
 ```
 
 
+### Using rational quadratic covariance kernel
 
-# Second covariance matrix
-
-```{r}
+```{r, message=F}
 a2 <- gpr(as.matrix(X),as.matrix(Y),'rat.qu',meanModel='t',
           nInitCandidates=50, trace=2)
 b2 <- gppredict(a2, input.new=as.matrix(x))
@@ -76,7 +81,8 @@ b2 <- gppredict(a2, input.new=as.matrix(x))
 
 upper=b2$pred.mean+1.96*b2$pred.sd;
 lower=b2$pred.mean-1.96*b2$pred.sd;
-plot(-100,-100,col=0,xlim=range(X,x),ylim=range(upper,lower,Y),main="Prediction by rational quadratic", xlab="input ",ylab="response")
+plot(-100,-100,col=0,xlim=range(X,x),ylim=range(upper,lower,Y),
+     main="Prediction by rational quadratic", xlab="input ",ylab="response")
 polygon(c(x, rev(x)), c(upper, rev(lower)),col = "grey", border = NA)
 points(X,Y,pch=2,col=2,cex=0.1)
 # lines(X[,1],Y)
@@ -84,15 +90,18 @@ lines(x,b2$pred.mean,col=4,lwd=0.8)
 ```
 
 
+### Defining a customized covariance kernel
+
 ```{r}
-## Define the customized covariance matrix 
 cov.custom=function(hyper,input,input.new=NULL){
   hyper=lapply(hyper,exp);
   datadim=dim(input)
   if(is.null(input.new)) input.new=input
-  A1 <- GPFDA:::DistMat(X=input, Xnew = input.new, A=as.matrix(hyper$custom.w), power=2)
+  A1 <- GPFDA:::DistMat(X=input, Xnew = input.new, A=as.matrix(hyper$custom.w), 
+                        power=2)
   mdim=dim(input);mdim.new=dim(input.new)
-  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),nrow=mdim.new[1],byrow=T)-input.new)
+  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),
+                                           nrow=mdim.new[1],byrow=T)-input.new)
   cov..=matrix(0,ncol=mdim[1],nrow=mdim.new[1])
   if(mdim[2]>1){
     for(i in 1:(mdim[2]-1)){
@@ -116,7 +125,8 @@ Dloglik.custom.u=function(hyper,input,AlphaQ){
   Dcov=cov.custom(hyper,input)
   hyper=lapply(hyper,exp)
   mdim=dim(input);mdim.new=mdim
-  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),nrow=mdim.new[1],byrow=T)-input)
+  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),
+                                           nrow=mdim.new[1],byrow=T)-input)
   cov..=matrix(0,ncol=mdim[1],nrow=mdim.new[1])
   if(mdim[2]>1){
     for(i in 1:(mdim[2]-1)){
@@ -159,7 +169,8 @@ D2custom.u=function(hyper,input,inv.Q,Alpha.Q){
   Dcov=cov.custom(hyper,input)
   hyper=lapply(hyper,exp)
   mdim=dim(input);mdim.new=mdim
-  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),nrow=mdim.new[1],byrow=T)-input)
+  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),
+                                           nrow=mdim.new[1],byrow=T)-input)
   cov..=matrix(0,ncol=mdim[1],nrow=mdim.new[1])
   if(mdim[2]>1){
     for(i in 1:(mdim[2]-1)){
@@ -187,19 +198,23 @@ diag.custom=function(hyper,input){
 }
 ```
 
-```{r}
-# Use all three covariance matrix
+### Using the three covariance functions 
+```{r, message=F}
+# Use all three covariance kernels
 a3 <- gpr(as.matrix(X),as.matrix(Y),Cov=c('pow.ex','custom','rat.qu'),
 		NewHyper=c('custom.w','custom.u','custom.v'), gamma=2, meanModel='t',
 		nInitCandidates=50, trace=2)
 b3 <- gppredict(a3, input.new=as.matrix(x))
+```
 
+
+```{r}
 # plot(a3)    
 # plot(b3)
-
 upper=b3$pred.mean+1.96*b3$pred.sd;
 lower=b3$pred.mean-1.96*b3$pred.sd;
-plot(-100,-100,col=0,xlim=range(X,x),ylim=range(upper,lower,Y),main="Prediction by sum of three kernels", xlab="input ",ylab="response")
+plot(-100,-100,col=0,xlim=range(X,x),ylim=range(upper,lower,Y),
+     main="Prediction by sum of three kernels", xlab="input ",ylab="response")
 polygon(c(x, rev(x)), c(upper, rev(lower)),col = "grey", border = NA)
 points(X,Y,pch=2,col=2,cex=0.1)
 # lines(X[,1],Y)
