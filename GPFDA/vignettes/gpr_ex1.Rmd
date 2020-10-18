@@ -1,0 +1,47 @@
+---
+title: "GPR - example 1"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{gpr_ex1}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+        echo = TRUE, results = 'hold', cache=F, #dev = 'pdf', 
+  message=F, 
+  fig.width=5, fig.height=5,
+  tidy.opts=list(width.cutoff=75), tidy=TRUE
+)
+options(scipen = 1, digits = 4)
+```
+
+```{r setup}
+library(GPFDA)
+require(MASS)
+```
+
+```{r}
+hp <- list('pow.ex.w'=log(10),'pow.ex.v'=log(5),
+           'linear.a'=log(10), 'linear.i'=log(10), 'vv'=log(1))
+n <- 40
+input <- seq(0, 1, length.out=n)
+idx <- sort(sample(1:40, 21))
+X <- as.matrix(input[idx])
+Sigma <- cov.linear(hyper=hp, input=input) + 
+  cov.pow.ex(hyper=hp, input=input, gamma=2) + 
+  diag(exp(hp$vv), n, n)
+Y <- matrix(mvrnorm(n=1, mu=rep(0,n), Sigma=Sigma), ncol=1)*0.1+sin(input*6)
+Y <- as.matrix(Y[idx])
+x <- as.matrix(seq(0,1,by=0.03))
+a <- gpr(input=X, response=Y, Cov=c('linear','pow.ex'), gamma=2, trace=4)
+plot(a)
+b1 <- gppredict(a,x, noiseFreePred=F)
+plot(b1)
+b2 <- gppredict(a,x, noiseFreePred=T)
+plot(b2)
+```
+

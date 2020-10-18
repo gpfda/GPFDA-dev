@@ -615,7 +615,7 @@ NSGPprediction <- function(hp, response, input, input.new,
   
   Q1 <- NSGPCovMat_Asym(hp=hp, input=input, inputNew=input.new,
                            nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
-                           cyclic=cyclic, whichTau=whichTau)$Cov
+                           cyclic=cyclic, whichTau=whichTau)
   # response is a (n x nSamples) matrix
   mu <- t(Q1)%*%invQ%*%response
   

@@ -7,8 +7,12 @@ Author: Jian Qing Shi, Yafeng Cheng, Evandro Konzen
 Maintainer: GPFDA's authors <gpfda.r@gmail.com>
 Description: Gaussian Process Regression for Functional Data Analysis.
 License: GPL (>= 2)
-Depends: R (>= 3.1)
+Depends: R (>= 3.5)
 Imports: Rcpp (>= 1.0.2), splines, mgcv, MASS, mvtnorm, fields, akima, stats, graphics, grDevices, fda, fda.usc
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.0.2
 Encoding: UTF-8
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
