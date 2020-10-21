@@ -8,18 +8,18 @@ D2(d1, d2, inv.Q, Alpha.Q)
 }
 \arguments{
 \item{d1}{First derivative of the kernel function with respect to the required
-hyper-parameter.}
+hyperparameter.}
 
 \item{d2}{Second derivative of the kernel function with respect to the
-required hyper-parameter.}
+required hyperparameter.}
 
-\item{inv.Q}{Inverse matrix of the covariance matrix}
+\item{inv.Q}{Inverse of covariance matrix Q}
 
-\item{Alpha.Q}{This is iQY %*% t(iQY)-iQ, where iQ is the inverse of the
-covariance matrix, Y is the response.}
+\item{Alpha.Q}{This is alpha * alpha'- invQ, where invQ is the inverse of the
+covariance matrix Q, and alpha = invQ * Y, where Y is the response.}
 }
 \value{
-A number
+A number.
 }
 \description{
 Calculates the second derivative of the likelihood function with respect to
@@ -27,10 +27,8 @@ one of the hyperparameters, given the first and second derivative of the
 kernel with respect to that hyperparameter.
 }
 \details{
-The function is to calculate the second derivative of the normal
- likelihood, using the first and second derivative of the kernel functions.
- The first and second derivative need to be pre-defined, for example of
- customized covariance function, see "demo('co2')".
+The function calculates the second derivative of the log-likelihood,
+ using the first and second derivative of the kernel functions.
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression

@@ -16,68 +16,90 @@ NSGPR(
   cyclic = NULL,
   unitSignalVariance = F,
   zeroNoiseVariance = F,
-  sepcov2D = F,
-  nCandidatesInit = 300,
+  sepCov = F,
+  nInitCandidates = 300,
   abs_bounds = 6
 )
 }
 \arguments{
-\item{response}{Response variable. This should be a (n x nSamples) matrix where each column
-is a realisation}
+\item{response}{Response variable. This should be a (n x nSamples) matrix
+where each column is a realisation}
 
-\item{input}{List of Q input variables (see details).}
+\item{input}{List of Q input variables (see Details).}
 
-\item{inputSubsetIdx}{A list identifying a subset of the input values to be}
+\item{inputSubsetIdx}{A list identifying a subset of the input values to be
+used in the estimation (see Details).}
 
-\item{corrModel}{Correlation function specification used for g(.). It can be 
+\item{corrModel}{Correlation function specification used for g(.). It can be
 either "pow.ex" or "matern".}
 
-\item{gamma}{Power parameter used in powered exponential kernel function.
-It must be 0<gamma<=2.}
+\item{gamma}{Power parameter used in powered exponential kernel function. It
+must be 0<gamma<=2.}
 
-\item{nu}{Smoothness parameter of the Matern class. It must be a positive value.}
+\item{nu}{Smoothness parameter of the Matern class. It must be a positive
+value.}
 
-\item{whichTau}{Logical vector of dimension Q identifying which input coordinates}
+\item{whichTau}{Logical vector of dimension Q identifying which input
+coordinates the parameters are function of. For example, if Q=2 and
+parameters change only with respect to the first coordinate, then we set
+whichTau=c(T,F).}
 
-\item{nBasis}{Number of B-spline basis functions in each coordinate direction 
-along which parameters change}
+\item{nBasis}{Number of B-spline basis functions in each coordinate direction
+along which parameters change.}
 
-\item{cyclic}{Logical vector of dimension Q to define which covariates are cyclic}
+\item{cyclic}{Logical vector of dimension Q which defines which covariates
+are cyclic (periodic). For example, if basis functions should be cyclic
+only in the first coordinate direction, then cyclic=c(T,F). cyclic must
+have the same dimension of whichTau. If cyclic is TRUE for some coordinate
+direction, then cyclic B-spline functions will be used and the varying
+parameters (and their first two derivatives) will match at the boundaries
+of that coordinate direction.}
 
-\item{unitSignalVariance}{Logical. TRUE if we assume realisations have variance 1. This is}
+\item{unitSignalVariance}{Logical. TRUE if we assume realisations have
+variance 1. This is useful when we want to estimate an NSGP correlation
+function.}
 
-\item{zeroNoiseVariance}{Logical. TRUE if we assume the realisations are noise-free.}
+\item{zeroNoiseVariance}{Logical. TRUE if we assume the realisations are
+noise-free.}
 
-\item{sepcov2D}{Logical. TRUE only if we fix to zero all off-diagonal elements of the varying}
+\item{sepCov}{Logical. TRUE only if we fix to zero all off-diagonal elements
+of the varying anisotropy matrix. Default to FALSE, allowing for a
+separable covariance function.}
 
-\item{nCandidatesInit}{number of initial hyperparameter vectors which are used to}
+\item{nInitCandidates}{number of initial hyperparameter vectors which are
+used to evaluate the log-likelihood function at a first step. After
+evaluating the log-likelihood using these 'nInitCandidates' vectors, the
+optimisation via nlminb() begins with the best of these vectors.}
 
-\item{abs_bounds}{lower and upper boundaries for B-spline coefficients (if wanted).}
+\item{abs_bounds}{lower and upper boundaries for B-spline coefficients (if
+wanted).}
 }
 \value{
-A list containing  \describe{ 
-\item{MLEsts}{Maximum likelihood
+A list containing:  \describe{ \item{MLEsts}{Maximum likelihood
   estimates of B-spline coefficients and noise variance.}
-  \item{response}{Matrix of response.} 
-  \item{inputMat}{Input coordinates in a
-  matrix form} 
-  \item{corrModel}{Correlation function specification used for
+  \item{response}{Matrix of response.} \item{inputMat}{Input coordinates in a
+  matrix form} \item{corrModel}{Correlation function specification used for
   g(.)} }
 }
 \description{
 Estimate the covariance structure of a zero-mean Gaussian Process with
-Q-dimensional input coordinates (covariates).
+Q-dimensional input coordinates (covariates). \cr  \cr
+Multiple realisations for the response variable can be used, provided they are
+observed on the same grid of dimension n_1 x n_2 x ... x n_Q.\cr \cr
+Let n = n_1 x n_2 x ... x n_Q and let nSamples be the number of realisations.
 }
 \details{
-Multiple realisations for the response variable can be used, provided they are
-observed on the same grid of dimension n_1 x n_2 x ... x n_Q.  
-
-Let n = n_1 x n_2 x ... x n_Q and let nSamples be the number of realisations.
-
-The input argument for Q=2 can be, for example, 
-If we want to use every third lattice point in the second input variable,
-then we can set inputSubsetIdx <- list() inputSubsetIdx[[1]] <- 1:n1
-inputSubsetIdx[[2]] <- seq(1,n2, by=3)
+The input argument for Q=2 can be constructed as follows: \describe{
+  \item{}{n1 <- 10} \item{}{n2 <- 1000} \item{}{input <- list()}
+  \item{}{input[[1]] <- seq(0,1,length.out = n1)} \item{}{input[[2]] <-
+  seq(0,1,length.out = n2)} } If we want to use every third lattice point in
+  the second input variable (using Subset of Data), then we can set
+  \describe{ \item{}{inputSubsetIdx <- list()} \item{}{inputSubsetIdx[[1]] <-
+  1:n1} \item{}{inputSubsetIdx[[2]] <- seq(1,n2, by=3)} }
+}
+\examples{
+## See examples in vignette:
+# \code{vignette("nsgpr", package = "GPFDA")}
 }
 \references{
 Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling

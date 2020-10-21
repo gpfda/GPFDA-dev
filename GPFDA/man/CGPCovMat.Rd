@@ -8,8 +8,11 @@ vector of hyperparameters}
 CGPCovMat(Data, hp)
 }
 \arguments{
-\item{Data}{List of two elements: (1) response variable; and (2) input
-variables}
+\item{Data}{List of two elements: 'input' and 'response'. The element 'input'
+is a list of N vectors, where each vector represents the input covariate
+values for a particular output. The element 'response' is the corresponding
+list of N matrices (if there are multiple realisations) or vectors (for a
+single realisation) representing the response variables.}
 
 \item{hp}{Vector of hyperparameters}
 }
@@ -19,6 +22,10 @@ Covariance matrix
 \description{
 Calculation of a Convolved Gaussian processes covariance matrix given a
 vector of hyperparameters
+}
+\examples{
+## See examples in vignette:
+# \code{vignette("cgpr", package = "GPFDA")}
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression

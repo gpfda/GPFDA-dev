@@ -19,24 +19,34 @@ NSGPCovMat_Asym(
 \arguments{
 \item{hp}{Vector of hyperparameters estimated by function NSGPR.}
 
-\item{input}{List of Q input variables (see details).}
+\item{input}{List of Q input variables (see Details).}
 
 \item{inputNew}{List of Q test set input variables.}
 
-\item{nBasis}{Number of B-spline basis functions in each coordinate direction 
-along which parameters change}
+\item{nBasis}{Number of B-spline basis functions in each coordinate direction
+along which parameters change.}
 
-\item{corrModel}{Correlation function specification used for g(.). It can be 
+\item{corrModel}{Correlation function specification used for g(.). It can be
 either "pow.ex" or "matern".}
 
-\item{gamma}{Power parameter used in powered exponential kernel function.
-It must be 0<gamma<=2.}
+\item{gamma}{Power parameter used in powered exponential kernel function. It
+must be 0<gamma<=2.}
 
-\item{nu}{Smoothness parameter of the Matern class. It must be a positive value.}
+\item{nu}{Smoothness parameter of the Matern class. It must be a positive
+value.}
 
-\item{cyclic}{Logical vector of dimension Q to define which covariates are cyclic}
+\item{cyclic}{Logical vector of dimension Q which defines which covariates
+are cyclic (periodic). For example, if basis functions should be cyclic
+only in the first coordinate direction, then cyclic=c(T,F). cyclic must
+have the same dimension of whichTau. If cyclic is TRUE for some coordinate
+direction, then cyclic B-spline functions will be used and the varying
+parameters (and their first two derivatives) will match at the boundaries
+of that coordinate direction.}
 
-\item{whichTau}{Logical vector of dimension Q identifying which input coordinates}
+\item{whichTau}{Logical vector of dimension Q identifying which input
+coordinates the parameters are function of. For example, if Q=2 and
+parameters change only with respect to the first coordinate, then we set
+whichTau=c(T,F).}
 }
 \value{
 A (asymmetric) covariance matrix

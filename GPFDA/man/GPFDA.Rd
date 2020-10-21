@@ -5,19 +5,25 @@
 \alias{GPFDA}
 \title{GPFDA: A package for Gaussian Process Regression for Functional Data Analysis}
 \description{
-Gaussian Process Regression for Functional Data Analysis, using functional
-regression for the mean function
+Gaussian Process Regression for Functional Data Analysis
 }
 \details{
-\deqn{y_m(t)=mu_m(t)+tau_m(x)+epsilon_m(t),}
-where \eqn{m} is the
-\eqn{m^{th}} data or curve; \eqn{\mu_m} is from functional regression; and
-\eqn{\tau_m} is from Gaussian Process regression with mean 0 covariance
-matrix \eqn{k({\bf\theta})}.
+The main functions of the package are:
+
+ \describe{ \item{gpr}{Gaussian process regression using stationary separable
+ covariance kernels.} \item{NSGPR}{Gaussian process regression using
+ nonstationary and/or nonseparable covariance kernels.} 
+ \item{CGPR}{Convolved Gaussian process regression for multivariate outputs.}
+ \item{gpfr}{Functional regression model given by
+ \deqn{y_m(t)=\mu_m(t)+\tau_m(x)+\epsilon_m(t),} where \eqn{m} is the
+ \eqn{m}-th curve or surface; \eqn{\mu_m} is from functional regression;
+ and \eqn{\tau_m} is from Gaussian Process regression with mean 0 covariance
+ matrix \eqn{k(\bf \theta)}. }
+ }
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
-  Analysis for Functional Data'', CRC Press.
+ Analysis for Functional Data'', CRC Press.
 }
 \author{
 Jian Qing Shi, Yafeng Cheng, Evandro Konzen

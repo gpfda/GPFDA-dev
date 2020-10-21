@@ -26,7 +26,7 @@ Easy setting up for create a fdPar object.
 \details{
 All items listed above have default values. If any item is required
   to change, add that item into the list, otherwise leave it as NULL. For
-  example,if one only wants to change the number of basis functions, do:
+  example, if one only wants to change the number of basis functions, do:
   betaPar{list(nbasis=11)}
 }
 \examples{
@@ -35,6 +35,6 @@ beta1=betaPar()
 beta2=betaPar(list(nbasis=7,lambda=0.01))
 }
 \references{
-Ramsay, James O., and Silverman, Bernard W. (2006),
-  ``FunctionalData Analysis, 2nd ed.'', Springer, New York.
+Ramsay, J., and Silverman, B. W. (2006),
+  ``Functional Data Analysis'', 2nd ed., Springer, New York.
 }

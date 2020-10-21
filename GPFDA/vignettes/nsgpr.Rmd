@@ -101,11 +101,11 @@ response <- t(mvtnorm::rmvnorm(nSamples, meanFunction, K))
 #               whichTau = c(T,T),
 #               abs_bounds = 8,
 #               nBasis = 6,
-#               nCandidatesInit = 1000,
+#               nInitCandidates = 1000,
 #               cyclic = c(F,F),
 #               unitSignalVariance = T,
 #               zeroNoiseVariance = T,
-#               sepcov2D = F)
+#               sepCov = F)
 
 ## Taking ML estimates of B-spline coefficients
 

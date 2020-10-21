@@ -21,39 +21,53 @@ NSGPprediction(
 \arguments{
 \item{hp}{Vector of hyperparameters estimated by function NSGPR.}
 
-\item{response}{Response variable. This should be a (n x nSamples) matrix where each column
-is a realisation}
+\item{response}{Response variable. This should be a (n x nSamples) matrix
+where each column is a realisation}
 
-\item{input}{List of Q input variables (see details).}
+\item{input}{List of Q input variables (see Details).}
 
 \item{input.new}{List of Q test set input variables.}
 
-\item{noiseFreePred}{Logical. Should be the predictions noise-free or not?}
+\item{noiseFreePred}{Logical.  If TRUE, predictions will be noise-free.}
 
-\item{nBasis}{Number of B-spline basis functions in each coordinate direction 
-along which parameters change}
+\item{nBasis}{Number of B-spline basis functions in each coordinate direction
+along which parameters change.}
 
-\item{corrModel}{Correlation function specification used for g(.). It can be 
+\item{corrModel}{Correlation function specification used for g(.). It can be
 either "pow.ex" or "matern".}
 
-\item{gamma}{Power parameter used in powered exponential kernel function.
-It must be 0<gamma<=2.}
+\item{gamma}{Power parameter used in powered exponential kernel function. It
+must be 0<gamma<=2.}
 
-\item{nu}{Smoothness parameter of the Matern class. It must be a positive value.}
+\item{nu}{Smoothness parameter of the Matern class. It must be a positive
+value.}
 
-\item{cyclic}{Logical vector of dimension Q to define which covariates are cyclic}
+\item{cyclic}{Logical vector of dimension Q which defines which covariates
+are cyclic (periodic). For example, if basis functions should be cyclic
+only in the first coordinate direction, then cyclic=c(T,F). cyclic must
+have the same dimension of whichTau. If cyclic is TRUE for some coordinate
+direction, then cyclic B-spline functions will be used and the varying
+parameters (and their first two derivatives) will match at the boundaries
+of that coordinate direction.}
 
-\item{whichTau}{Logical vector of dimension Q identifying which input coordinates}
+\item{whichTau}{Logical vector of dimension Q identifying which input
+coordinates the parameters are function of. For example, if Q=2 and
+parameters change only with respect to the first coordinate, then we set
+whichTau=c(T,F).}
 }
 \value{
 A list containing  \describe{ 
-\item{pred.mean}{Covariance matrix}
-\item{pred.sd}{Noise variance}
-\item{noiseFreePred}{Logical. Are the predictions noise-free or not?}
+\item{pred.mean}{Mean of predictions for the test set.}
+\item{pred.sd}{Standard deviation of predictions for the test set.}
+\item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
 }
 }
 \description{
 NSGP predicion given a vector of hyperparameters
+}
+\examples{
+## See examples in vignette:
+# \code{vignette("nsgpr", package = "GPFDA")}
 }
 \references{
 Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling

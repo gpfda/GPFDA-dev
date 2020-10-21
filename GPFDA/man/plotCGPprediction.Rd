@@ -18,13 +18,13 @@ plotCGPprediction(
 )
 }
 \arguments{
-\item{train}{The 'mgpr' object}
+\item{train}{An 'mgpr' object}
 
 \item{Data.train}{List of training data}
 
 \item{Data.new}{List of test data}
 
-\item{i}{Which realisation should be plotted.}
+\item{i}{Index identifying which realisation should be plotted.}
 
 \item{ylim}{Range of y-axis}
 
@@ -41,6 +41,10 @@ A plot showing predictions of each element of the multivariate
   process.
 }
 \description{
-Plot predicitons of each element of the multivariate Gaussian Process for a
+Plot predictons of each element of the multivariate Gaussian Process for a
 given an object of class 'gpr'.
+}
+\examples{
+## See examples in vignette:
+# \code{vignette("cgpr", package = "GPFDA")}
 }

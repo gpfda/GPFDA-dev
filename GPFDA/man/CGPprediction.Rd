@@ -7,39 +7,44 @@
 CGPprediction(
   train = NULL,
   Data.train = NULL,
-  Data.new = NULL,
+  Data.new,
   noiseFreePred = F,
   meanModel = NULL,
   mu = 0
 )
 }
 \arguments{
-\item{train}{List resulting from training which is an 'mgpr' object.}
+\item{train}{A 'mgpr' object obtained from 'CGPR' function. Default to NULL.
+If NULL, learning is done based on Data.train informed by the user.}
 
-\item{Data.train}{List of training data}
+\item{Data.train}{List of training data. Default to NULL. If NULL,
+predictions are made based on the trained model of class 'mgpr'.}
 
-\item{Data.new}{List of test input data}
+\item{Data.new}{List of test input data.}
 
 \item{noiseFreePred}{Logical. If TRUE, predictions will be noise-free.}
 
-\item{meanModel}{Type of mean function for each output. It can be \describe{
-\item{0}{Zero mean function} \item{1}{Constant mean function to be
-estimated} \item{'t'}{Linear model for mean function} \item{'avg'}{The
-average across replications is used as the mean function. This is only used
-if there are more than two realisations observed at the same input
-coordinate values.} } Default to 0. If argument 'mu' is specified, then
-'meanModel' will be set to 'userDefined'.}
+\item{meanModel}{Type of mean function applied to all outputs. It can be
+\describe{ \item{0}{Zero mean function for each output.} \item{1}{Constant
+mean function to be estimated for each output.} \item{'t'}{Linear model for
+the mean function of each output.} \item{'avg'}{The average across
+replications is used as the mean function of each output. This can only be
+used if there are more than two realisations observed at the same input
+values.} } Default to 0. If argument 'mu' is specified, then 'meanModel'
+will be set to 'userDefined'.}
 
-\item{mu}{Vector having the mean function values defined by the user. Its
-length must be the same as the sample size, that is, ncol(response).}
+\item{mu}{Vector of concatenated mean function values defined by the user.
+Default to NULL.}
 }
 \value{
-A list containing  \describe{ 
-\item{pred.mean}{Mean of predictions}
-\item{pred.sd}{Standard deviation of predictions}
-\item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
-}
+A list containing  \describe{ \item{pred.mean}{Mean of predictions for the test set.}
+  \item{pred.sd}{Standard deviation of predictions for the test set.}
+  \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.} }
 }
 \description{
 Prediction of Convolved Gaussian process
+}
+\examples{
+## See examples in vignette:
+# \code{vignette("cgpr", package = "GPFDA")}
 }

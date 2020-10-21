@@ -76,7 +76,7 @@ optimization.}
 
 \item{time}{Time used in globle setting for functional objects.}
 
-\item{NewHyper}{Vector of the names of the new hyper parameters from customized kernel function.}
+\item{NewHyper}{Vector of the names of the new hyperparameters from customized kernel function.}
 
 \item{accuracy}{Optimization accuracy. Default to be high.}
 
@@ -88,27 +88,23 @@ optimization.}
 pre-optimization, otherwise use fixed index.}
 }
 \value{
-A list containing: \describe{ 
-\item{hyper}{Estimated hyper-parameters}
-\item{I}{A vector of estimated standard deviation of hyper-parameters}
-\item{modellist}{List of models fitted before Gaussian process}
-\item{CovFun}{Covariance function}
-\item{gamma}{gamma used in Gaussian process powered exponential kernel}
-\item{init_resp}{Initial response value}
-\item{resid_resp}{Residual after the fitted value from models has been taken out}
-\item{fitted}{Fitted value}
-\item{fitted.sd}{Standard deviation of the fitted value}
-\item{ModelType}{The model applied in the function.}
-\item{lTrain}{Training data for functional regression with scalper covariates}
-\item{fTrain}{Training data for functional regression with functional covariates}
-\item{mfTrainfd}{List of fd objects that from training data for functional regression with functional covariates}
-\item{gpTrain}{Training data for Gaussian Process}
-\item{time}{Time used in training in Gaussian Process}
-\item{iuuL}{Inverse of covariance matrix for lReg}
-\item{iuuF}{Inverse of covariance matrix for fReg}
-\item{fittedFM}{Fitted value from functional regression}
-\item{fyList}{fyList used in the function}
- }
+A list containing: \describe{ \item{hyper}{Estimated hyperparameters}
+  \item{I}{A vector of estimated standard deviation of hyperparameters}
+  \item{modellist}{List of models fitted before Gaussian process}
+  \item{CovFun}{Covariance function} \item{gamma}{gamma used in Gaussian
+  process powered exponential kernel} \item{init_resp}{Initial response
+  value} \item{resid_resp}{Residual after the fitted values from models has
+  been taken out} \item{fitted}{Fitted values} \item{fitted.sd}{Standard
+  deviation of the fitted values} \item{ModelType}{The model applied in the
+  function.} \item{lTrain}{Training data for functional regression with
+  scalper covariates} \item{fTrain}{Training data for functional regression
+  with functional covariates} \item{mfTrainfd}{List of fd objects that from
+  training data for functional regression with functional covariates}
+  \item{gpTrain}{Training data for Gaussian Process} \item{time}{Time used in
+  training in Gaussian Process} \item{iuuL}{Inverse of covariance matrix for
+  lReg} \item{iuuF}{Inverse of covariance matrix for fReg}
+  \item{fittedFM}{Fitted values from functional regression}
+  \item{fyList}{fyList used in the function} }
 }
 \description{
 Use functional regression to be the mean structure and Gaussian Process to be
@@ -123,63 +119,32 @@ fyList is a list with items: `time': a sequence of time points
   default to be c(0,0), means that the penalty is on the second order
   derivative of the curve, since the weight for zero-th and first order
   derivatives of the curve are zero, `lambda':default to be 1e-4, the
-  smoothing parameter for the penalty.  
-  
-  fxList is a list of lists which
-  are similar to fyList. Because it may contain different information for
-  more than one functional covariates.  
-  
-  fbetaList, fbetaList_l and
-  fbetaList_f are similar to each other. They are also expected to be list of
-  lists. The items in each sub-list are: `rtime': range of time, default to
-  be 0 and 1; `nbasis': number of basis functions used in smoothing, default
-  to be less or equal to 19; norder: the order of the functional curves
-  default to be 6;`bSpline': logical, if True, b-spline is used, otherwise
-  use Fourier basis, default to be True; `Pen': default to be
-  c(0,0);`lambda':default to be 1e4; 'bivar':logical, if True, the bivariate
-  basis will be calculated, otherwise normal basis, default to be False;
-  `lambdas':the smoothing parameter for the penalty of the additional basis,
-  default to be 1e4.  
-  
-  Note that user only write the item they need to
-  change in the list, all items have default settings. See example below.
+  smoothing parameter for the penalty.
+
+  fxList is a list of lists which are similar to fyList. Because it may
+  contain different information for more than one functional covariates.
+
+  fbetaList, fbetaList_l and fbetaList_f are similar to each other. They are
+  also expected to be list of lists. The items in each sub-list are: `rtime':
+  range of time, default to be 0 and 1; `nbasis': number of basis functions
+  used in smoothing, default to be less or equal to 19; norder: the order of
+  the functional curves default to be 6;`bSpline': logical, if True, b-spline
+  is used, otherwise use Fourier basis, default to be True; `Pen': default to
+  be c(0,0);`lambda':default to be 1e4; 'bivar':logical, if True, the
+  bivariate basis will be calculated, otherwise normal basis, default to be
+  False; `lambdas':the smoothing parameter for the penalty of the additional
+  basis, default to be 1e4.
+
+  Note that user only write the item they need to change in the list, all
+  items have default settings. See example below.
 }
 \examples{
-library(GPFDA)
-
-traindata=vector('list',20)
-for(i in 1:20) traindata[[i]]=i
-n=50
-traindata=lapply(traindata,function(i) {
-  x=seq(-3,3,len=n)
-  y=sin(x^2)-x+0.2*rnorm(n,runif(1,-3,3),runif(1,0.5,3))
-  x1=0.5*x^3+exp(x)+rnorm(n,runif(1,-3,3),runif(1,0.5,5))
-  x2=cos(x^3)+0.2*rnorm(n,runif(1,-3,3),runif(1,0.5,5))
-  mat=cbind(x,x1,x2,y)
-  colnames(mat)=c('time','x1','x2','y')
-  scale=t(c(2*(mean(y)>0.25)-1,(var(y)>3.6)*2-1,(sd(y)-sd(x)>1.4)*2-1))
-  i=list(mat,scale)
-})
-
-lx=do.call('rbind',lapply(traindata,function(i)i[[2]]))
-fx1=do.call('rbind',lapply(traindata,function(i)i[[1]][,2]))
-fx2=do.call('rbind',lapply(traindata,function(i)i[[1]][,3]))
-fy1=do.call('rbind',lapply(traindata,function(i)i[[1]][,4]))
-time_old=traindata[[1]][[1]][,1]
-
-## NOT RUN
-# system.time(a1<-gpfr(response=(fy1),lReg=lx,fReg=NULL,gpReg=list(fx1,fx2)
-#                ,fyList=list(nbasis=23,lambda=0.1),fbetaList_l=
-#                list(list(lambda=.01,nbasi=17)),hyper=NULL,
-#                Cov=c('pow.ex','linear'),fitting=TRUE,
-#                time=seq(-3,3,len=50),rPreIdx=TRUE,concurrent=TRUE))
+## See examples in vignette:
+# \code{vignette("gpfr", package = "GPFDA")}
 }
 \references{
-\itemize{ 
-\item Ramsay, James O., and Silverman, Bernard W.
-(2006), ``FunctionalData Analysis, 2nd ed.'', Springer, New York. 
-\item Shi,
-J. Q., and Choi, T. (2011), ``Gaussian Process Regression Analysis for
-Functional Data'', CRC Press.
-}
+\itemize{ \item Ramsay, J., and Silverman, B. W. (2006),
+  ``Functional Data Analysis'', 2nd ed., Springer, New York. \item Shi, J.
+  Q., and Choi, T. (2011), ``Gaussian Process Regression Analysis for
+  Functional Data'', CRC Press. }
 }

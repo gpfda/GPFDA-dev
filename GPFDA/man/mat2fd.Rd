@@ -29,7 +29,7 @@ Easy setting up for creating an fd object
 \details{
 All items listed above have default values. If any item is required
   to change, add that item into the list, otherwise leave it as NULL. For
-  example,if one only wants to change the number of basis functions, do:
+  example, if one only wants to change the number of basis functions, do:
   mat2fd{SomeMatrix,list(nbasis=21)}
 }
 \examples{

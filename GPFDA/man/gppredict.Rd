@@ -20,28 +20,30 @@ gppredict(
 )
 }
 \arguments{
-\item{train}{List resulting from training which is a 'gpr' object. Default to be
-NULL. If NULL, do training based on the other given arguments; if TRUE,
-other arguments (except for input.new) will replaced by NULL; if FALSE, only
-do prediction based on the other given arguments.}
+\item{train}{A 'gpr' object obtained from 'gpr' function. Default to NULL. If
+NULL, learning is done based on the other given arguments; otherwise,
+prediction is made based on the trained model of class gpr'.}
 
-\item{input.new}{The test data. Must be a vector or a matrix.}
+\item{input.new}{Test input covariates.  It must be either a matrix, where
+each column represents a covariate, or a vector if there is only one
+covariate.}
 
 \item{noiseFreePred}{Logical. If TRUE, predictions will be noise-free.}
 
-\item{hyper}{The hyperparameters. Default to NULL. If not NULL, then must be
-a list with certain names.}
+\item{hyper}{The hyperparameters. Default to NULL. If not NULL, then it must
+be a list with appropriate names.}
 
-\item{input}{The input data from train data. Matrix or vectors are both
-acceptable. Some data.frames are not acceptable.}
+\item{input}{Input covariates. It must be either a matrix, where each column
+represents a covariate, or a vector if there is only one covariate.}
 
-\item{Y}{Training response.
---------------}
+\item{Y}{Training response. It should be a matrix, where each column is a
+realisation. It can be a vector if there is only one realisation.}
 
-\item{mSR}{Subset size m if Subset of Regressors method is used. It must be
-smaller than the total sample size.}
+\item{mSR}{Subset size m if Subset of Regressors method is used for
+prediction. It must be smaller than the total sample size.}
 
-\item{Cov}{Covariance function(s) to use. Default to 'power.ex'.}
+\item{Cov}{Covariance function(s) to use. Options are: 'linear', 'pow.ex',
+'rat.qu', and 'matern'. Default to 'power.ex'.}
 
 \item{gamma}{Power parameter used in powered exponential kernel function. It
 must be 0<gamma<=2.}
@@ -51,24 +53,28 @@ value.}
 
 \item{meanModel}{Type of mean function. It can be \describe{ \item{0}{Zero
 mean function} \item{1}{Constant mean function to be estimated}
-\item{'t'}{Linear model for mean function} \item{'avg'}{The average across
-replications is used as the mean function. This is only used if there are
-more than two realisations observed at the same input coordinate values.} }
-Default to 0. If argument 'mu' is specified, then 'meanModel' will be set
-to 'userDefined'.}
+\item{'t'}{Linear model for the mean function} \item{'avg'}{The average
+across replications is used as the mean function. This is only used if
+there are more than two realisations observed at the same input coordinate
+values.} } Default to 0. If argument 'mu' is specified, then 'meanModel'
+will be set to 'userDefined'.}
 
-\item{mu}{Vector having the mean function values defined by the user. Its
-length must be the same as the sample size, that is, ncol(response).}
+\item{mu}{Mean function specified by the user. It must be a vector. Its
+length must be the same as the sample size, that is, nrow(response).}
 }
 \value{
-A list containing  \describe{ 
-\item{pred.mean}{Mean of predictions}
-\item{pred.sd}{Standard deviation of predictions}
-\item{newdata}{New data}
-\item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
-\item{...}{Objects of 'gpr' class. }
-  }
+A list containing  \describe{ \item{pred.mean}{Mean of predictions}
+  \item{pred.sd}{Standard deviation of predictions} \item{newdata}{Test input data}
+  \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
+  \item{...}{Objects of 'gpr' class. } }
 }
 \description{
 Prediction using Gaussian Process
+}
+\examples{
+## See examples in vignettes:
+
+# \code{vignette("gpr_ex1", package = "GPFDA")} \cr
+# \code{vignette("gpr_ex2", package = "GPFDA")} \cr
+# \code{vignette("co2", package = "GPFDA")} \cr
 }

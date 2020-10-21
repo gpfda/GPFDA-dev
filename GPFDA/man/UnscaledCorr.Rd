@@ -9,17 +9,27 @@ UnscaledCorr(Dist.mat, corrModel, gamma = NULL, nu = NULL)
 \arguments{
 \item{Dist.mat}{Distance matrix}
 
-\item{corrModel}{Correlation function specification used for g(.). It can be 
+\item{corrModel}{Correlation function specification used for g(.). It can be
 either "pow.ex" or "matern".}
 
-\item{gamma}{Power parameter used in powered exponential kernel function.
-It must be 0<gamma<=2.}
+\item{gamma}{Power parameter used in powered exponential kernel function. It
+must be 0<gamma<=2.}
 
-\item{nu}{Smoothness parameter of the Matern class. It must be a positive value.}
+\item{nu}{Smoothness parameter of the Matern class. It must be a positive
+value.}
 }
 \value{
 A matrix
 }
 \description{
 Calculate unscaled NSGP correlation matrix
+}
+\examples{
+## See examples in vignette:
+# \code{vignette("nsgpr", package = "GPFDA")}
+}
+\references{
+Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
+  Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
+  Structure" (https://arxiv.org/abs/1903.09981)
 }

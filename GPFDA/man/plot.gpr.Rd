@@ -10,8 +10,8 @@
 \item{x}{The 'gpr' object from either training or predicting of the Gaussian
 Process.}
 
-\item{fitted}{Logical. Plot fitted value or not. Default to FALSE, which is
-to plot the predictions.}
+\item{fitted}{Logical. Plot fitted values or not. Default to FALSE. If FALSE,
+plot the predictions.}
 
 \item{col.no}{Column number of the input matrix. If the input matrix has more
 than one columns, than one of them will be used in the plot. Default to be
@@ -19,7 +19,8 @@ the first one.}
 
 \item{ylim}{Range value for y-axis.}
 
-\item{realisation}{Which realisation should be plotted (if there are multiple).}
+\item{realisation}{Integer identifying which realisation should be plotted
+(if there are multiple).}
 
 \item{...}{Graphical parameters passed to plot().}
 }
@@ -28,4 +29,8 @@ A plot
 }
 \description{
 Plot Gaussian Process for a given an object of class 'gpr'.
+}
+\examples{
+## See examples in vignette:
+# \code{vignette("gpr_ex1", package = "GPFDA")}
 }

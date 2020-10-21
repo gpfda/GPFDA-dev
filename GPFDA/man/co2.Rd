@@ -4,18 +4,19 @@
 \name{co2}
 \alias{co2}
 \title{co2: data set for a real data example.}
-\format{A data frame with 607 observations on the following 2 variables.}
+\format{A data frame with 13 columns (12 months and the annual average) and
+  51 rows (number of years).}
 \usage{
 co2
 }
 \description{
-A data.frame with two variables, the first one is the response, second one is
-the time. The original data has 612 samples, but 5 of them are missing, which
-is removed from our sample.
+A data.frame containing monthly CO2 data and and annual average for each
+year. The original data has a sample size of 612, but the 5 of them which are
+missing was removed from our sample.
 }
 \details{
-Data used in the real data example, see demo 'co2'. It is obtained
-  from \url{http://cdiac.esd.ornl.gov/ftp/trends/co2/maunaloa.co2}.
+Data used in the real data example, see vignette("co2"). It is obtained
+  from \url{https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/maunaloa.co2}.
   Atmospheric CO2 values (ppmv) derived from in situ air samples collected at
   Mauna Loa, Hawaii, USA.
 }

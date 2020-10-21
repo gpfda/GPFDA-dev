@@ -2,73 +2,73 @@
 #' Estimation of a nonseparable and/or nonstationary covariance structure
 #' 
 #' Estimate the covariance structure of a zero-mean Gaussian Process with
-#' Q-dimensional input coordinates (covariates). 
-#' 
+#' Q-dimensional input coordinates (covariates). \cr  \cr
 #' Multiple realisations for the response variable can be used, provided they are
-#' observed on the same grid of dimension n_1 x n_2 x ... x n_Q.  
-#' 
+#' observed on the same grid of dimension n_1 x n_2 x ... x n_Q.\cr \cr
 #' Let n = n_1 x n_2 x ... x n_Q and let nSamples be the number of realisations.
 
-#' @param response Response variable. This should be a (n x nSamples) matrix where each column
-#'   is a realisation
-#' @param input List of Q input variables (see details).
-#' @param inputSubsetIdx A list identifying a subset of the input values to be 
-# used in the estimation (see details).
-#' @param corrModel Correlation function specification used for g(.). It can be 
-#' either "pow.ex" or "matern".
-#' @param gamma Power parameter used in powered exponential kernel function.
-#' It must be 0<gamma<=2.
-#' @param nu Smoothness parameter of the Matern class. It must be a positive value.
-#' @param whichTau Logical vector of dimension Q identifying which input coordinates 
-# the parameters are function of. For example, if Q=2 and parameters change 
-# only with respect to the first coordinate, then we set whichTau=c(T,F).
-#' @param nBasis Number of B-spline basis functions in each coordinate direction 
-#' along which parameters change
-#' @param cyclic Logical vector of dimension Q to define which covariates are cyclic 
-# (periodic). For example, if basis functions should be cyclic only in the first
-# coordinate direction, then cyclic=c(T,F). cyclic must have the same
-# dimension of whichTau. If cyclic is TRUE for some coordinate direction, 
-# then cyclic B-spline functions will be used and the varying parameters 
-# (and their first two derivatives) will match at the boundaries of that coordinate 
-# direction.
-#' @param unitSignalVariance Logical. TRUE if we assume realisations have variance 1. This is 
-# useful when we want to estimate an NSGP correlation function.
-#' @param zeroNoiseVariance Logical. TRUE if we assume the realisations are noise-free.
-#' @param sepcov2D Logical. TRUE only if we fix to zero all off-diagonal elements of the varying
-# anisotropy matrix.
-#' @param nCandidatesInit number of initial hyperparameter vectors which are used to 
-# evaluate the log-likelihood function at a first step. 
-# After evaluating the log-likelihood using these 'nCandidatesInit' vectors,
-# the optimisation via nlminb() begins with the best of these vectors.
-#' @param abs_bounds lower and upper boundaries for B-spline coefficients (if wanted). 
+#' @param response Response variable. This should be a (n x nSamples) matrix
+#'   where each column is a realisation
+#' @param input List of Q input variables (see Details).
+#' @param inputSubsetIdx A list identifying a subset of the input values to be
+#'   used in the estimation (see Details).
+#' @param corrModel Correlation function specification used for g(.). It can be
+#'   either "pow.ex" or "matern".
+#' @param gamma Power parameter used in powered exponential kernel function. It
+#'   must be 0<gamma<=2.
+#' @param nu Smoothness parameter of the Matern class. It must be a positive
+#'   value.
+#' @param whichTau Logical vector of dimension Q identifying which input
+#'   coordinates the parameters are function of. For example, if Q=2 and
+#'   parameters change only with respect to the first coordinate, then we set
+#'   whichTau=c(T,F).
+#' @param nBasis Number of B-spline basis functions in each coordinate direction
+#'   along which parameters change.
+#' @param cyclic Logical vector of dimension Q which defines which covariates
+#'   are cyclic (periodic). For example, if basis functions should be cyclic
+#'   only in the first coordinate direction, then cyclic=c(T,F). cyclic must
+#'   have the same dimension of whichTau. If cyclic is TRUE for some coordinate
+#'   direction, then cyclic B-spline functions will be used and the varying
+#'   parameters (and their first two derivatives) will match at the boundaries
+#'   of that coordinate direction.
+#' @param unitSignalVariance Logical. TRUE if we assume realisations have
+#'   variance 1. This is useful when we want to estimate an NSGP correlation
+#'   function.
+#' @param zeroNoiseVariance Logical. TRUE if we assume the realisations are
+#'   noise-free.
+#' @param sepCov Logical. TRUE only if we fix to zero all off-diagonal elements
+#'   of the varying anisotropy matrix. Default to FALSE, allowing for a
+#'   separable covariance function.
+#' @param nInitCandidates number of initial hyperparameter vectors which are
+#'   used to evaluate the log-likelihood function at a first step. After
+#'   evaluating the log-likelihood using these 'nInitCandidates' vectors, the
+#'   optimisation via nlminb() begins with the best of these vectors.
+#' @param abs_bounds lower and upper boundaries for B-spline coefficients (if
+#'   wanted).
 #'
 #' @importFrom mgcv cSplineDes
 #' @importFrom splines bs
-#' @details The input argument for Q=2 can be, for example, 
-# n1 <- 10
-# n2 <- 1000
-# input <- list()
-# input[[1]] <- seq(0,1,length.out = n1)
-# input[[2]] <- seq(0,1,length.out = n2)
-
-#' If we want to use every third lattice point in the second input variable,
-#' then we can set inputSubsetIdx <- list() inputSubsetIdx[[1]] <- 1:n1
-#' inputSubsetIdx[[2]] <- seq(1,n2, by=3)
+#' @details The input argument for Q=2 can be constructed as follows: \describe{
+#'   \item{}{n1 <- 10} \item{}{n2 <- 1000} \item{}{input <- list()}
+#'   \item{}{input[[1]] <- seq(0,1,length.out = n1)} \item{}{input[[2]] <-
+#'   seq(0,1,length.out = n2)} } If we want to use every third lattice point in
+#'   the second input variable (using Subset of Data), then we can set
+#'   \describe{ \item{}{inputSubsetIdx <- list()} \item{}{inputSubsetIdx[[1]] <-
+#'   1:n1} \item{}{inputSubsetIdx[[2]] <- seq(1,n2, by=3)} }
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
 #'   Structure" (https://arxiv.org/abs/1903.09981)
 #'
-#' @return A list containing  \describe{ 
-#' \item{MLEsts}{Maximum likelihood
+#' @return A list containing:  \describe{ \item{MLEsts}{Maximum likelihood
 #'   estimates of B-spline coefficients and noise variance.}
-#'   \item{response}{Matrix of response.} 
-#'   \item{inputMat}{Input coordinates in a
-#'   matrix form} 
-#'   \item{corrModel}{Correlation function specification used for
+#'   \item{response}{Matrix of response.} \item{inputMat}{Input coordinates in a
+#'   matrix form} \item{corrModel}{Correlation function specification used for
 #'   g(.)} }
 #' @export
-#' 
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("nsgpr", package = "GPFDA")}
 NSGPR <- function( response,
                    input,
                    inputSubsetIdx = NULL,
@@ -80,8 +80,8 @@ NSGPR <- function( response,
                    cyclic = NULL,
                    unitSignalVariance = F,
                    zeroNoiseVariance = F, 
-                   sepcov2D = F,
-                   nCandidatesInit = 300,
+                   sepCov = F,
+                   nInitCandidates = 300,
                    abs_bounds = 6){
   
   if(!is.list(input)){
@@ -173,7 +173,7 @@ cat("\nPlease specify 'whichTau'
   
   coeffs_omegas_LB <- rep(-abs_bounds, num_coeffs_omegas)
   coeffs_omegas_UB <- rep(abs_bounds, num_coeffs_omegas)
-  if(sepcov2D){
+  if(sepCov){
     whichZero <- (num_coeffs_omegas-num_betas+1):num_coeffs_omegas
     coeffs_omegas_LB[whichZero] <- 0
     coeffs_omegas_UB[whichZero] <- 0
@@ -239,9 +239,9 @@ cat("\nPlease specify 'whichTau'
   
   n_hp <- length(lower)
   
-  candidates <- matrix(0, nCandidatesInit, n_hp)
+  candidates <- matrix(0, nInitCandidates, n_hp)
   for(ipar in 1:n_hp){
-    candidates[,ipar] <- runif(n=nCandidatesInit, min=lower[ipar], max=upper[ipar] )
+    candidates[,ipar] <- runif(n=nInitCandidates, min=lower[ipar], max=upper[ipar] )
   }
 
   resCand <- apply(candidates, 1, function(x) 
@@ -292,7 +292,9 @@ cat("\nPlease specify 'whichTau'
 #' \item{sig2_perTau}{Vector of signal variance over the input space}
 #' }
 #' @export
-#'
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("nsgpr", package = "GPFDA")}
 NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis = 5, 
                           corrModel=corrModel, gamma=NULL, nu=NULL, cyclic=NULL, whichTau=NULL, calcCov=T){
   
@@ -586,19 +588,21 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx, bspl
 #' @inheritParams NSGPR
 #' @param hp Vector of hyperparameters estimated by function NSGPR.
 #' @param input.new List of Q test set input variables.
-#' @param noiseFreePred Logical. Should be the predictions noise-free or not?
+#' @param noiseFreePred Logical.  If TRUE, predictions will be noise-free.
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
 #'   Structure" (https://arxiv.org/abs/1903.09981)
 #' @return A list containing  \describe{ 
-#' \item{pred.mean}{Covariance matrix}
-#' \item{pred.sd}{Noise variance}
-#' \item{noiseFreePred}{Logical. Are the predictions noise-free or not?}
+#' \item{pred.mean}{Mean of predictions for the test set.}
+#' \item{pred.sd}{Standard deviation of predictions for the test set.}
+#' \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
 #' }
 #' 
 #' @export
-#'
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("nsgpr", package = "GPFDA")}
 NSGPprediction <- function(hp, response, input, input.new, 
                       noiseFreePred=F, nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
                       cyclic=cyclic, whichTau=whichTau){
@@ -961,9 +965,14 @@ NSGPCovMat_Asym <- function(hp, input, inputNew,
 #' @inheritParams NSGPR
 #' @param Dist.mat Distance matrix
 #'
+#' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
+#'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
+#'   Structure" (https://arxiv.org/abs/1903.09981)
 #' @return A matrix
 #' @export
-#'
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("nsgpr", package = "GPFDA")}
 UnscaledCorr <- function(Dist.mat, corrModel, gamma=NULL, nu=NULL){
   
   if(!(corrModel%in%c("pow.ex", "matern"))){

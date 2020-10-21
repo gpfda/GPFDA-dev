@@ -1,35 +1,45 @@
 
 #' Convolved (multivariate) Gaussian process regression
 #'
-#' Convolved (multivariate) Gaussian process regression where each output is
-#' unidimensional.
+#' Convolved (multivariate) Gaussian process regression where each of the N
+#' outputs is unidimensional. The multivariate output is allowed to have
+#' multiple independent realisations.
 #'
-#' @param Data List of two elements: (1) response variable; and (2) input
-#'   variables
-#' @param m If Subset of Data is to be used, m denotes the subset size and
-#'   cannot be larger than the total sample size. Default set to NULL.
-#' @param meanModel Type of mean function for each output. It can be \describe{
-#'   \item{0}{Zero mean function} \item{1}{Constant mean function to be
-#'   estimated} \item{'t'}{Linear model for mean function} \item{'avg'}{The
-#'   average across replications is used as the mean function. This is only used
-#'   if there are more than two realisations observed at the same input
-#'   coordinate values.} } Default to 0. If argument 'mu' is specified, then
-#'   'meanModel' will be set to 'userDefined'.
-#' @param mu Vector having the mean function values defined by the user. Its
-#'   length must be the same as the sample size, that is, ncol(response).
+#' @param Data List of two elements: 'input' and 'response'. The element 'input'
+#'   is a list of N vectors, where each vector represents the input covariate
+#'   values for a particular output. The element 'response' is the corresponding
+#'   list of N matrices (if there are multiple realisations) or vectors (for a
+#'   single realisation) representing the response variables.
+#' @param m If Subset of Data is to be used in the estimation, m denotes the
+#'   subset size. It cannot be larger than the total sample size. Default to
+#'   NULL (Subsetting is not used).
+#' @param meanModel Type of mean function applied to all outputs. It can be
+#'   \describe{ \item{0}{Zero mean function for each output.} \item{1}{Constant
+#'   mean function to be estimated for each output.} \item{'t'}{Linear model for
+#'   the mean function of each output.} \item{'avg'}{The average across
+#'   replications is used as the mean function of each output. This can only be
+#'   used if there are more than two realisations observed at the same input
+#'   values.} } Default to 0. If argument 'mu' is specified, then 'meanModel'
+#'   will be set to 'userDefined'.
+#' @param mu Vector of concatenated mean function values defined by the user.
+#'   Default to NULL.
 #'
-#' @return A list containing: \describe{ \item{fitted.mean }{Fitted value of
-#'   training data } \item{fitted.sd }{Standard deviation of the fitted value of
-#'   training data} \item{X}{Original input variables} \item{Y}{Original
-#'   response} \item{idx}{Original response}
-#'
-#'   \item{Cov}{Original response} \item{mean}{CHECK} \item{meanModel}{CHECK
-#'   Mean function type} \item{meanLinearModel}{CHECK Mean model} }
+#' @return A list containing: \describe{ \item{fitted.mean }{Fitted values for
+#'   the training data } \item{fitted.sd }{Standard deviation of the fitted
+#'   values for training data} \item{X}{Original input variables}
+#'   \item{Y}{Original response} \item{idx}{Index vector identifying to which output
+#'   the elements of concatenated vectors correspond to.} \item{Cov}{Covariance
+#'   matrix} \item{mean}{Concatenated mean function } \item{meanModel}{Mean
+#'   model used for each output} \item{meanLinearModel}{'lm' object for each
+#'   output if the linear regression model is used for the mean functions. NULL
+#'   otherwise.} }
 #'
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'   Analysis for Functional Data'', CRC Press.
 #' @export
-#' 
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("cgpr", package = "GPFDA")}
 CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
   
   N <- length(Data$input)
@@ -170,22 +180,25 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
 #' Prediction of Convolved Gaussian process
 #'
 #' @inheritParams CGPR
-#' @param train List resulting from training which is an 'mgpr' object.
-#' @param Data.train List of training data
-#' @param Data.new List of test input data
+#' @param train A 'mgpr' object obtained from 'CGPR' function. Default to NULL.
+#'   If NULL, learning is done based on Data.train informed by the user.
+#' @param Data.train List of training data. Default to NULL. If NULL,
+#'   predictions are made based on the trained model of class 'mgpr'.
+#' @param Data.new List of test input data.
 #' @param noiseFreePred Logical. If TRUE, predictions will be noise-free.
 #'
 #' @export
 #'
-#' @return A list containing  \describe{ 
-#' \item{pred.mean}{Mean of predictions}
-#' \item{pred.sd}{Standard deviation of predictions}
-#' \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
-#' }
-#' 
+#' @return A list containing  \describe{ \item{pred.mean}{Mean of predictions for the test set.}
+#'   \item{pred.sd}{Standard deviation of predictions for the test set.}
+#'   \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.} }
+#'   
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("cgpr", package = "GPFDA")}
 CGPprediction <- function(train=NULL, 
                        Data.train=NULL,
-                       Data.new=NULL,
+                       Data.new,
                        noiseFreePred=F, 
                        meanModel=NULL, mu=0){
   
@@ -207,7 +220,9 @@ CGPprediction <- function(train=NULL,
   ns.new <- sapply(Data.new$input, length)
   idx.new <- c(unlist(sapply(1:N, function(i) rep(i, ns.new[i]))))
   
-  X <- as.matrix(unlist(Data.train$input))
+  if(!is.null(Data.train)){
+    X <- as.matrix(unlist(Data.train$input))
+  }
   ns <- sapply(Data.train$input, length)
   nsTest <- sapply(Data.new$input, length)
   idx <- c(unlist(sapply(1:N, function(i) rep(i, ns[i]))))
@@ -319,6 +334,9 @@ CGPprediction <- function(train=NULL,
 #'  
 #' @return Covariance matrix
 #' @export
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("cgpr", package = "GPFDA")}
 CGPCovMat <- function(Data, hp){
 
   N <- length(Data$input)
@@ -406,14 +424,14 @@ LogLikCGP <- function(hp, response, X, idx){
 
 #' Plot predictions of a convolved (multivariate) Gaussian Process regression
 #' model
-#'
-#' Plot predicitons of each element of the multivariate Gaussian Process for a
+#' 
+#' Plot predictons of each element of the multivariate Gaussian Process for a
 #' given an object of class 'gpr'.
 #'
-#' @param train The 'mgpr' object
+#' @param train An 'mgpr' object
 #' @param Data.train List of training data
 #' @param Data.new List of test data
-#' @param i Which realisation should be plotted.
+#' @param i Index identifying which realisation should be plotted.
 #' @param ylim Range of y-axis
 #' @param mfrow Graphical parameter
 #' @param cex  Graphical parameter
@@ -429,6 +447,9 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @return A plot showing predictions of each element of the multivariate
 #'   process.
 #' @export
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("cgpr", package = "GPFDA")}
 plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=NULL,
                                cex=1, cex.lab=1, cex.axis=1){
   
@@ -484,21 +505,23 @@ plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=N
 #' Plot of auto- or cross-covariance function of a Convolved (multivariate)
 #' Gaussian process
 #'
+#' @inheritParams CGPR
 #' @param type Logical. It can be either 'Cov' (for covariance function) or
-#'   'Cor' (for corresponding correlation function)
-#' @param output Integer identifying one element of the multivariate process
+#'   'Cor' (for corresponding correlation function).
+#' @param output Integer identifying one element of the multivariate process.
 #' @param outputp Integer identifying one element of the multivariate process.
 #'   If 'output' and 'outputp' are the same, the auto-covariance function will
-#'   be plotted. Otherwise, the cross-covariance function will be plotted.
-#' @param Data List of Data
+#'   be plotted. Otherwise, the cross-covariance function between 'output' and
+#'   'outputp' will be plotted.
 #' @param hp Vector of hyperparameters
-#' @param idx Index vector
+#' @param idx Index vector identifying to which output the elements of
+#'   concatenated vectors correspond to.
 #' @param ylim Graphical parameter
 #' @param xlim Graphical parameter
-#' 
+#'
 #' @importFrom  graphics plot
 #' @importFrom  graphics par
-#' 
+#'
 #' @return A plot
 #' @export
 #' 

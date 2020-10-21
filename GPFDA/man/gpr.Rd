@@ -13,7 +13,7 @@ gpr(
   NewHyper = NULL,
   meanModel = 0,
   mu = NULL,
-  gamma = NULL,
+  gamma = 2,
   nu = NULL,
   useGradient = T,
   itermax = 100,
@@ -23,35 +23,36 @@ gpr(
 )
 }
 \arguments{
-\item{input}{The input data from train data. Matrix or vectors are both
-acceptable. Some data.frames are not acceptable.}
+\item{input}{Input covariates. It must be either a matrix, where each column
+represents a covariate, or a vector if there is only one covariate.}
 
-\item{response}{The response data from train data. Matrix or vectors are both
-acceptable. Some data.frames are not acceptable.}
+\item{response}{Response data. It should be a matrix, where each column is a
+realisation. It can be a vector if there is only one realisation.}
 
-\item{Cov}{Covariance function(s) to use. Default to 'power.ex'.}
+\item{Cov}{Covariance function(s) to use. Options are: 'linear', 'pow.ex',
+'rat.qu', and 'matern'. Default to 'power.ex'.}
 
 \item{m}{If Subset of Data is to be used, m denotes the subset size and
-cannot be larger than the total sample size. Default set to NULL.}
+cannot be larger than the total sample size. Default to NULL.}
 
-\item{hyper}{The hyperparameters. Default to NULL. If not NULL, then must be
-a list with certain names.}
+\item{hyper}{The hyperparameters. Default to NULL. If not NULL, then it must
+be a list with appropriate names.}
 
-\item{NewHyper}{Vector of the names of the new hyper parameters from
-customized kernel function. The names of the hyper-parameters must have the
-format: xxxxxx.x, i.e. '6 digit' plus 'a dot' plus '1 digit'. This is
-required for both 'hyper' and 'NewHyper'}
+\item{NewHyper}{Vector of names of the new hyperparameters of the customized
+kernel function. These names must have the format: xxxxxx.x, i.e. '6 digit'
+followed by 'a dot' followed by '1 digit'. This is required for both
+'hyper' and 'NewHyper'}
 
 \item{meanModel}{Type of mean function. It can be \describe{ \item{0}{Zero
 mean function} \item{1}{Constant mean function to be estimated}
-\item{'t'}{Linear model for mean function} \item{'avg'}{The average across
-replications is used as the mean function. This is only used if there are
-more than two realisations observed at the same input coordinate values.} }
-Default to 0. If argument 'mu' is specified, then 'meanModel' will be set
-to 'userDefined'.}
+\item{'t'}{Linear model for the mean function} \item{'avg'}{The average
+across replications is used as the mean function. This is only used if
+there are more than two realisations observed at the same input coordinate
+values.} } Default to 0. If argument 'mu' is specified, then 'meanModel'
+will be set to 'userDefined'.}
 
-\item{mu}{Vector having the mean function values defined by the user. Its
-length must be the same as the sample size, that is, ncol(response).}
+\item{mu}{Mean function specified by the user. It must be a vector. Its
+length must be the same as the sample size, that is, nrow(response).}
 
 \item{gamma}{Power parameter used in powered exponential kernel function. It
 must be 0<gamma<=2.}
@@ -62,12 +63,11 @@ value.}
 \item{useGradient}{Logical. If TRUE, first derivatives will be used in the
 optimization.}
 
-\item{itermax}{Number of maximum iteration in optimization function. Default
-to be 100. Normally the number of optimization steps is around 20. If
-reduce 'reltol', the iterations needed will be less.}
+\item{itermax}{Maximum number of iterations allowed. Default to 100. If
+'reltol' is reduced, then the number of iterations needed will be less.}
 
-\item{reltol}{Relative convergence tolerance. Smaller reltol means more
-accurate and slower to converge.}
+\item{reltol}{Relative convergence tolerance. Default to 8e-10. Smaller
+reltol means higher accuracy and more time to converge.}
 
 \item{trace}{The value of the objective function and the parameters is
 printed every trace'th iteration. Defaults to 0 which indicates no trace
@@ -77,35 +77,41 @@ information is to be printed.}
 optimization starts with the best.}
 }
 \value{
-A list containing: \describe{ \item{hyper}{Hyper-parameter estimated
-  from training data} \item{var.hyper}{ Variance of the estimated
-  hyper-parameters} \item{fitted.mean }{Fitted value of training data }
-  \item{fitted.sd }{Standard deviation of the fitted value of training data}
+A list containing: \describe{ \item{hyper}{Hyperparameters vector
+  estimated from training data} \item{var.hyper}{ Variance of the estimated
+  hyperparameters} \item{fitted.mean }{Fitted values for the training data }
+  \item{fitted.sd }{Standard deviation of the fitted values for the training data}
   \item{train.x }{ Training covariates} \item{train.y }{ Training response}
-  \item{ train.yOri}{Original training response } \item{train.DataOri }{ }
-  \item{idxSubset }{Index vector identifying which observations were selected
-  if Subset of Data was used.} \item{ CovFun}{ Covariance function type}
-  \item{ gamma}{Parameter used in powered exponential covariance function }
-  \item{nu }{Parameter used in Matern covariance function }
-  \item{Q}{Covariance matrix } \item{mean}{Mean function } \item{meanModel}{
-  CHECK: 'lm' object if mean is a linear regression. NULL otherwise.}
-  \item{meanLinearModel}{ } \item{conv}{0 means converge; 1 otherwise. }
-  \item{hyper0}{ starting point of the hyper-parameters} }
+  \item{ train.yOri}{Original training response } \item{train.DataOri }{
+  Original training covariates} \item{idxSubset }{Index vector identifying
+  which observations were selected if Subset of Data was used.} \item{
+  CovFun}{ Covariance function type} \item{ gamma}{Parameter used in powered
+  exponential covariance function } \item{nu }{Parameter used in Matern
+  covariance function } \item{Q}{Covariance matrix } \item{mean}{Mean
+  function } \item{meanModel}{Mean model used} \item{meanLinearModel}{'lm'
+  object if mean is a linear regression. NULL otherwise.} \item{conv}{An
+  integer. 0 means converge; 1 otherwise. } \item{hyper0}{Starting point of
+  the hyperparameters vector.} }
 }
 \description{
 Gaussian Process regression for a single or multiple independent
 realisations.
 }
 \details{
-The most important function in the package, for fitting the GP model
-  and store everything necessary for prediction. The optimization used in the
-  function is 'nlminb'. Optimization might break down if the noise for the
-  curve are too far away from normal. Jitter, LU decomposition and sparse
-  matrix inverse are used to ensure the matrix inverse can always get an
-  answer. The names for the hyper parameters should be:"linear.a" for linear
-  covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
-  "rat.qu.s", "rat.qu.a" for rational quadratic, "matern" for Matern, "vv"
-  for Gaussian white noise. All hyper parameters should be in one list.
+The most important function of the package. It fits the GPR model
+  and stores everything necessary for prediction. The optimization used in
+  the function is 'nlminb'. The names for the hyperparameters should be:
+  "linear.a" for linear covariance function, "pow.ex.w", "pow.ex.v" for power
+  exponential, "rat.qu.s", "rat.qu.a" for rational quadratic, "matern.w",
+  "matern.v" for Matern, "vv" for variance of Gaussian white noise. All
+  hyperparameters should be in one list.
+}
+\examples{
+## See examples in vignettes:
+
+# \code{vignette("gpr_ex1", package = "GPFDA")} \cr
+# \code{vignette("gpr_ex2", package = "GPFDA")} \cr
+# \code{vignette("co2", package = "GPFDA")} \cr
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression

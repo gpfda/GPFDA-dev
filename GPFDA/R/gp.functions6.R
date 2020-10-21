@@ -4,20 +4,21 @@
 #' Stationary powered exponential covariance function.
 #'
 #' @param hyper The hyperparameters. Must be a list with certain names.
-#' @param input The input data. Must be a vector or a matrix.
-#' @param input.new The data for prediction. Must be a vector or a matrix.
-#'   Default to NULL.
-#' @param gamma Power parameter that cannot be estimated by simple non-linear
-#'   optimization.
+#' @param input The input data. It must be either a matrix, where each column
+#'   represents a covariate, or a vector if there is only one covariate.
+#' @param input.new The test input for prediction. Must be a vector or a matrix.
+#'   Default to NULL. If NULL, input.new will be identical to 'input'.
+#' @param gamma Power parameter used in powered exponential kernel function. It
+#'   must be 0<gamma<=2.
 #'
 #' @details The names for the hyperparameters should be:"linear.a" for linear
 #'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
 #'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
-#'   rational quadratic, "vv" for white noise. All hyper parameters should be in
+#'   rational quadratic, "vv" for white noise. All hyperparameters should be in
 #'   one list.
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'   Analysis for Functional input'', CRC Press.
-#' @return Covariance matrix
+#' @return A covariance matrix
 #' @export
 #' 
 cov.pow.ex <- function(hyper,input,input.new=NULL,gamma=2){
@@ -51,9 +52,9 @@ cov.pow.ex <- function(hyper,input,input.new=NULL,gamma=2){
 #' @details The names for the hyperparameters should be:"linear.a" for linear
 #'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
 #'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
-#'   rational quadratic, "vv" for white noise. All hyper parameters should be in
+#'   rational quadratic, "vv" for white noise. All hyperparameters should be in
 #'   one list.
-#' @return Covariance matrix
+#' @return A covariance matrix
 #' @export
 #'
 cov.rat.qu <- function(hyper,input,input.new=NULL){
@@ -82,15 +83,15 @@ cov.rat.qu <- function(hyper,input,input.new=NULL){
 #' Stationary Matern covariance function
 #'
 #' @inheritParams cov.pow.ex
-#' @param nu Smoothness parameter of the Matern class. Must be a positive value.
+#' @param nu Smoothness parameter of the Matern class. It must be a positive
+#'   value.
 #' @details The names for the hyperparameters should be:"linear.a" for linear
 #'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
-#'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
-#'   rational quadratic, "vv" for white noise. All hyper parameters should be in
-#'   one list.
-#' @return Covariance matrix
+#'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for rational
+#'   quadratic, "vv" for white noise. All hyperparameters should be in one list.
+#' @return A covariance matrix
 #' @export
-#'
+#' 
 cov.matern <- function(hyper,input,input.new=NULL, nu){
   
   input <- as.matrix(input)
@@ -141,9 +142,9 @@ cov.matern <- function(hyper,input,input.new=NULL, nu){
 #' @details The names for the hyperparameters should be:"linear.a" for linear
 #'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
 #'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
-#'   rational quadratic, "vv" for white noise. All hyper parameters should be in
+#'   rational quadratic, "vv" for white noise. All hyperparameters should be in
 #'   one list.
-#' @return Covariance matrix
+#' @return A covariance matrix
 #' @export
 #'
 cov.linear <- function(hyper,input,input.new=NULL){
@@ -175,78 +176,82 @@ cov.linear <- function(hyper,input,input.new=NULL){
 #' Gaussian Process regression for a single or multiple independent
 #' realisations.
 #'
-#' @param input The input data from train data. Matrix or vectors are both
-#'   acceptable. Some data.frames are not acceptable.
-#' @param response The response data from train data. Matrix or vectors are both
-#'   acceptable. Some data.frames are not acceptable.
-#' @param Cov Covariance function(s) to use. Default to 'power.ex'.
+#' @param input Input covariates. It must be either a matrix, where each column
+#'   represents a covariate, or a vector if there is only one covariate.
+#' @param response Response data. It should be a matrix, where each column is a
+#'   realisation. It can be a vector if there is only one realisation.
+#' @param Cov Covariance function(s) to use. Options are: 'linear', 'pow.ex',
+#'   'rat.qu', and 'matern'. Default to 'power.ex'.
 #' @param m If Subset of Data is to be used, m denotes the subset size and
-#'   cannot be larger than the total sample size. Default set to NULL.
-#' @param hyper The hyperparameters. Default to NULL. If not NULL, then must be
-#'   a list with certain names.
-#' @param NewHyper Vector of the names of the new hyper parameters from
-#'   customized kernel function. The names of the hyper-parameters must have the
-#'   format: xxxxxx.x, i.e. '6 digit' plus 'a dot' plus '1 digit'. This is
-#'   required for both 'hyper' and 'NewHyper'
+#'   cannot be larger than the total sample size. Default to NULL.
+#' @param hyper The hyperparameters. Default to NULL. If not NULL, then it must
+#'   be a list with appropriate names.
+#' @param NewHyper Vector of names of the new hyperparameters of the customized
+#'   kernel function. These names must have the format: xxxxxx.x, i.e. '6 digit'
+#'   followed by 'a dot' followed by '1 digit'. This is required for both
+#'   'hyper' and 'NewHyper'
 #' @param meanModel Type of mean function. It can be \describe{ \item{0}{Zero
 #'   mean function} \item{1}{Constant mean function to be estimated}
-#'   \item{'t'}{Linear model for mean function} \item{'avg'}{The average across
-#'   replications is used as the mean function. This is only used if there are
-#'   more than two realisations observed at the same input coordinate values.} }
-#'   Default to 0. If argument 'mu' is specified, then 'meanModel' will be set
-#'   to 'userDefined'.
-#' @param mu Vector having the mean function values defined by the user. Its
-#'   length must be the same as the sample size, that is, ncol(response).
+#'   \item{'t'}{Linear model for the mean function} \item{'avg'}{The average
+#'   across replications is used as the mean function. This is only used if
+#'   there are more than two realisations observed at the same input coordinate
+#'   values.} } Default to 0. If argument 'mu' is specified, then 'meanModel'
+#'   will be set to 'userDefined'.
+#' @param mu Mean function specified by the user. It must be a vector. Its
+#'   length must be the same as the sample size, that is, nrow(response).
 #' @param gamma Power parameter used in powered exponential kernel function. It
 #'   must be 0<gamma<=2.
 #' @param nu Smoothness parameter of the Matern class. It must be a positive
 #'   value.
 #' @param useGradient Logical. If TRUE, first derivatives will be used in the
 #'   optimization.
-#' @param itermax Number of maximum iteration in optimization function. Default
-#'   to be 100. Normally the number of optimization steps is around 20. If
-#'   reduce 'reltol', the iterations needed will be less.
-#' @param reltol Relative convergence tolerance. Smaller reltol means more
-#'   accurate and slower to converge.
+#' @param itermax Maximum number of iterations allowed. Default to 100. If
+#'   'reltol' is reduced, then the number of iterations needed will be less.
+#' @param reltol Relative convergence tolerance. Default to 8e-10. Smaller
+#'   reltol means higher accuracy and more time to converge.
 #' @param trace The value of the objective function and the parameters is
 #'   printed every trace'th iteration. Defaults to 0 which indicates no trace
 #'   information is to be printed.
 #' @param nInitCandidates Number of initial hyperparameter vectors. The
 #'   optimization starts with the best.
 #'
-#' @details The most important function in the package, for fitting the GP model
-#'   and store everything necessary for prediction. The optimization used in the
-#'   function is 'nlminb'. Optimization might break down if the noise for the
-#'   curve are too far away from normal. Jitter, LU decomposition and sparse
-#'   matrix inverse are used to ensure the matrix inverse can always get an
-#'   answer. The names for the hyper parameters should be:"linear.a" for linear
-#'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
-#'   "rat.qu.s", "rat.qu.a" for rational quadratic, "matern" for Matern, "vv"
-#'   for Gaussian white noise. All hyper parameters should be in one list.
+#' @details The most important function of the package. It fits the GPR model
+#'   and stores everything necessary for prediction. The optimization used in
+#'   the function is 'nlminb'. The names for the hyperparameters should be:
+#'   "linear.a" for linear covariance function, "pow.ex.w", "pow.ex.v" for power
+#'   exponential, "rat.qu.s", "rat.qu.a" for rational quadratic, "matern.w",
+#'   "matern.v" for Matern, "vv" for variance of Gaussian white noise. All
+#'   hyperparameters should be in one list.
 #'
-#' @return A list containing: \describe{ \item{hyper}{Hyper-parameter estimated
-#'   from training data} \item{var.hyper}{ Variance of the estimated
-#'   hyper-parameters} \item{fitted.mean }{Fitted value of training data }
-#'   \item{fitted.sd }{Standard deviation of the fitted value of training data}
+#' @return A list containing: \describe{ \item{hyper}{Hyperparameters vector
+#'   estimated from training data} \item{var.hyper}{ Variance of the estimated
+#'   hyperparameters} \item{fitted.mean }{Fitted values for the training data }
+#'   \item{fitted.sd }{Standard deviation of the fitted values for the training data}
 #'   \item{train.x }{ Training covariates} \item{train.y }{ Training response}
-#'   \item{ train.yOri}{Original training response } \item{train.DataOri }{ }
-#'   \item{idxSubset }{Index vector identifying which observations were selected
-#'   if Subset of Data was used.} \item{ CovFun}{ Covariance function type}
-#'   \item{ gamma}{Parameter used in powered exponential covariance function }
-#'   \item{nu }{Parameter used in Matern covariance function }
-#'   \item{Q}{Covariance matrix } \item{mean}{Mean function } \item{meanModel}{
-#'   CHECK: 'lm' object if mean is a linear regression. NULL otherwise.}
-#'   \item{meanLinearModel}{ } \item{conv}{0 means converge; 1 otherwise. }
-#'   \item{hyper0}{ starting point of the hyper-parameters} }
+#'   \item{ train.yOri}{Original training response } \item{train.DataOri }{
+#'   Original training covariates} \item{idxSubset }{Index vector identifying
+#'   which observations were selected if Subset of Data was used.} \item{
+#'   CovFun}{ Covariance function type} \item{ gamma}{Parameter used in powered
+#'   exponential covariance function } \item{nu }{Parameter used in Matern
+#'   covariance function } \item{Q}{Covariance matrix } \item{mean}{Mean
+#'   function } \item{meanModel}{Mean model used} \item{meanLinearModel}{'lm'
+#'   object if mean is a linear regression. NULL otherwise.} \item{conv}{An
+#'   integer. 0 means converge; 1 otherwise. } \item{hyper0}{Starting point of
+#'   the hyperparameters vector.} }
 #'
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'   Analysis for Functional Data'', CRC Press.
 #'
 #' @export
+#' @examples
+#' ## See examples in vignettes:
 #' 
+#' # \code{vignette("gpr_ex1", package = "GPFDA")} \cr
+#' # \code{vignette("gpr_ex2", package = "GPFDA")} \cr
+#' # \code{vignette("co2", package = "GPFDA")} \cr
 gpr <- function(input, response, Cov='pow.ex', 
                 m = NULL, hyper=NULL, NewHyper=NULL, meanModel=0, mu=NULL, 
-                gamma=NULL, nu=NULL,
+                gamma=2, nu=NULL,
                 useGradient=T, itermax=100, reltol=8e-10, trace=0,
                 nInitCandidates = 1000){
   
@@ -519,26 +524,29 @@ gpr <- function(input, response, Cov='pow.ex',
 #' Prediction using Gaussian Process
 #'
 #' @inheritParams gpr
-#' @param train List resulting from training which is a 'gpr' object. Default to be
-#'   NULL. If NULL, do training based on the other given arguments; if TRUE,
-#'   other arguments (except for input.new) will replaced by NULL; if FALSE, only
-#'   do prediction based on the other given arguments.
-#' @param input.new The test data. Must be a vector or a matrix.
+#' @param train A 'gpr' object obtained from 'gpr' function. Default to NULL. If
+#'   NULL, learning is done based on the other given arguments; otherwise,
+#'   prediction is made based on the trained model of class gpr'.
+#' @param input.new Test input covariates.  It must be either a matrix, where
+#'   each column represents a covariate, or a vector if there is only one
+#'   covariate.
 #' @param noiseFreePred Logical. If TRUE, predictions will be noise-free.
-#' @param Y  Training response.
-#'   --------------
-#' @param mSR Subset size m if Subset of Regressors method is used. It must be
-#'   smaller than the total sample size.
+#' @param Y  Training response. It should be a matrix, where each column is a
+#'   realisation. It can be a vector if there is only one realisation.
+#' @param mSR Subset size m if Subset of Regressors method is used for
+#'   prediction. It must be smaller than the total sample size.
 #'
-#' @return A list containing  \describe{ 
-#' \item{pred.mean}{Mean of predictions}
-#' \item{pred.sd}{Standard deviation of predictions}
-#' \item{newdata}{New data}
-#' \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
-#' \item{...}{Objects of 'gpr' class. }
-#'   }
+#' @return A list containing  \describe{ \item{pred.mean}{Mean of predictions}
+#'   \item{pred.sd}{Standard deviation of predictions} \item{newdata}{Test input data}
+#'   \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
+#'   \item{...}{Objects of 'gpr' class. } }
 #' @export
-#'
+#' @examples
+#' ## See examples in vignettes:
+#' 
+#' # \code{vignette("gpr_ex1", package = "GPFDA")} \cr
+#' # \code{vignette("gpr_ex2", package = "GPFDA")} \cr
+#' # \code{vignette("co2", package = "GPFDA")} \cr
 gppredict <- function(train=NULL,input.new=NULL,noiseFreePred=F,hyper=NULL, 
                          input=NULL, Y=NULL, mSR=NULL,
                          Cov=NULL,gamma=NULL,nu=NULL,meanModel=0,mu=0){
@@ -1054,18 +1062,16 @@ D2vv <- function(hyper,input,inv.Q,Alpha.Q){
 #'kernel with respect to that hyperparameter.
 #'
 #'@param d1 First derivative of the kernel function with respect to the required
-#'  hyper-parameter.
+#'  hyperparameter.
 #'@param d2 Second derivative of the kernel function with respect to the
-#'  required hyper-parameter.
-#'@param inv.Q Inverse matrix of the covariance matrix
-#'@param Alpha.Q  This is iQY %*% t(iQY)-iQ, where iQ is the inverse of the
-#'  covariance matrix, Y is the response.
+#'  required hyperparameter.
+#'@param inv.Q Inverse of covariance matrix Q
+#'@param Alpha.Q  This is alpha * alpha'- invQ, where invQ is the inverse of the
+#'  covariance matrix Q, and alpha = invQ * Y, where Y is the response.
 #'
-#'@details The function is to calculate the second derivative of the normal
-#'  likelihood, using the first and second derivative of the kernel functions.
-#'  The first and second derivative need to be pre-defined, for example of
-#'  customized covariance function, see "demo('co2')".
-#'@return A number
+#'@details The function calculates the second derivative of the log-likelihood,
+#'  using the first and second derivative of the kernel functions.
+#'@return A number.
 #'
 #'@references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'  Analysis for Functional Data'', CRC Press.
@@ -1105,13 +1111,14 @@ diag.rat.qu <- function(hyper,input){
 #'
 #' @param x The 'gpr' object from either training or predicting of the Gaussian
 #'   Process.
-#' @param fitted Logical. Plot fitted value or not. Default to FALSE, which is
-#'   to plot the predictions.
+#' @param fitted Logical. Plot fitted values or not. Default to FALSE. If FALSE,
+#'   plot the predictions.
 #' @param col.no Column number of the input matrix. If the input matrix has more
 #'   than one columns, than one of them will be used in the plot. Default to be
 #'   the first one.
 #' @param ylim Range value for y-axis.
-#' @param realisation Which realisation should be plotted (if there are multiple).
+#' @param realisation Integer identifying which realisation should be plotted
+#'   (if there are multiple).
 #' @param ... Graphical parameters passed to plot().
 #' @importFrom  graphics polygon
 #' @importFrom  graphics points
@@ -1121,7 +1128,9 @@ diag.rat.qu <- function(hyper,input){
 #' @importFrom  grDevices rgb
 #' @return A plot
 #' @export
-#'
+#' @examples
+#' ## See examples in vignette:
+#' # \code{vignette("gpr_ex1", package = "GPFDA")}
 plot.gpr <- function(x,fitted=F,col.no=1, ylim=NULL, realisation=NULL, ...){
   obj=x
   if(fitted==T){

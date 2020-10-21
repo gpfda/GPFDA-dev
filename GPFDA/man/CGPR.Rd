@@ -7,35 +7,47 @@
 CGPR(Data, m = NULL, meanModel = 0, mu = NULL)
 }
 \arguments{
-\item{Data}{List of two elements: (1) response variable; and (2) input
-variables}
+\item{Data}{List of two elements: 'input' and 'response'. The element 'input'
+is a list of N vectors, where each vector represents the input covariate
+values for a particular output. The element 'response' is the corresponding
+list of N matrices (if there are multiple realisations) or vectors (for a
+single realisation) representing the response variables.}
 
-\item{m}{If Subset of Data is to be used, m denotes the subset size and
-cannot be larger than the total sample size. Default set to NULL.}
+\item{m}{If Subset of Data is to be used in the estimation, m denotes the
+subset size. It cannot be larger than the total sample size. Default to
+NULL (Subsetting is not used).}
 
-\item{meanModel}{Type of mean function for each output. It can be \describe{
-\item{0}{Zero mean function} \item{1}{Constant mean function to be
-estimated} \item{'t'}{Linear model for mean function} \item{'avg'}{The
-average across replications is used as the mean function. This is only used
-if there are more than two realisations observed at the same input
-coordinate values.} } Default to 0. If argument 'mu' is specified, then
-'meanModel' will be set to 'userDefined'.}
+\item{meanModel}{Type of mean function applied to all outputs. It can be
+\describe{ \item{0}{Zero mean function for each output.} \item{1}{Constant
+mean function to be estimated for each output.} \item{'t'}{Linear model for
+the mean function of each output.} \item{'avg'}{The average across
+replications is used as the mean function of each output. This can only be
+used if there are more than two realisations observed at the same input
+values.} } Default to 0. If argument 'mu' is specified, then 'meanModel'
+will be set to 'userDefined'.}
 
-\item{mu}{Vector having the mean function values defined by the user. Its
-length must be the same as the sample size, that is, ncol(response).}
+\item{mu}{Vector of concatenated mean function values defined by the user.
+Default to NULL.}
 }
 \value{
-A list containing: \describe{ \item{fitted.mean }{Fitted value of
-  training data } \item{fitted.sd }{Standard deviation of the fitted value of
-  training data} \item{X}{Original input variables} \item{Y}{Original
-  response} \item{idx}{Original response}
-
-  \item{Cov}{Original response} \item{mean}{CHECK} \item{meanModel}{CHECK
-  Mean function type} \item{meanLinearModel}{CHECK Mean model} }
+A list containing: \describe{ \item{fitted.mean }{Fitted values for
+  the training data } \item{fitted.sd }{Standard deviation of the fitted
+  values for training data} \item{X}{Original input variables}
+  \item{Y}{Original response} \item{idx}{Index vector identifying to which output
+  the elements of concatenated vectors correspond to.} \item{Cov}{Covariance
+  matrix} \item{mean}{Concatenated mean function } \item{meanModel}{Mean
+  model used for each output} \item{meanLinearModel}{'lm' object for each
+  output if the linear regression model is used for the mean functions. NULL
+  otherwise.} }
 }
 \description{
-Convolved (multivariate) Gaussian process regression where each output is
-unidimensional.
+Convolved (multivariate) Gaussian process regression where each of the N
+outputs is unidimensional. The multivariate output is allowed to have
+multiple independent realisations.
+}
+\examples{
+## See examples in vignette:
+# \code{vignette("cgpr", package = "GPFDA")}
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
