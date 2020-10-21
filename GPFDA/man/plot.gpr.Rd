@@ -32,5 +32,5 @@ Plot Gaussian Process for a given an object of class 'gpr'.
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("gpr_ex1", package = "GPFDA")}
+# vignette("gpr_ex1", package = "GPFDA")
 }

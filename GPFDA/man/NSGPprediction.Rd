@@ -67,7 +67,7 @@ NSGP predicion given a vector of hyperparameters
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("nsgpr", package = "GPFDA")}
+# vignette("nsgpr", package = "GPFDA")
 }
 \references{
 Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling

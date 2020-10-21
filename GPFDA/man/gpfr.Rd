@@ -140,7 +140,7 @@ fyList is a list with items: `time': a sequence of time points
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("gpfr", package = "GPFDA")}
+# vignette("gpfr", package = "GPFDA")
 }
 \references{
 \itemize{ \item Ramsay, J., and Silverman, B. W. (2006),

@@ -46,5 +46,5 @@ given an object of class 'gpr'.
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("cgpr", package = "GPFDA")}
+# vignette("cgpr", package = "GPFDA")
 }

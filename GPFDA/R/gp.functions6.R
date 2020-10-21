@@ -246,9 +246,9 @@ cov.linear <- function(hyper,input,input.new=NULL){
 #' @examples
 #' ## See examples in vignettes:
 #' 
-#' # \code{vignette("gpr_ex1", package = "GPFDA")} \cr
-#' # \code{vignette("gpr_ex2", package = "GPFDA")} \cr
-#' # \code{vignette("co2", package = "GPFDA")} \cr
+#' # vignette("gpr_ex1", package = "GPFDA")
+#' # vignette("gpr_ex2", package = "GPFDA")
+#' # vignette("co2", package = "GPFDA")
 gpr <- function(input, response, Cov='pow.ex', 
                 m = NULL, hyper=NULL, NewHyper=NULL, meanModel=0, mu=NULL, 
                 gamma=2, nu=NULL,
@@ -544,9 +544,9 @@ gpr <- function(input, response, Cov='pow.ex',
 #' @examples
 #' ## See examples in vignettes:
 #' 
-#' # \code{vignette("gpr_ex1", package = "GPFDA")} \cr
-#' # \code{vignette("gpr_ex2", package = "GPFDA")} \cr
-#' # \code{vignette("co2", package = "GPFDA")} \cr
+#' # vignette("gpr_ex1", package = "GPFDA")
+#' # vignette("gpr_ex2", package = "GPFDA")
+#' # vignette("co2", package = "GPFDA")
 gppredict <- function(train=NULL,input.new=NULL,noiseFreePred=F,hyper=NULL, 
                          input=NULL, Y=NULL, mSR=NULL,
                          Cov=NULL,gamma=NULL,nu=NULL,meanModel=0,mu=0){
@@ -1130,7 +1130,7 @@ diag.rat.qu <- function(hyper,input){
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("gpr_ex1", package = "GPFDA")}
+#' # vignette("gpr_ex1", package = "GPFDA")
 plot.gpr <- function(x,fitted=F,col.no=1, ylim=NULL, realisation=NULL, ...){
   obj=x
   if(fitted==T){

@@ -68,7 +68,7 @@
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("nsgpr", package = "GPFDA")}
+#' # vignette("nsgpr", package = "GPFDA")
 NSGPR <- function( response,
                    input,
                    inputSubsetIdx = NULL,
@@ -294,7 +294,7 @@ cat("\nPlease specify 'whichTau'
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("nsgpr", package = "GPFDA")}
+#' # vignette("nsgpr", package = "GPFDA")
 NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis = 5, 
                           corrModel=corrModel, gamma=NULL, nu=NULL, cyclic=NULL, whichTau=NULL, calcCov=T){
   
@@ -602,7 +602,7 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx, bspl
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("nsgpr", package = "GPFDA")}
+#' # vignette("nsgpr", package = "GPFDA")
 NSGPprediction <- function(hp, response, input, input.new, 
                       noiseFreePred=F, nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
                       cyclic=cyclic, whichTau=whichTau){
@@ -972,7 +972,7 @@ NSGPCovMat_Asym <- function(hp, input, inputNew,
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("nsgpr", package = "GPFDA")}
+#' # vignette("nsgpr", package = "GPFDA")
 UnscaledCorr <- function(Dist.mat, corrModel, gamma=NULL, nu=NULL){
   
   if(!(corrModel%in%c("pow.ex", "matern"))){

@@ -74,7 +74,7 @@ Prediction using Gaussian Process
 \examples{
 ## See examples in vignettes:
 
-# \code{vignette("gpr_ex1", package = "GPFDA")} \cr
-# \code{vignette("gpr_ex2", package = "GPFDA")} \cr
-# \code{vignette("co2", package = "GPFDA")} \cr
+# vignette("gpr_ex1", package = "GPFDA")
+# vignette("gpr_ex2", package = "GPFDA")
+# vignette("co2", package = "GPFDA")
 }

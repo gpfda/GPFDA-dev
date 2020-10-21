@@ -109,9 +109,9 @@ The most important function of the package. It fits the GPR model
 \examples{
 ## See examples in vignettes:
 
-# \code{vignette("gpr_ex1", package = "GPFDA")} \cr
-# \code{vignette("gpr_ex2", package = "GPFDA")} \cr
-# \code{vignette("co2", package = "GPFDA")} \cr
+# vignette("gpr_ex1", package = "GPFDA")
+# vignette("gpr_ex2", package = "GPFDA")
+# vignette("co2", package = "GPFDA")
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression

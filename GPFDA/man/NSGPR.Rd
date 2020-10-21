@@ -99,7 +99,7 @@ The input argument for Q=2 can be constructed as follows: \describe{
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("nsgpr", package = "GPFDA")}
+# vignette("nsgpr", package = "GPFDA")
 }
 \references{
 Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling

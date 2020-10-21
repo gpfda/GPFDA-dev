@@ -47,7 +47,7 @@ multiple independent realisations.
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("cgpr", package = "GPFDA")}
+# vignette("cgpr", package = "GPFDA")
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression

@@ -39,7 +39,7 @@
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("cgpr", package = "GPFDA")}
+#' # vignette("cgpr", package = "GPFDA")
 CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
   
   N <- length(Data$input)
@@ -195,7 +195,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
 #'   
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("cgpr", package = "GPFDA")}
+#' # vignette("cgpr", package = "GPFDA")
 CGPprediction <- function(train=NULL, 
                        Data.train=NULL,
                        Data.new,
@@ -336,7 +336,7 @@ CGPprediction <- function(train=NULL,
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("cgpr", package = "GPFDA")}
+#' # vignette("cgpr", package = "GPFDA")
 CGPCovMat <- function(Data, hp){
 
   N <- length(Data$input)
@@ -449,7 +449,7 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("cgpr", package = "GPFDA")}
+#' # vignette("cgpr", package = "GPFDA")
 plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=NULL,
                                cex=1, cex.lab=1, cex.axis=1){
   

@@ -55,7 +55,7 @@ Two types of prediction are supplied. Type one is the new batch has
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("gpfr", package = "GPFDA")}
+# vignette("gpfr", package = "GPFDA")
 }
 \references{
 \itemize{ \item Ramsay, J., and Silverman, B. W. (2006),

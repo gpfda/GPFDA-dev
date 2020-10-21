@@ -25,5 +25,5 @@ prediction
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("gpfr", package = "GPFDA")}
+# vignette("gpfr", package = "GPFDA")
 }

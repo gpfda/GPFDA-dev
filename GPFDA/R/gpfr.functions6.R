@@ -795,7 +795,7 @@ gpfrtrain=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,fxL
 #'
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("gpfr", package = "GPFDA")}
+#' # vignette("gpfr", package = "GPFDA")
 gpfr=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,fxList=NULL,
               fbetaList=NULL,concurrent=TRUE,fbetaList_f=NULL,gpReg=NULL,hyper=NULL,
               Cov=c('pow.ex','linear'),gamma=2,nu=1.5,useGradient=T,
@@ -887,7 +887,7 @@ gpfr=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,fxList=N
 #'
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("gpfr", package = "GPFDA")}
+#' # vignette("gpfr", package = "GPFDA")
 gpfrpred=function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,gpReg=NULL,GP_predict=TRUE){
   if(class(object)!='gpfr') stop('The object is expected to be a gpfda object','\n')
   
@@ -1153,7 +1153,7 @@ gpfrpred=function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,gpReg=NULL,GP
 #' 
 #' @examples
 #' ## See examples in vignette:
-#' # \code{vignette("gpfr", package = "GPFDA")}
+#' # vignette("gpfr", package = "GPFDA")
 plot.gpfr=function (x, type=c('raw','fitted','prediction'), ...) 
 {
   obj = x

@@ -46,5 +46,5 @@ Prediction of Convolved Gaussian process
 }
 \examples{
 ## See examples in vignette:
-# \code{vignette("cgpr", package = "GPFDA")}
+# vignette("cgpr", package = "GPFDA")
 }
