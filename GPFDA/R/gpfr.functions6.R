@@ -146,7 +146,7 @@ main2=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   y=response
   ml=NULL;res=NULL;fittedFM=NULL;
   if(!is.null(lReg)){
-    if(class(y)=='fdata') y=y$data
+    if(class(y)[1]=='fdata') y=y$data
   }
   if(!is.null(time)){
     if(!is.null(fyList)) fyList$time=time
@@ -159,11 +159,11 @@ main2=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
     if(is.null(fxList)) fxList=list(list(time=time))
   }
   
-  if(class(y)=='matrix'){
+  if(class(y)[1]=='matrix'){
     ## define fd object for y if y is a matrix
     y=mat2fd(y,fyList)
   }
-  if(class(y)!='fd') stop('class of response must be one of matrix, fd or fdata')
+  if(class(y)[1]!='fd') stop('class of response must be one of matrix, fd or fdata')
   y_time=seq(y$basis$rangeval[1],y$basis$rangeval[2],len=length(y$fdnames$time))
   
   if(is.null(fbetaList_l[[1]]$nbasis)) fbetaList_l=lapply(fbetaList_l,function(i)c(i,list(nbasis=y$basis$nbasis)))
@@ -175,7 +175,7 @@ main2=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
     
   if(!is.null(lReg)){
     ## define list of x 
-    if(class(lReg)!='matrix') stop('class of lReg is expected to be matrix')
+    if(class(lReg)[1]!='matrix') stop('class of lReg is expected to be matrix')
     x=lReg
     nx=ncol(x)
     lxList=vector('list',length=nx)
@@ -207,8 +207,8 @@ main2=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
     betaEstMat=do.call('cbind',lapply(ml$betaestlist,function(i) predict(i,y_time)))
     ml_fitted=lReg%*%t(betaEstMat)
     
-    if(class(response)=='fd') y_raw=eval.fd(y_time,response)
-    if(class(response)=='matrix'){
+    if(class(response)[1]=='fd') y_raw=eval.fd(y_time,response)
+    if(class(response)[1]=='matrix'){
       if(nrow(response)==nrow(ml_fitted)) residML=response-ml_fitted
       if(nrow(response)==ncol(ml_fitted)) residML=t(response)-ml_fitted
     }
@@ -222,9 +222,9 @@ main2=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
     y=mat2fd(y,fyList)
     
     ## set up list of fd object for x
-    if(class(fReg)=='matrix' | class(fReg)=='fd')
+    if(class(fReg)[1]=='matrix' | class(fReg)[1]=='fd')
       fReg=list(fReg)
-    if(class(fReg)=='list'){
+    if(class(fReg)[1]=='list'){
       if(length(unique(unlist(lapply(fReg,class))))!=1) 
         stop('functional covariates are expected to have same class')
       if(unique(unlist(lapply(fReg,class)))=='matrix'){
@@ -306,8 +306,8 @@ main2=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
           betaEstMat=list(b0=eval.fd(y_time,mf$beta0estfd)[,1],b1=eval.bifd(y_time,y_time,mf$beta1estbifd)[,1])
           mf_fitted=apply(t(eval.fd(y_time,x)),1,function(i) i=i%*%betaEstMat[[2]]/length(y_time)^2+betaEstMat[[1]])
           
-          if(class(y)=='fd') y_raw=t(eval.fd(y_time,y))
-          if(class(y)=='matrix'){
+          if(class(y)[1]=='fd') y_raw=t(eval.fd(y_time,y))
+          if(class(y)[1]=='matrix'){
             if(nrow(y)==nrow(mf_fitted)) residMF=y_raw-mf_fitted
             if(nrow(y)==ncol(mf_fitted)) residMF=t(y_raw)-mf_fitted
           }
@@ -555,17 +555,17 @@ gpfrtrain=function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,fxL
   
   ## convert fd/fdata class to matrix
   response=model$res;Data=gpReg
-  if(class(response)!='matrix') stop('expecting matrix residual from functinoal regression')
+  if(class(response)[1]!='matrix') stop('expecting matrix residual from functinoal regression')
   ftime=model$fyl$time
   if(!is.null(ftime))time=ftime
   if(is.null(ftime) & is.null(time)) stop('expecting input time')
   
   
   
-  if(unique(unlist(lapply(Data,class)))=='fdata') Data=lapply(Data,function(i) i=t(i$data))
+  if(unique(unlist(lapply(Data,class)))[1]=='fdata') Data=lapply(Data,function(i) i=t(i$data))
 
-  if(class(response)=='matrix') response=t(response)
-  if(unique(unlist(lapply(Data,class))=='matrix')) Data=lapply(Data,t)
+  if(class(response)[1]=='matrix') response=t(response)
+  if(unique(unlist(lapply(Data,class))[1]=='matrix')) Data=lapply(Data,t)
   
   if(class(Data)=='fd')
     Data=(eval.fd(time,Data))
@@ -918,14 +918,14 @@ gpfrpred=function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,gpReg=NULL,GP
             model$mf[[1]]$yhatfdobj$fd$basis$rangeval)[1:2]
   if(is.null(model$ml) & is.null(model$mf)) rtime=c(0,1)
   
-  if(class(TestData)=='matrix'){
+  if(class(TestData)[1]=='matrix'){
     test=TestData
     test=t(test)
     if(is.null(NewTime)) time=seq(rtime[1],rtime[2],len=col(test))
     if(!is.null(NewTime)) time=NewTime
   }
   
-  if(class(TestData)=='fd'){
+  if(class(TestData)[1]=='fd'){
     if(is.null(NewTime)) time=seq(rtime[1],rtime[2],len=TestData$fdnames$time)
     if(!is.null(NewTime)) time=NewTime
     test=eval.fd(time,TestData)
@@ -981,7 +981,7 @@ gpfrpred=function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,gpReg=NULL,GP
                 x[[i]]=as.matrix(lReg[,i])
             }
           }
-          if(class(lReg)=='list'){
+          if(class(lReg)[1]=='list'){
             if(unique(unlist(lapply(lReg,class)))=='fd')
               x=lapply(lReg,function(i) t(i$coefs))
             if(unique(unlist(lapply(lReg,class)))=='matrix')

@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
   #dev = 'pdf', 
   message=F, 
   fig.width=5, fig.height=5,
-  tidy.opts=list(width.cutoff=75), tidy=TRUE
+  tidy.opts=list(width.cutoff=75), tidy=FALSE
 )
 options(scipen = 1, digits = 4)
 ```
