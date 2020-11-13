@@ -33,12 +33,12 @@ Default to NULL.}
 A list containing: \describe{ \item{fitted.mean }{Fitted values for
   the training data } \item{fitted.sd }{Standard deviation of the fitted
   values for training data} \item{X}{Original input variables}
-  \item{Y}{Original response} \item{idx}{Index vector identifying to which output
-  the elements of concatenated vectors correspond to.} \item{Cov}{Covariance
-  matrix} \item{mean}{Concatenated mean function } \item{meanModel}{Mean
-  model used for each output} \item{meanLinearModel}{'lm' object for each
-  output if the linear regression model is used for the mean functions. NULL
-  otherwise.} }
+  \item{Y}{Original response} \item{idx}{Index vector identifying to which 
+  output the elements of concatenated vectors correspond to.} 
+  \item{Cov}{Covariance matrix} \item{mean}{Concatenated mean function } 
+  \item{meanModel}{Mean model used for each output} 
+  \item{meanLinearModel}{'lm' object for each output if the linear regression 
+  model is used for the mean functions. NULL otherwise.} }
 }
 \description{
 Convolved (multivariate) Gaussian process regression where each of the N

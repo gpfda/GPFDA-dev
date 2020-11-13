@@ -64,7 +64,8 @@ length must be the same as the sample size, that is, nrow(response).}
 }
 \value{
 A list containing  \describe{ \item{pred.mean}{Mean of predictions}
-  \item{pred.sd}{Standard deviation of predictions} \item{newdata}{Test input data}
+  \item{pred.sd}{Standard deviation of predictions} \item{newdata}{Test input 
+  data}
   \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.}
   \item{...}{Objects of 'gpr' class. } }
 }

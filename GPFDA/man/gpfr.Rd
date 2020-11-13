@@ -76,7 +76,8 @@ optimization.}
 
 \item{time}{Time used in globle setting for functional objects.}
 
-\item{NewHyper}{Vector of the names of the new hyperparameters from customized kernel function.}
+\item{NewHyper}{Vector of the names of the new hyperparameters from 
+customized kernel function.}
 
 \item{accuracy}{Optimization accuracy. Default to be high.}
 

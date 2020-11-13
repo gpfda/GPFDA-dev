@@ -6,7 +6,8 @@
 #'
 #' @format   A data frame with 13 columns (12 months and the annual average) and
 #'   51 rows (number of years).
-#' @details Data used in the real data example, see vignette("co2"). It is obtained
+#' @details Data used in the real data example, see vignette("co2"). It is 
+#' obtained
 #'   from \url{https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/maunaloa.co2}.
 #'   Atmospheric CO2 values (ppmv) derived from in situ air samples collected at
 #'   Mauna Loa, Hawaii, USA.

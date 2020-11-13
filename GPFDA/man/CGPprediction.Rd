@@ -37,7 +37,8 @@ will be set to 'userDefined'.}
 Default to NULL.}
 }
 \value{
-A list containing  \describe{ \item{pred.mean}{Mean of predictions for the test set.}
+A list containing  \describe{ \item{pred.mean}{Mean of predictions 
+for the test set.}
   \item{pred.sd}{Standard deviation of predictions for the test set.}
   \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.} }
 }

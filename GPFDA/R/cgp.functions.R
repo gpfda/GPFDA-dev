@@ -27,12 +27,12 @@
 #' @return A list containing: \describe{ \item{fitted.mean }{Fitted values for
 #'   the training data } \item{fitted.sd }{Standard deviation of the fitted
 #'   values for training data} \item{X}{Original input variables}
-#'   \item{Y}{Original response} \item{idx}{Index vector identifying to which output
-#'   the elements of concatenated vectors correspond to.} \item{Cov}{Covariance
-#'   matrix} \item{mean}{Concatenated mean function } \item{meanModel}{Mean
-#'   model used for each output} \item{meanLinearModel}{'lm' object for each
-#'   output if the linear regression model is used for the mean functions. NULL
-#'   otherwise.} }
+#'   \item{Y}{Original response} \item{idx}{Index vector identifying to which 
+#'   output the elements of concatenated vectors correspond to.} 
+#'   \item{Cov}{Covariance matrix} \item{mean}{Concatenated mean function } 
+#'   \item{meanModel}{Mean model used for each output} 
+#'   \item{meanLinearModel}{'lm' object for each output if the linear regression 
+#'   model is used for the mean functions. NULL otherwise.} }
 #'
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'   Analysis for Functional Data'', CRC Press.
@@ -93,11 +93,14 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
     responseNew <- NULL
     mu <- NULL
     for(j in 1:N){
-      trend <- data.frame(yyy=c(response[idx==j,]), xxx=rep(c(X[idx==j,]), nrep))
+      trend <- data.frame(yyy=c(response[idx==j,]), xxx=rep(c(X[idx==j,]), 
+                                                            nrep))
       meanLinearModel_j <- lm(yyy~xxx, data=trend)
       meanLinearModel[[j]] <- meanLinearModel_j
-      response_j <- matrix(resid(meanLinearModel_j), nrow=nrow(response[idx==j,,drop=F]), byrow=F)
-      mean_j <- matrix(fitted(meanLinearModel_j), nrow=nrow(response[idx==j,,drop=F]), byrow=F)
+      response_j <- matrix(resid(meanLinearModel_j), 
+                           nrow=nrow(response[idx==j,,drop=F]), byrow=F)
+      mean_j <- matrix(fitted(meanLinearModel_j), 
+                       nrow=nrow(response[idx==j,,drop=F]), byrow=F)
       
       responseNew <- rbind(responseNew, response_j)
       mu <- rbind(mu, mean_j)
@@ -140,7 +143,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
   nCand <- 100
   candidates <- matrix(0, nCand, 2*N + 2*N*Q + 1)
   for(iCand in 1:nCand){
-    nu0s <- sample(c(-1,1), size = N, replace = T)*rep(runif(1, min=-2,max=2), N)
+    nu0s <- sample(c(-1,1), size=N, replace=T)*rep(runif(1, min=-2,max=2), N)
     nu1s <- log(abs(nu0s)*5)
     a0s <- runif(N, min=log(1.1), max=log(30))
     a1s <- runif(N, min=log(1.1), max=log(30))
@@ -151,10 +154,12 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
   resCand <- apply(candidates, 1, function(x) LogLikCGP(x, response, X, idx))
   hp_init_log <- candidates[which.min(resCand),]
   
-  res <- nlminb(start=hp_init_log, objective=LogLikCGP, gradient = NULL, hessian = NULL,
-                       control = list(eval.max=1000, iter.max=1000,
-                                      rel.tol=1e-8, x.tol=1e-8, xf.tol=1e-8),
-                       lower = lowerlimits, upper = upperlimits, response=response, X=X, idx=idx)
+  res <- nlminb(start=hp_init_log, objective=LogLikCGP, gradient=NULL, 
+                hessian=NULL,
+                control=list(eval.max=1000, iter.max=1000,
+                               rel.tol=1e-8, x.tol=1e-8, xf.tol=1e-8),
+                lower=lowerlimits, upper=upperlimits, response=response, X=X, 
+                idx=idx)
   
   hp_opt <- res$par
   
@@ -169,9 +174,11 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
   result <- list('hyper'=hp_opt,
               'fitted.mean'=fitted,
               'fitted.sd'=sqrt(fitted.var),
-              'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 'mu'=mean.original[,1], 
+              'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 
+              'mu'=mean.original[,1], 
               'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel)
   class(result)='mgpr'
+  
   return(result=result)
 }
 
@@ -189,7 +196,8 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
 #'
 #' @export
 #'
-#' @return A list containing  \describe{ \item{pred.mean}{Mean of predictions for the test set.}
+#' @return A list containing  \describe{ \item{pred.mean}{Mean of predictions 
+#' for the test set.}
 #'   \item{pred.sd}{Standard deviation of predictions for the test set.}
 #'   \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.} }
 #'   
@@ -203,14 +211,14 @@ CGPprediction <- function(train=NULL,
                        meanModel=NULL, mu=0){
   
   if(class(train)=='mgpr'){
-    hyper=train$hyper
-    X=train$X
-    Y=train$Y
-    idx=train$idx
-    Cov=train$Cov
-    mu=train$mu
-    meanModel=train$meanModel
-    meanLinearModel=train$meanLinearModel
+    hyper <- train$hyper
+    X <- train$X
+    Y <- train$Y
+    idx <- train$idx
+    Cov <- train$Cov
+    mu <- train$mu
+    meanModel <- train$meanModel
+    meanLinearModel <- train$meanLinearModel
   }
   
   
@@ -246,9 +254,7 @@ CGPprediction <- function(train=NULL,
     meanY <- do.call(cbind, replicate(nrep, unlist(meanList), simplify=FALSE))
   }
   Y <- Y - meanY
-  
-  
-  
+
   hp <- TransfToNatScaleCGP(hyper, N)
   
   Q <- 1
@@ -272,9 +278,11 @@ CGPprediction <- function(train=NULL,
   sig <- hp[length(hp)]
   
   Psi <- KCGP(X=X, idx=idx, va0s=va0s, va1s=va1s, A0s=A0s, A1s=A1s, sig=sig)
-  Knm <- KCGPnm(X=X, Xp = X.new, idx=idx, idx_new = idx.new, va0s=va0s, va1s=va1s, A0s=A0s, A1s=A1s, sig=0)
+  Knm <- KCGPnm(X=X, Xp = X.new, idx=idx, idx_new = idx.new, va0s=va0s, 
+                va1s=va1s, A0s=A0s, A1s=A1s, sig=0)
   
-  Kstar <- KCGP(X=X.new, idx=idx.new, va0s=va0s, va1s=va1s, A0s=A0s, A1s=A1s, sig=sig)
+  Kstar <- KCGP(X=X.new, idx=idx.new, va0s=va0s, va1s=va1s, A0s=A0s, A1s=A1s, 
+                sig=sig)
 
   invPsi <- chol2inv(chol(Psi))
   QR <- invPsi%*%Y
@@ -303,21 +311,19 @@ CGPprediction <- function(train=NULL,
     sigma2 <- diag(Kstar)-diag(t(Knm)%*%invPsi%*%Knm)
   }
   pred.sd. <- sqrt(sigma2)
-    
 
-  
   pred.mean <- list()
   pred.sd <- list()
   for(j in 1:N){
     pred.mean[[j]] <- pred.mu.[idx.new==j,,drop=F]
     pred.sd[[j]] <- pred.sd.[idx.new==j]
   }
-  
-  
+
   result=c(list('pred.mean'=pred.mean,
                 'pred.sd'=pred.sd,
                 'noiseFreePred'=noiseFreePred))
   class(result)='mgpr'
+  
   return(result)
   
 }
@@ -450,8 +456,8 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("cgpr", package = "GPFDA")
-plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=NULL,
-                               cex=1, cex.lab=1, cex.axis=1){
+plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, 
+                              mfrow=NULL, cex=1, cex.lab=1, cex.axis=1){
   
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
             oma=c(0,0,0,0),
@@ -484,14 +490,14 @@ plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=N
     }
     
     xlim_i <- range(Data.train$input[[variable]], Data.new$input[[variable]])
-    plot(Data.train$input[[variable]], Data.train$response[[variable]][,i], type="p",
-         xlab="t", ylab=bquote(X[.(variable)]), ylim=ylim_i, xlim=xlim_i, pch=19, 
-         cex=cex, cex.axis=cex.axis, cex.lab=cex.lab)
+    plot(Data.train$input[[variable]], Data.train$response[[variable]][,i], 
+         type="p", xlab="t", ylab=bquote(X[.(variable)]), ylim=ylim_i, 
+         xlim=xlim_i, pch=19, cex=cex, cex.axis=cex.axis, cex.lab=cex.lab)
     lines(Data.new$input[[variable]], predMean, col="blue", lwd=2)
     
     polygon(x=c(Data.new$input[[variable]], rev(Data.new$input[[variable]])), 
             y=c(upper, rev(lower)),
-            col = rgb(127,127,127,120, maxColorValue = 255), border = NA)
+            col=rgb(127,127,127,120, maxColorValue=255), border=NA)
   }
   
   par(mfrow=c(1,1))
@@ -525,7 +531,8 @@ plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, mfrow=N
 #' @return A plot
 #' @export
 #' 
-plotCGPCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL, xlim=NULL){
+plotCGPCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL, 
+                          xlim=NULL){
   
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
             oma=c(0,0,0,0),

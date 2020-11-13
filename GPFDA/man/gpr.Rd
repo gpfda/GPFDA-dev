@@ -80,7 +80,8 @@ optimization starts with the best.}
 A list containing: \describe{ \item{hyper}{Hyperparameters vector
   estimated from training data} \item{var.hyper}{ Variance of the estimated
   hyperparameters} \item{fitted.mean }{Fitted values for the training data }
-  \item{fitted.sd }{Standard deviation of the fitted values for the training data}
+  \item{fitted.sd }{Standard deviation of the fitted values for the training 
+  data}
   \item{train.x }{ Training covariates} \item{train.y }{ Training response}
   \item{ train.yOri}{Original training response } \item{train.DataOri }{
   Original training covariates} \item{idxSubset }{Index vector identifying

@@ -31,8 +31,8 @@ All items listed above have default values. If any item is required
 }
 \examples{
 library(GPFDA)
-beta1=betaPar()
-beta2=betaPar(list(nbasis=7,lambda=0.01))
+beta1 <- betaPar()
+beta2 <- betaPar(list(nbasis=7,lambda=0.01))
 }
 \references{
 Ramsay, J., and Silverman, B. W. (2006),

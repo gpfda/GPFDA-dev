@@ -110,7 +110,7 @@ lines(b2$predtime,b2$ypred[,2],lty=2,col=2)
 lines(b2$predtime,b2$ypred[,3],lty=2,col=2)
 points(xt,yt)
 
-system.time(b3<-gpfrpred(a1,TestData=tfx,NewTime=seq(-3,0,len=100),lReg=tx,fReg=NULL,gpReg=NULL))
+system.time(b3<-gpfrpred(a1,TestData=tfx,NewTime=seq(0,3,len=100),lReg=tx,fReg=NULL,gpReg=NULL))
 
 # plot(b3,type='prediction')
 plot(-1000,col=0,xlim=range(b1$time),ylim=range(b1$ypred),xlab='time',ylab='prediction',

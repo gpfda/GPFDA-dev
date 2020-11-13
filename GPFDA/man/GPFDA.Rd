@@ -18,7 +18,7 @@ The main functions of the package are:
  \deqn{y_m(t)=\mu_m(t)+\tau_m(x)+\epsilon_m(t),} where \eqn{m} is the
  \eqn{m}-th curve or surface; \eqn{\mu_m} is from functional regression;
  and \eqn{\tau_m} is from Gaussian Process regression with mean 0 covariance
- matrix \eqn{k(\bf \theta)}. }
+ matrix \eqn{k(\bf \theta)}.}
  }
 }
 \references{
