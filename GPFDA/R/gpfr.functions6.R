@@ -782,7 +782,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #'
 #' @param response The training response. can be an fd object or a matrix with
 #'   nrow samples, ncol time points
-#' @param lReg The input variable for functional linear regression with scale
+#' @param lReg The input variable for functional linear regression with scalar
 #'   covariates. Expected to be a matrix with nrow samples.
 #' @param fReg The input variable for functional linear regression with
 #'   functional covariates. Expected to be a matrix with nrow samples, or an fd
@@ -790,12 +790,12 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #' @param fyList The list to control the smoothing of response. See details for
 #'   more info.
 #' @param fbetaList_l The list to control the smoothing of beta for functional
-#'   regression with scale covariates. See details for more info.
+#'   regression with scalar covariates. See details for more info.
 #' @param fxList The list to control the smoothing of functional covariates for
 #'   functional regression with functional covariates. See details for more
 #'   info.
 #' @param fbetaList The list to control the smoothing of functional covariates
-#'   for functional regression with functional covariates and scale response.
+#'   for functional regression with functional covariates and scalar response.
 #'   Not available for now.
 #' @param concurrent Logical. If True concurrent functional regression will be
 #'   carried out, otherwise the full functional regression will be carried out.
@@ -876,7 +876,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #' # vignette("gpfr", package = "GPFDA")
 gpfr <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
                  fxList=NULL,fbetaList=NULL,concurrent=TRUE,fbetaList_f=NULL,
-                 gpReg=NULL,hyper=NULL,Cov=c('pow.ex','linear'),gamma=2,nu=1.5,
+                 gpReg=NULL,hyper=NULL,Cov='pow.ex',gamma=2,nu=1.5,
                  useGradient=T,time=NULL,NewHyper=NULL,
                  accuracy=c('high','normal','low'),
                  trace.iter=5,fitting=FALSE,rPreIdx=FALSE){
@@ -888,9 +888,10 @@ gpfr <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   } 
   if(is.null(hyper)){
     hyper <- list()
-    if(any(Cov=='linear'))
+    if(any(Cov=='linear')){
       hyper$linear.a <- rnorm(col.no)
       hyper$linear.i <- log(1)
+    }
     if(any(Cov=='pow.ex')){
       hyper$pow.ex.v <- runif(1,-1,1)
       hyper$pow.ex.w <- (-abs(rnorm(col.no)))
@@ -937,7 +938,7 @@ gpfr <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #' @param TestData Test input data. Must be matrix or fd object.
 #' @param NewTime New time for test data. If NULL, default setting will be
 #'   applied.
-#' @param lReg The test scale data for functional regression with scale
+#' @param lReg The test scalar data for functional regression with scalar
 #'   covariates.
 #' @param fReg The test functional data for functional regression with
 #'   functional covariates.
