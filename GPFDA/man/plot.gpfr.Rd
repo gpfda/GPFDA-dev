@@ -5,16 +5,26 @@
 \title{Plot Gaussian Process regression with functional mean for either training or
 prediction}
 \usage{
-\method{plot}{gpfr}(x, type = c("raw", "fitted", "prediction"), ...)
+\method{plot}{gpfr}(
+  x,
+  type = c("raw", "meanFunction", "fitted", "prediction"),
+  ylab = "y",
+  xlab = "t",
+  ...
+)
 }
 \arguments{
 \item{x}{Plot Gaussian Process with functional mean for training or
 predicting with 'gpfr' class object.}
 
-\item{type}{Function provides three types of plots: raw, fitted and
-prediction.}
+\item{type}{Function provides the following types of plots: raw,
+meanFunction, fitted and prediction.}
 
-\item{...}{Graphical parameters passed to plot().}
+\item{ylab}{Title for the y axis.}
+
+\item{xlab}{Title for the x axis.}
+
+\item{...}{Other graphical parameters passed to plot().}
 }
 \value{
 A plot

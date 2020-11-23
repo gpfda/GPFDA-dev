@@ -576,6 +576,7 @@ fisherinfo <- function(pp.cg,X,Y,Cov,gamma,nu){
 }
 
 #' @importFrom  fda.usc is.fdata
+#' @importFrom  fda is.fd
 gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
                       fxList=NULL,fbetaList=NULL,concurrent=TRUE,
                       fbetaList_f=NULL,gpReg=NULL,hyper=NULL,
@@ -976,6 +977,11 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
     stop('The object is expected to be a gpfda object','\n')
   }
   
+  if(is.null(gpReg)){
+    predictionType <- 2
+  }else{
+    predictionType <- 1
+  }
   model <- object$modellist
   if(is.null(model$ml) & !is.null(lReg)){
     cat('    model with scalar variable is not found, ignoring lReg','\n')
@@ -1241,7 +1247,8 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
   CI <- cbind(ypred, ypredup, ypredlo)
   
   result <- c(list(ypred=CI, testtime=time,predtime=testtime,ypred.mean=ypred,
-                   ypred.sd=sqrt(s2)),unclass(object))
+                   ypred.sd=sqrt(s2)),predictionType=predictionType,
+              unclass(object))
   class(result) <- 'gpfr'
   return(result)
 }
@@ -1255,9 +1262,11 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
 #'
 #' @param x Plot Gaussian Process with functional mean for training or
 #'   predicting with 'gpfr' class object.
-#' @param type Function provides three types of plots: raw, fitted and
-#'   prediction.
-#' @param ... Graphical parameters passed to plot().
+#' @param type Function provides the following types of plots: raw,
+#'   meanFunction, fitted and prediction.
+#' @param ylab  Title for the y axis.
+#' @param xlab  Title for the x axis.
+#' @param ... Other graphical parameters passed to plot().
 #' @importFrom graphics polygon
 #' @importFrom graphics matpoints
 #' @importFrom graphics matlines
@@ -1266,44 +1275,65 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
 #' @importFrom fda matplot
 #' @return A plot
 #' @export
-#' 
+#'
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpfr", package = "GPFDA")
-plot.gpfr <- function (x, type=c('raw','fitted','prediction'), ...) 
-{
+plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'), 
+                       ylab='y', xlab='t', ...){
   obj <- x
-  if(!type%in%c('raw','fitted','prediction')) 
+  if(!type%in%c('raw','meanFunction','fitted','prediction')) 
     stop('type must be one of the raw, fitted or prediction')
   type <- type[1]
+    
+  op <- par(mar=c(4.5,5.1,2.2,0.8), 
+            oma=c(0,0,1,0),
+            cex.lab=1.5, cex.axis=1.5, cex.main=2)
   
   if(type=='raw'){
-    matplot(obj$time,t(obj$init_resp),type='pl',pch=4,lwd=2,col='red',lty=3,
-            main='Training',xlab='time')
+    matplot(obj$time,t(obj$init_resp),type='l',lwd=1,lty=3,
+            main='Raw data',xlab=xlab,ylab=ylab)
+    matpoints(obj$time,t(obj$init_resp),pch=4,cex=1,lty=3)
+    
+  }
+  
+  if(type=='meanFunction'){
+    
+    matplot(obj$time,t(obj$init_resp),type='p',pch=4,lty=3,cex=1,lwd=1,
+            main='Mean function',xlab=xlab,ylab=ylab)
+    lines(obj$modellist$ml$yhatfdobj, lwd=2)
   }
   
   if(type=='fitted'){
-    matplot(obj$time,t(obj$init_resp),type='pl',pch=4,lwd=2,col='pink',lty=3,
-            main='Training',xlab='time')
+    matplot(obj$time,t(obj$init_resp),type='p',pch=4,lty=3,cex=0,lwd=1,
+            main='Fitted',xlab=xlab,ylab=ylab)
     for(i in 1:ncol(obj$fitted.mean)){
       polygon(c(obj$time, rev(obj$time)), 
               c((obj$fitted.mean-obj$fitted.sd*1.96)[,i], 
                 rev((obj$fitted.mean+obj$fitted.sd*1.96)[,i])), 
               col = rgb(127,127,127,80, maxColorValue = 255), border = NA)
     }
-    matpoints(obj$time,t(obj$init_resp),pch=4,cex=0.5,col='red',lty=3)
-    matlines(obj$time,obj$fitted.mean,type='l',pch=4,lwd=0.5,col=4)
+    matpoints(obj$time,t(obj$init_resp),pch=4,lty=3,cex=1,lwd=1)
+    matlines(obj$time,obj$fitted.mean,type='l',pch=4,lwd=1.5, lty=3)
   }
   
   if(type=='prediction'){
-    matplot(obj$time,t(obj$init_resp),type='l',pch=4,lwd=2,col='pink',lty=3,
-            main='Training',xlab='time')
-    matpoints(obj$time,t(obj$init_resp),pch=4,cex=0.5,col='red',lty=3)
-    polygon(c(obj$predtime, rev(obj$predtime)), c(obj$ypred[,2], 
-                                                  rev(obj$ypred[,3])), 
+    
+    if(obj$predictionType==1){
+      main <- "Type I prediction"
+    }else{
+      main <- "Type II prediction"
+    }
+    
+    matplot(obj$time,t(obj$init_resp),type='l',lwd=2,lty=3,col='pink',
+            main=main,xlab=xlab,ylab=ylab)
+    matpoints(obj$time,t(obj$init_resp),pch=4,cex=0.5,lty=3,col='red')
+    polygon(c(obj$predtime, rev(obj$predtime)), 
+            c(obj$ypred[,2], rev(obj$ypred[,3])), 
             col = rgb(127,127,127,100, maxColorValue = 255), border = NA)
     lines(obj$predtime,obj$ypred[,1],col=4,lwd=2)
     
   }
+  par(op)
 }
 

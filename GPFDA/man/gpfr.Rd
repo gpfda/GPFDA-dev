@@ -16,7 +16,7 @@ gpfr(
   fbetaList_f = NULL,
   gpReg = NULL,
   hyper = NULL,
-  Cov = c("pow.ex", "linear"),
+  Cov = "pow.ex",
   gamma = 2,
   nu = 1.5,
   useGradient = T,
@@ -32,7 +32,7 @@ gpfr(
 \item{response}{The training response. can be an fd object or a matrix with
 nrow samples, ncol time points}
 
-\item{lReg}{The input variable for functional linear regression with scale
+\item{lReg}{The input variable for functional linear regression with scalar
 covariates. Expected to be a matrix with nrow samples.}
 
 \item{fReg}{The input variable for functional linear regression with
@@ -43,14 +43,14 @@ object, or a list of matrices or fd objects.}
 more info.}
 
 \item{fbetaList_l}{The list to control the smoothing of beta for functional
-regression with scale covariates. See details for more info.}
+regression with scalar covariates. See details for more info.}
 
 \item{fxList}{The list to control the smoothing of functional covariates for
 functional regression with functional covariates. See details for more
 info.}
 
 \item{fbetaList}{The list to control the smoothing of functional covariates
-for functional regression with functional covariates and scale response.
+for functional regression with functional covariates and scalar response.
 Not available for now.}
 
 \item{concurrent}{Logical. If True concurrent functional regression will be

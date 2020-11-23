@@ -23,7 +23,7 @@ function stops running.}
 \item{NewTime}{New time for test data. If NULL, default setting will be
 applied.}
 
-\item{lReg}{The test scale data for functional regression with scale
+\item{lReg}{The test scalar data for functional regression with scalar
 covariates.}
 
 \item{fReg}{The test functional data for functional regression with

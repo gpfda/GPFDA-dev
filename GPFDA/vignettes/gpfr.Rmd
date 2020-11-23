@@ -1,6 +1,8 @@
 ---
 title: "GPFR example"
 output: rmarkdown::html_vignette
+header-includes:
+    - \usepackage{bm}
 vignette: >
   %\VignetteIndexEntry{gpfr}
   %\VignetteEngine{knitr::rmarkdown}
@@ -19,105 +21,156 @@ knitr::opts_chunk$set(
 options(scipen = 1, digits = 4)
 ```
 
+
+
+Suppose we have a functional response variable $y_m(t), \ m=1,\dots,M$, a 
+functional covariate $x_m(t)$ and also a set of $p=2$ scalar covariates 
+$\textbf{u}_m = (u_{m0},u_{m1})^\top$.
+
+A Gaussian process functional regression (GPFR) model used in this example is
+defined by
+
+$y_m(t) = \mu_m(t) + \tau_m(x_m(t)) + \varepsilon_m(t)$,
+
+where $\mu_m(t) = \textbf{u}_m^\top \boldsymbol{\beta}(t)$ is the mean function
+model across different curves and $\tau_m(x_m(t))$ is a Gaussian process with 
+zero mean and covariance function $k_m(\boldsymbol{\theta}|x_m(t))$. That is, 
+$\tau_m(x_m(t))$ defines the covariance structure of $y_m(t)$ for the different
+data points within the same curve. 
+
+The error term can be assumed to be $\varepsilon_m(t) \sim N(0, \sigma_\varepsilon^2)$, 
+where the noise variance $\sigma_\varepsilon^2$ can be estimated as a hyperparameter 
+of the Gaussian process.
+
+
+In the example below, the training data consist of $M=20$ realisations with 
+$n=50$ points for each curve. We assume regression coefficient functions
+$\beta_0(t)=1$, $\beta_1(t)=\sin((0.5 t)^3)$, scalar covariates 
+$u_{m0} \sim N(0,1)$ and $u_{m1} \sim N(10,5^2)$ and a functional covariate
+$x_m(t) = \exp(t) + v$, where $v \sim N(0, 0.1^2)$. The term $\tau_m(x_m(t))$ is
+a zero mean Gaussian process with squared exponential covariance kernel and 
+$\sigma_\varepsilon^2 = 1$.
+
+We also simulate an $(M+1)-th$ realisation which is used to assess predictions 
+obtained by the model estimated by using the training data of size $M$.
+
+
 ```{r setup}
-library(GPFDA)
-library(fda)
-library(fda.usc)
-require(MASS)
+library("GPFDA")
+require("MASS")
 ```
 
 ```{r}
 set.seed(100)
-traindata <- vector('list',20)
-for(i in 1:20) traindata[[i]]=i
+
+M <- 20
 n <- 50
-traindata <- lapply(traindata,function(i) {
-  x <- seq(-3,3,len=n)
-  y <- sin(x^2)-x+0.2*rnorm(n,0,3)
-  x1 <- 0.5*x^3+exp(x)+rnorm(n,0,3)
-  x2 <- cos(x^3)+0.2*rnorm(n,0,3)
-  mat <- cbind(x,x1,x2,y)
-  colnames(mat) <- c('time','x1','x2','y')
-  scale <- t(c(2*(mean(y)>0.25)-1,(var(y)>3.6)*2-1,(sd(y)-sd(x)>1.4)*2-1))
-  i <- list(mat,scale)
-})
+p <- 2  # number of scalar covariates
 
-n <- 800 #test input
-x <- seq(-3,3,len=n)
-y <- sin(x^2)-x+0.2*rnorm(n,0,3)
-x1 <- 0.5*x^3+exp(x)+rnorm(n,0,3)
-x2 <- cos(x^3)+0.2*rnorm(n,0,3)
-mat <- cbind(x,x1,x2,y)
-colnames(mat) <- c('time','x1','x2','y')
-scale <- t(c(2*(mean(y)>0.25)-1,(var(y)>3.6)*2-1,(sd(y)-sd(x)>1.4)*2-1))
-# testdata[[1]]=vector('list',3)
-n <- 100 # test new points
-xt <- seq(-3,3,len=n)
-yt <- sin(xt^2)-xt+0.2*rnorm(n,0,3)
-xt1 <- 0.5*xt^3+exp(xt)+rnorm(n,0,3)
-xt2 <- cos(xt^3)+0.2*rnorm(n,0,3)
-mat_t <- cbind(xt,xt1,xt2)
-colnames(mat_t) <- c('time','xt1','xt2')
-td <- list(mat,scale,mat_t)
+hp <- list('pow.ex.v'=log(10), 'pow.ex.w'=log(1),'vv'=log(1))
 
-lx=do.call('rbind',lapply(traindata,function(i)i[[2]]))
-fx1=do.call('rbind',lapply(traindata,function(i)i[[1]][,2]))
-fx2=do.call('rbind',lapply(traindata,function(i)i[[1]][,3]))
-fy1=do.call('rbind',lapply(traindata,function(i)i[[1]][,4]))
-time_old=traindata[[1]][[1]][,1]
+## Training data: M realisations -----------------
+ 
+tt <- seq(-4,4,len=n)
+b <- sin((0.5*tt)^3)
 
-pfx=td[[1]][,c(2,3)]
-pfy=td[[1]][,4]
-ptime=td[[1]][,1]
-time_new=td[[3]][,1]
-tfx=td[[3]][,c(2,3)]
-tx=td[[2]]
+scalar_train <- matrix(NA, M, p)
+t_train <- matrix(NA, M, n)
+fx_train <- matrix(NA, M, n)
+response_train <- matrix(NA, M, n)
+for(i in 1:M){
+  u0 <- rnorm(1)
+  u1 <- rnorm(1,10,5)
+  x <- exp(tt) + rnorm(n, 0, 0.1)
+  Sigma <- cov.pow.ex(hp, cbind(x))
+  diag(Sigma) <- diag(Sigma) + exp(hp$vv)
+  y <- u0+u1*b + mvrnorm(n=1, mu=rep(0,n), Sigma=Sigma)
+  scalar_train[i,] <- c(u0,u1)
+  t_train[i,] <- tt
+  fx_train[i,] <- x
+  response_train[i,] <- y
+}
+
+## Test data (M+1)-th realisation ------------------
+n_new <- 100
+t_new <- seq(-4,4,len=n_new)
+b_new <- sin((0.5*t_new)^3)
+u0_new <- rnorm(1)
+u1_new <- rnorm(1,10,5)
+U_new <- cbind(u0_new, u1_new)
+x_new <- exp(t_new) + rnorm(n_new, 0, 0.1)
+Sigma_new <- cov.pow.ex(hp,cbind(x_new))
+diag(Sigma_new) <- diag(Sigma_new) + exp(hp$vv)
+response_new <- u0_new + u1_new*b_new + mvrnorm(n=1, mu=rep(0,n_new), Sigma=Sigma_new)
 ```
 
+
+```{r, results=F}
+a1 <- gpfr(response=response_train, lReg=scalar_train, 
+           fReg=NULL,
+           gpReg=list(fx_train),
+           fyList=list(nbasis=23,lambda=0.0001),
+           fbetaList_l=list(list(lambda=0.0001,nbasi=23)),
+           hyper=NULL, Cov='pow.ex', fitting=T,
+           time=tt, rPreIdx=T, concurrent=T)
+```
+
+Note that the estimated hyperparameters are similar to the true values.
 
 ```{r}
-system.time(a1<-gpfr(response=(fy1),lReg=lx,fReg=NULL,gpReg=list((fx1),(fx2)),
-                     fyList=list(nbasis=23,lambda=0.1),
-                     fbetaList_l=list(list(lambda=.01,nbasi=17)),
-                     hyper=NULL,Cov=c('pow.ex','linear'),fitting=T,
-                     time=seq(-3,3,len=50), rPreIdx=T,concurrent=T))
-# plot(a1,type='raw')
-# plot(a1,type='fitted')
-
-system.time(b1<-gpfrpred(a1,TestData=(tfx),NewTime=time_new,lReg=tx,fReg=NULL,
-                         gpReg=list('response'=(pfy),'input'=(pfx),'time'=ptime)))
+unlist(lapply(a1$hyper,exp))
 ```
 
+### Plot of raw data
+```{r}
+plot(a1,type='raw')
+```
+
+
+### In-sample fit using mean function from FR model only
 
 ```{r}
-# plot(b1,type='prediction')
-plot(-1000,col=0,xlim=range(b1$time),ylim=range(b1$ypred),xlab='time',ylab='prediction',
-     main='Prediction by GPFR: type I')
-#
-lines(b1$predtime,b1$ypred[,1])
-lines(b1$predtime,b1$ypred[,2],lty=2,col=2)
-lines(b1$predtime,b1$ypred[,3],lty=2,col=2)
-points(xt,yt)
-
-system.time(b2<-gpfrpred(a1,TestData=(tfx),NewTime=time_new,lReg=tx,fReg=NULL,gpReg=NULL))
-
-# plot(b2,type='prediction')
-plot(-1000,col=0,xlim=range(b2$time),ylim=range(b2$ypred),xlab='time',ylab='prediction',
-     main='Prediction by GPFR: type II')
-
-lines(b2$predtime,b2$ypred[,1])
-lines(b2$predtime,b2$ypred[,2],lty=2,col=2)
-lines(b2$predtime,b2$ypred[,3],lty=2,col=2)
-points(xt,yt)
-
-system.time(b3<-gpfrpred(a1,TestData=tfx,NewTime=seq(0,3,len=100),lReg=tx,fReg=NULL,gpReg=NULL))
-
-# plot(b3,type='prediction')
-plot(-1000,col=0,xlim=range(b1$time),ylim=range(b1$ypred),xlab='time',ylab='prediction',
-     main='Prediction by GPFR: type I')
-lines(b3$predtime,b3$ypred[,1])
-lines(b3$predtime,b3$ypred[,2],lty=2,col=2)
-lines(b3$predtime,b3$ypred[,3],lty=2,col=2)
-points(xt,yt)
+plot(a1, type = 'meanFunction')
 ```
+
+### GPFR fit for training data
+ 
+```{r}
+plot(a1, type = 'fitted')
+```
+
+
+
+## Type I prediction: $y_{M+1}$ observed
+```{r, results=F}
+b1 <- gpfrpred(a1,TestData=as.matrix(x_new),NewTime=t_new,
+               lReg=U_new, fReg=NULL,
+               gpReg=list('response'=response_new,'input'=x_new,'time'=t_new))
+
+plot(b1, type = 'prediction') 
+lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
+```
+
+## Type I prediction: $y_{M+1}$ partially observed
+```{r, results=F}
+b2 <- gpfrpred(a1,TestData=as.matrix(x_new),NewTime=t_new,
+               lReg=U_new, fReg=NULL,
+               gpReg=list('response'=response_new[1:20],
+                          'input'=x_new[1:20],
+                          'time'=t_new[1:20]))
+
+plot(b2, type = 'prediction')
+lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
+```
+
+
+## Type II prediction: $y_{M+1}$ not observed
+```{r, results=F}
+b3 <- gpfrpred(a1,TestData=as.matrix(x_new),NewTime=t_new,
+               lReg=U_new, fReg=NULL, gpReg=NULL)
+
+plot(b3, type = 'prediction')
+lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
+```
+
 
