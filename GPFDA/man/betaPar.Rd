@@ -7,14 +7,14 @@
 betaPar(betaList = NULL)
 }
 \arguments{
-\item{betaList}{A list contain following items: `rtime': range of time,
-default to be 0 and 1; `nbasis': number of basis functions used in
+\item{betaList}{A list contain following items: 'rtime': range of time,
+default to be 0 and 1; 'nbasis': number of basis functions used in
 smoothing, default to be less or equal to 19; norder: the order of the
-functional curves default to be 6;`bSpline': logical, if TRUE, b-spline is
-used, otherwise use Fourier basis, default to be TRUE; `Pen': default to be
-c(0,0);`lambda':default to be 1e4;'bivar':logical, if TRUE, the bivariate
+functional curves default to be 6;'bSpline': logical, if TRUE, b-spline is
+used, otherwise use Fourier basis, default to be TRUE; 'Pen': default to be
+c(0,0);'lambda':default to be 1e4;'bivar':logical, if TRUE, the bivariate
 basis will be calculated, otherwise normal basis, default to be FALSE;
-`lambdas':the smoothing parameter for the penalty of the additional basis,
+'lambdas':the smoothing parameter for the penalty of the additional basis,
 default to be 1e4.}
 }
 \value{

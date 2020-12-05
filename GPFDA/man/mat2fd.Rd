@@ -2,7 +2,7 @@
 % Please edit documentation in R/gpfr.functions6.R
 \name{mat2fd}
 \alias{mat2fd}
-\title{Create an fd object from a matrix}
+\title{Create an 'fd' object from a matrix}
 \usage{
 mat2fd(mat, fdList = NULL)
 }
@@ -10,21 +10,21 @@ mat2fd(mat, fdList = NULL)
 \item{mat}{Input data, should be a matrix with ncol time points and nrow
 replications or samples.}
 
-\item{fdList}{A list with following items: `time': a sequence of time points
-default to be 100 points from 0 to 1; `nbasis': number of basis functions
-used in smoothing, default to be less or equal to 23; `norder': the order
-of the functional curves default to be 6, `bSpline': logical, if True,
-b-spline is used, otherwise use Fourier basis, default to be True; `Pen':
+\item{fdList}{A list with following items: 'time': a sequence of time points
+default to be 100 points from 0 to 1; 'nbasis': number of basis functions
+used in smoothing, default to be less or equal to 23; 'norder': the order
+of the functional curves default to be 6, 'bSpline': logical, if TRUE,
+b-spline is used, otherwise use Fourier basis, default to be TRUE; 'Pen':
 default to be c(0,0), means that the penalty is on the second order
 derivative of the curve, since the weight for zero-th and first order
-derivatives of the curve are zero, `lambda':default to be 1e-4, the
+derivatives of the curve are zero, 'lambda':default to be 1e-4, the
 smoothing parameter for the penalty.}
 }
 \value{
-An fd object
+An 'fd' object
 }
 \description{
-Easy setting up for creating an fd object
+Easy setting up for creating an 'fd' object
 }
 \details{
 All items listed above have default values. If any item is required

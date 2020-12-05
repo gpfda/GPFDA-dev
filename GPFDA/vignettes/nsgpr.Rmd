@@ -1,5 +1,5 @@
 ---
-title: "NGPR example"
+title: "NSGPR example"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{nsgpr}
@@ -79,7 +79,7 @@ ScaleDistMats <- CalcScaleDistMats(A_List=A_List, coords=inputMat)
 Scale.mat <- ScaleDistMats$Scale.mat
 Dist.mat <- ScaleDistMats$Dist.mat
 
-K <- Scale.mat*UnscaledCorr(Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
+K <- Scale.mat*unscaledCorr(Dist.mat=Dist.mat, corrModel=corrModel, gamma=gamma, nu=nu)
 diag(K) <- diag(K) + 1e-8
 
 # Generate response surfaces
@@ -93,7 +93,7 @@ response <- t(mvtnorm::rmvnorm(nSamples, meanFunction, K))
 ```{r}
 ### NOT RUN
 
-# fit <- NSGPR(response = response,
+# fit <- nsgpr(response = response,
 #               input = input,
 #               corrModel = corrModel,
 #               gamma = gamma,
@@ -144,7 +144,7 @@ input.new[[1]] <- seq(0,1,length.out = n1test)
 input.new[[2]] <- seq(0,1,length.out = n2test)
 inputMatTest <- expand.grid(input.new[[1]], input.new[[2]])
 
-pred <- NSGPprediction(hp=hp, response=response, input=input, 
+pred <- nsgprPredict(hp=hp, response=response, input=input, 
                        input.new=input.new,  noiseFreePred=F, nBasis=6, 
                        corrModel=corrModel, gamma=gamma, nu=nu, cyclic=c(F,F), 
                        whichTau=c(T,T))
@@ -193,7 +193,7 @@ par(opar)
 
 ```{r, fig.width=10, fig.height=5}
 # Calculate Covariance matrix based on the hp estimates found above
-FittedCovMat <- NSGPCovMat(hp=hp, input=input, corrModel=corrModel, 
+FittedCovMat <- nsgpCovMat(hp=hp, input=input, corrModel=corrModel, 
                               gamma=gamma, nu=nu, nBasis=6, cyclic=c(F,F), 
                               whichTau=c(T,T), calcCov=T)$Cov
 

@@ -66,12 +66,12 @@ Ytrain <- Y[!whichTest,,drop=F]
 ## Estimation
 ```{r}
 aNew <- gpr(input=Xtrain, response=Ytrain, Cov='matern', trace=2, useGradient=T,
-            itermax=50, nu=nu, nInitCandidates=50)
+            iter.max=50, nu=nu, nInitCandidates=50)
 ```
 
 ## Prediction
 ```{r}
-bNew <- gppredict(train=aNew, input.new=Xtest, noiseFreePred=T)
+bNew <- gprPredict(train=aNew, input.new=Xtest, noiseFreePred=T)
 ```
 
 

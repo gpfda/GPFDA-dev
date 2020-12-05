@@ -61,6 +61,7 @@ require("MASS")
 ```
 
 ```{r}
+require("MASS")
 set.seed(100)
 
 M <- 20
@@ -76,7 +77,7 @@ b <- sin((0.5*tt)^3)
 
 scalar_train <- matrix(NA, M, p)
 t_train <- matrix(NA, M, n)
-fx_train <- matrix(NA, M, n)
+x_train <- matrix(NA, M, n)
 response_train <- matrix(NA, M, n)
 for(i in 1:M){
   u0 <- rnorm(1)
@@ -87,7 +88,7 @@ for(i in 1:M){
   y <- u0+u1*b + mvrnorm(n=1, mu=rep(0,n), Sigma=Sigma)
   scalar_train[i,] <- c(u0,u1)
   t_train[i,] <- tt
-  fx_train[i,] <- x
+  x_train[i,] <- x
   response_train[i,] <- y
 }
 
@@ -97,22 +98,31 @@ t_new <- seq(-4,4,len=n_new)
 b_new <- sin((0.5*t_new)^3)
 u0_new <- rnorm(1)
 u1_new <- rnorm(1,10,5)
-U_new <- cbind(u0_new, u1_new)
+scalar_new <- cbind(u0_new, u1_new)
 x_new <- exp(t_new) + rnorm(n_new, 0, 0.1)
 Sigma_new <- cov.pow.ex(hp,cbind(x_new))
 diag(Sigma_new) <- diag(Sigma_new) + exp(hp$vv)
-response_new <- u0_new + u1_new*b_new + mvrnorm(n=1, mu=rep(0,n_new), Sigma=Sigma_new)
+response_new <- u0_new + u1_new*b_new + mvrnorm(n=1, mu=rep(0,n_new), 
+                                                Sigma=Sigma_new)
+```
+
+```{r, include=F, eval=F}
+dataExampleGPFR <- list(tt=tt, response_train=response_train, 
+                        scalar_train=scalar_train, fx_train=x_train, 
+                        response_new=response_new, x_new=x_new, 
+                        scalar_new=scalar_new)
+save(dataExampleGPFR, file = "data/dataExampleGPFR.rda")
 ```
 
 
 ```{r, results=F}
 a1 <- gpfr(response=response_train, lReg=scalar_train, 
            fReg=NULL,
-           gpReg=list(fx_train),
+           gpReg=list(x_train),
            fyList=list(nbasis=23,lambda=0.0001),
            fbetaList_l=list(list(lambda=0.0001,nbasi=23)),
            hyper=NULL, Cov='pow.ex', fitting=T,
-           time=tt, rPreIdx=T, concurrent=T)
+           time=tt, concurrent=T)
 ```
 
 Note that the estimated hyperparameters are similar to the true values.
@@ -143,9 +153,9 @@ plot(a1, type = 'fitted')
 
 ## Type I prediction: $y_{M+1}$ observed
 ```{r, results=F}
-b1 <- gpfrpred(a1,TestData=as.matrix(x_new),NewTime=t_new,
-               lReg=U_new, fReg=NULL,
-               gpReg=list('response'=response_new,'input'=x_new,'time'=t_new))
+b1 <- gpfrPredict(a1,TestData=as.matrix(x_new),NewTime=t_new,
+                  lReg=scalar_new, fReg=NULL,
+                  gpReg=list('response'=response_new,'input'=x_new,'time'=t_new))
 
 plot(b1, type = 'prediction') 
 lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
@@ -153,9 +163,9 @@ lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
 
 ## Type I prediction: $y_{M+1}$ partially observed
 ```{r, results=F}
-b2 <- gpfrpred(a1,TestData=as.matrix(x_new),NewTime=t_new,
-               lReg=U_new, fReg=NULL,
-               gpReg=list('response'=response_new[1:20],
+b2 <- gpfrPredict(a1,TestData=as.matrix(x_new),NewTime=t_new,
+                  lReg=scalar_new, fReg=NULL,
+                  gpReg=list('response'=response_new[1:20],
                           'input'=x_new[1:20],
                           'time'=t_new[1:20]))
 
@@ -166,8 +176,8 @@ lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
 
 ## Type II prediction: $y_{M+1}$ not observed
 ```{r, results=F}
-b3 <- gpfrpred(a1,TestData=as.matrix(x_new),NewTime=t_new,
-               lReg=U_new, fReg=NULL, gpReg=NULL)
+b3 <- gpfrPredict(a1,TestData=as.matrix(x_new),NewTime=t_new,
+                  lReg=scalar_new, fReg=NULL, gpReg=NULL)
 
 plot(b3, type = 'prediction')
 lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)

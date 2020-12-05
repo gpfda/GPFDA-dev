@@ -1,7 +1,7 @@
 
-#' Convolved (multivariate) Gaussian process regression
+#' Multivariate Gaussian process regression
 #'
-#' Convolved (multivariate) Gaussian process regression where each of the N
+#' Multivariate Gaussian process regression where each of the N
 #' outputs is unidimensional. The multivariate output is allowed to have
 #' multiple independent realisations.
 #'
@@ -26,7 +26,8 @@
 #'
 #' @return A list containing: \describe{ \item{fitted.mean }{Fitted values for
 #'   the training data } \item{fitted.sd }{Standard deviation of the fitted
-#'   values for training data} \item{X}{Original input variables}
+#'   values for training data} \item{N}{Number of response variables}
+#'   \item{X}{Original input variables}
 #'   \item{Y}{Original response} \item{idx}{Index vector identifying to which 
 #'   output the elements of concatenated vectors correspond to.} 
 #'   \item{Cov}{Covariance matrix} \item{mean}{Concatenated mean function } 
@@ -39,8 +40,8 @@
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # vignette("cgpr", package = "GPFDA")
-CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
+#' # vignette("mgpr", package = "GPFDA")
+mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
   
   N <- length(Data$input)
   X <- as.matrix(unlist(Data$input))
@@ -163,7 +164,7 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
   
   hp_opt <- res$par
   
-  K <- CGPCovMat(Data=Data, hp=hp_opt)
+  K <- mgpCovMat(Data=Data, hp=hp_opt)
   invK <- chol2inv(chol(K))
   
   varEpsilon <- exp(hp_opt[length(hp_opt)])^2
@@ -174,23 +175,25 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
   result <- list('hyper'=hp_opt,
               'fitted.mean'=fitted,
               'fitted.sd'=sqrt(fitted.var),
+              'N'=N,
               'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 
               'mu'=mean.original[,1], 
               'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel)
   class(result)='mgpr'
   
-  return(result=result)
+  return(result)
 }
 
 
 
-#' Prediction of Convolved Gaussian process
+#' Prediction of multivariate Gaussian process
 #'
-#' @inheritParams CGPR
-#' @param train A 'mgpr' object obtained from 'CGPR' function. Default to NULL.
-#'   If NULL, learning is done based on Data.train informed by the user.
-#' @param Data.train List of training data. Default to NULL. If NULL,
-#'   predictions are made based on the trained model of class 'mgpr'.
+#' @inheritParams mgpr
+#' @param train A 'mgpr' object obtained from 'mgpr' function. 
+#'   If NULL, predictions are made based on Data.obs informed by the user.
+#' @param Data.obs List of observed data. Default to NULL. If NULL,
+#'   predictions are made based on the trained data 
+#'   (included in the object of class 'mgpr') used for learning.
 #' @param Data.new List of test input data.
 #' @param noiseFreePred Logical. If TRUE, predictions will be noise-free.
 #'
@@ -203,17 +206,22 @@ CGPR <- function(Data, m=NULL, meanModel=0, mu=NULL){
 #'   
 #' @examples
 #' ## See examples in vignette:
-#' # vignette("cgpr", package = "GPFDA")
-CGPprediction <- function(train=NULL, 
-                       Data.train=NULL,
+#' # vignette("mgpr", package = "GPFDA")
+mgprPredict <- function(train, 
+                       Data.obs=NULL,
                        Data.new,
                        noiseFreePred=F, 
                        meanModel=NULL, mu=0){
   
-  if(class(train)=='mgpr'){
+  
+  
+  if(class(train)!='mgpr'){
+      stop("Argument 'train' must be an object of class 'mgpr'.")
+  }else{
     hyper <- train$hyper
     X <- train$X
     Y <- train$Y
+    N <- train$N
     idx <- train$idx
     Cov <- train$Cov
     mu <- train$mu
@@ -221,20 +229,19 @@ CGPprediction <- function(train=NULL,
     meanLinearModel <- train$meanLinearModel
   }
   
-  
-  N <- length(Data.train$input)
-  
+  if(!is.null(Data.obs)){
+    N <- length(Data.obs$input)
+    X <- as.matrix(unlist(Data.obs$input))
+  }
+
   X.new <- as.matrix(unlist(Data.new$input))
   ns.new <- sapply(Data.new$input, length)
   idx.new <- c(unlist(sapply(1:N, function(i) rep(i, ns.new[i]))))
-  
-  if(!is.null(Data.train)){
-    X <- as.matrix(unlist(Data.train$input))
-  }
-  ns <- sapply(Data.train$input, length)
+
+  ns <- sapply(Data.obs$input, length)
   nsTest <- sapply(Data.new$input, length)
   idx <- c(unlist(sapply(1:N, function(i) rep(i, ns[i]))))
-  Y <- Reduce('rbind', Data.train$response)
+  Y <- Reduce('rbind', Data.obs$response)
   
   nrep <- ncol(Y)
   
@@ -248,7 +255,7 @@ CGPprediction <- function(train=NULL,
   if(meanModel=='t'){
     meanList <- list()
     for(j in 1:N){
-      newtrend <- data.frame(xxx=Data.train$input[[j]])
+      newtrend <- data.frame(xxx=Data.obs$input[[j]])
       meanList[[j]] <- predict(meanLinearModel[[j]], newdata=newtrend)
     }
     meanY <- do.call(cbind, replicate(nrep, unlist(meanList), simplify=FALSE))
@@ -330,10 +337,10 @@ CGPprediction <- function(train=NULL,
 
 
 
-#' Calculation of a Convolved Gaussian processes covariance matrix given a
+#' Calculation of a multivariate Gaussian processes covariance matrix given a
 #' vector of hyperparameters
 #'
-#' @inheritParams CGPR
+#' @inheritParams mgpr
 #' @param hp Vector of hyperparameters
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'  Analysis for Functional Data'', CRC Press.
@@ -342,8 +349,8 @@ CGPprediction <- function(train=NULL,
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # vignette("cgpr", package = "GPFDA")
-CGPCovMat <- function(Data, hp){
+#' # vignette("mgpr", package = "GPFDA")
+mgpCovMat <- function(Data, hp){
 
   N <- length(Data$input)
   X <- as.matrix(unlist(Data$input))
@@ -428,14 +435,14 @@ LogLikCGP <- function(hp, response, X, idx){
 
 
 
-#' Plot predictions of a convolved (multivariate) Gaussian Process regression
+#' Plot predictions of a multivariate Gaussian Process regression
 #' model
 #' 
 #' Plot predictons of each element of the multivariate Gaussian Process for a
-#' given an object of class 'gpr'.
+#' given an object of class 'mgpr'.
 #'
-#' @param train An 'mgpr' object
-#' @param Data.train List of training data
+#' @param x An object of class 'mgpr'
+#' @param Data.obs List of observed data
 #' @param Data.new List of test data
 #' @param i Index identifying which realisation should be plotted.
 #' @param ylim Range of y-axis
@@ -443,6 +450,7 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @param cex  Graphical parameter
 #' @param cex.lab  Graphical parameter
 #' @param cex.axis  Graphical parameter
+#' @param ... Graphical parameters passed to plot().
 #'
 #' @importFrom  graphics polygon
 #' @importFrom  graphics lines
@@ -455,16 +463,17 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @export
 #' @examples
 #' ## See examples in vignette:
-#' # vignette("cgpr", package = "GPFDA")
-plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL, 
-                              mfrow=NULL, cex=1, cex.lab=1, cex.axis=1){
+#' # vignette("mgpr", package = "GPFDA")
+plot.mgpr <- function(x, Data.obs, Data.new, i, ylim=NULL, 
+                              mfrow=NULL, cex=1, cex.lab=1, cex.axis=1, ...){
   
+  train <- x
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
             oma=c(0,0,0,0),
-            cex.lab=2, cex.axis=2, cex.main=2)
+            cex.lab=1.5, cex.axis=1, cex.main=1.5)
   
-  predCGP <- CGPprediction(train=train, 
-                        Data.train=Data.train,
+  predCGP <- mgprPredict(train=train, 
+                        Data.obs=Data.obs,
                         Data.new=Data.new)
   
   N <- length(predCGP$pred.mean)
@@ -489,10 +498,10 @@ plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL,
       ylim_i <- ylim[[variable]]
     }
     
-    xlim_i <- range(Data.train$input[[variable]], Data.new$input[[variable]])
-    plot(Data.train$input[[variable]], Data.train$response[[variable]][,i], 
+    xlim_i <- range(Data.obs$input[[variable]], Data.new$input[[variable]])
+    plot(Data.obs$input[[variable]], Data.obs$response[[variable]][,i], 
          type="p", xlab="t", ylab=bquote(X[.(variable)]), ylim=ylim_i, 
-         xlim=xlim_i, pch=19, cex=cex, cex.axis=cex.axis, cex.lab=cex.lab)
+         xlim=xlim_i, pch=19, cex=cex, cex.axis=cex.axis, cex.lab=cex.lab, ...)
     lines(Data.new$input[[variable]], predMean, col="blue", lwd=2)
     
     polygon(x=c(Data.new$input[[variable]], rev(Data.new$input[[variable]])), 
@@ -508,10 +517,9 @@ plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL,
 
 
 
-#' Plot of auto- or cross-covariance function of a Convolved (multivariate)
-#' Gaussian process
+#' Plot of auto- or cross-covariance function of a multivariate Gaussian process
 #'
-#' @inheritParams CGPR
+#' @inheritParams mgpr
 #' @param type Logical. It can be either 'Cov' (for covariance function) or
 #'   'Cor' (for corresponding correlation function).
 #' @param output Integer identifying one element of the multivariate process.
@@ -531,14 +539,14 @@ plotCGPprediction <- function(train, Data.train, Data.new, i, ylim=NULL,
 #' @return A plot
 #' @export
 #' 
-plotCGPCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL, 
+plotmgpCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL, 
                           xlim=NULL){
   
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
             oma=c(0,0,0,0),
-            cex.lab=2, cex.axis=2, cex.main=2)
+            cex.lab=1.5, cex.axis=1, cex.main=1.5)
   
-  Psi <- CGPCovMat(Data=Data, hp=hp)
+  Psi <- mgpCovMat(Data=Data, hp=hp)
   
   if(type=="Cor"){
     Psi <- cov2cor(Psi)

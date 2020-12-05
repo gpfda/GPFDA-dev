@@ -2,8 +2,7 @@
 % Please edit documentation in R/gpfr.functions6.R
 \name{plot.gpfr}
 \alias{plot.gpfr}
-\title{Plot Gaussian Process regression with functional mean for either training or
-prediction}
+\title{Plot GPFR model for either training or prediction}
 \usage{
 \method{plot}{gpfr}(
   x,
@@ -14,11 +13,11 @@ prediction}
 )
 }
 \arguments{
-\item{x}{Plot Gaussian Process with functional mean for training or
-predicting with 'gpfr' class object.}
+\item{x}{Plot GPFR for training or prediction from a given object of 'gpfr'
+class.}
 
-\item{type}{Function provides the following types of plots: raw,
-meanFunction, fitted and prediction.}
+\item{type}{Required type of plots. Options are: 'raw',
+'meanFunction', 'fitted' and 'prediction'.}
 
 \item{ylab}{Title for the y axis.}
 
@@ -27,11 +26,10 @@ meanFunction, fitted and prediction.}
 \item{...}{Other graphical parameters passed to plot().}
 }
 \value{
-A plot
+A plot.
 }
 \description{
-Plot Gaussian Process regression with functional mean for either training or
-prediction
+Plot GPFR model for either training or prediction
 }
 \examples{
 ## See examples in vignette:

@@ -50,9 +50,9 @@ plot(a)
 
 ## Prediction
 ```{r}
-b1 <- gppredict(a,x, noiseFreePred=F)
+b1 <- gprPredict(a,x, noiseFreePred=F)
 plot(b1)
-b2 <- gppredict(a,x, noiseFreePred=T)
+b2 <- gprPredict(a,x, noiseFreePred=T)
 plot(b2)
 ```
 

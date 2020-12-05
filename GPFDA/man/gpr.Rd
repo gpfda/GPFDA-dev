@@ -14,10 +14,10 @@ gpr(
   meanModel = 0,
   mu = NULL,
   gamma = 2,
-  nu = NULL,
+  nu = 1.5,
   useGradient = T,
-  itermax = 100,
-  reltol = 8e-10,
+  iter.max = 100,
+  rel.tol = 8e-10,
   trace = 0,
   nInitCandidates = 1000
 )
@@ -63,11 +63,11 @@ value.}
 \item{useGradient}{Logical. If TRUE, first derivatives will be used in the
 optimization.}
 
-\item{itermax}{Maximum number of iterations allowed. Default to 100. If
-'reltol' is reduced, then the number of iterations needed will be less.}
+\item{iter.max}{Maximum number of iterations allowed. Default to 100. If
+'rel.tol' is reduced, then the number of iterations needed will be less.}
 
-\item{reltol}{Relative convergence tolerance. Default to 8e-10. Smaller
-reltol means higher accuracy and more time to converge.}
+\item{rel.tol}{Relative convergence tolerance. Default to 8e-10. Smaller
+rel.tol means higher accuracy and more time to converge.}
 
 \item{trace}{The value of the objective function and the parameters is
 printed every trace'th iteration. Defaults to 0 which indicates no trace

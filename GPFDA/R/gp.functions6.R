@@ -207,10 +207,10 @@ cov.linear <- function(hyper, input, input.new=NULL){
 #'   value.
 #' @param useGradient Logical. If TRUE, first derivatives will be used in the
 #'   optimization.
-#' @param itermax Maximum number of iterations allowed. Default to 100. If
-#'   'reltol' is reduced, then the number of iterations needed will be less.
-#' @param reltol Relative convergence tolerance. Default to 8e-10. Smaller
-#'   reltol means higher accuracy and more time to converge.
+#' @param iter.max Maximum number of iterations allowed. Default to 100. If
+#'   'rel.tol' is reduced, then the number of iterations needed will be less.
+#' @param rel.tol Relative convergence tolerance. Default to 8e-10. Smaller
+#'   rel.tol means higher accuracy and more time to converge.
 #' @param trace The value of the objective function and the parameters is
 #'   printed every trace'th iteration. Defaults to 0 which indicates no trace
 #'   information is to be printed.
@@ -253,8 +253,8 @@ cov.linear <- function(hyper, input, input.new=NULL){
 #' # vignette("gpr_ex2", package = "GPFDA")
 #' # vignette("co2", package = "GPFDA")
 gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL, 
-                NewHyper=NULL, meanModel=0, mu=NULL, gamma=2, nu=NULL, 
-                useGradient=T, itermax=100, reltol=8e-10, trace=0, 
+                NewHyper=NULL, meanModel=0, mu=NULL, gamma=2, nu=1.5, 
+                useGradient=T, iter.max=100, rel.tol=8e-10, trace=0, 
                 nInitCandidates = 1000){
   
   
@@ -423,7 +423,7 @@ gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL,
   CG0 <- nlminb(start=best_init, objective=gp.loglikelihood2, 
                 gradient=gp.Dlikelihood2,
                 input=input, response=response, Cov=Cov, gamma=gamma, nu=nu,
-                control=list(iter.max=itermax, rel.tol=reltol, trace=trace))
+                control=list(iter.max=iter.max, rel.tol=rel.tol, trace=trace))
   
   # if(trace!=F&CG0$convergence==0)
   #   cat('\n','    optimization finished. Converged.','\n')
@@ -556,7 +556,7 @@ gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL,
 #' # vignette("gpr_ex1", package = "GPFDA")
 #' # vignette("gpr_ex2", package = "GPFDA")
 #' # vignette("co2", package = "GPFDA")
-gppredict <- function(train=NULL, input.new=NULL, noiseFreePred=F, hyper=NULL, 
+gprPredict <- function(train=NULL, input.new=NULL, noiseFreePred=F, hyper=NULL, 
                          input=NULL, Y=NULL, mSR=NULL,
                          Cov=NULL, gamma=NULL, nu=NULL, meanModel=0, mu=0){
   input.new <- as.matrix(input.new)

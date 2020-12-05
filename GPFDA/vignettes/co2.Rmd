@@ -48,7 +48,7 @@ x=as.matrix(seq(1,612,len=1000)/12)
 # First covariance matrix
 system.time(a1 <- gpr(as.matrix(X),as.matrix(Y),'pow.ex', gamma=2, meanModel='t',
                       nInitCandidates=50, trace=2))
-system.time(b1 <- gppredict(a1, input.new=as.matrix(x)))
+system.time(b1 <- gprPredict(a1, input.new=as.matrix(x)))
 ```
 
 
@@ -71,7 +71,7 @@ lines(x,b1$pred.mean,col=4,lwd=0.8)
 ```{r, message=F}
 a2 <- gpr(as.matrix(X),as.matrix(Y),'rat.qu',meanModel='t',
           nInitCandidates=50, trace=2)
-b2 <- gppredict(a2, input.new=as.matrix(x))
+b2 <- gprPredict(a2, input.new=as.matrix(x))
 ```
 
 
@@ -204,7 +204,7 @@ diag.custom=function(hyper,input){
 a3 <- gpr(as.matrix(X),as.matrix(Y),Cov=c('pow.ex','custom','rat.qu'),
 		NewHyper=c('custom.w','custom.u','custom.v'), gamma=2, meanModel='t',
 		nInitCandidates=50, trace=2)
-b3 <- gppredict(a3, input.new=as.matrix(x))
+b3 <- gprPredict(a3, input.new=as.matrix(x))
 ```
 
 

@@ -69,12 +69,12 @@
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("nsgpr", package = "GPFDA")
-NSGPR <- function( response,
+nsgpr <- function( response,
                    input,
                    inputSubsetIdx=NULL,
                    corrModel="pow.ex",
-                   gamma=NULL,
-                   nu=NULL,
+                   gamma=2,
+                   nu=1.5,
                    whichTau=NULL,
                    nBasis=5,
                    cyclic=NULL,
@@ -286,8 +286,8 @@ NSGPR <- function( response,
 #' Calculation of a NSGP covariance matrix given a vector of hyperparameters
 #'
 #'
-#' @inheritParams NSGPR
-#' @param hp Vector of hyperparameters estimated by function NSGPR.
+#' @inheritParams nsgpr
+#' @param hp Vector of hyperparameters estimated by function nsgpr.
 #' @param calcCov Logical. Calculate covariance matrix or not. If FALSE, time or
 #'   spatially-varying parameters are still provided.
 #' @importFrom mgcv cSplineDes
@@ -305,7 +305,7 @@ NSGPR <- function( response,
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("nsgpr", package = "GPFDA")
-NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis=5, 
+nsgpCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis=5, 
                        corrModel=corrModel, gamma=NULL, nu=NULL, cyclic=NULL, 
                        whichTau=NULL, calcCov=T){
   
@@ -491,7 +491,7 @@ NSGPCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis=5,
     Scale.mat <- ScaleDistMats$Scale.mat
     Dist.mat <- ScaleDistMats$Dist.mat
     
-    UnscalCorr <- UnscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, 
+    UnscalCorr <- unscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, 
                                 gamma=gamma, nu=nu)
 
     NS.corr <- Scale.mat*UnscalCorr
@@ -586,7 +586,7 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx,
   Scale.mat <- ScaleDistMats$Scale.mat
   Dist.mat <- ScaleDistMats$Dist.mat
   
-  UnscalCorr <- UnscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, 
+  UnscalCorr <- unscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, 
                               gamma=gamma, nu=nu)
   NS.corr <- Scale.mat*UnscalCorr
   
@@ -613,8 +613,8 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx,
 
 #' NSGP predicion given a vector of hyperparameters
 #'
-#' @inheritParams NSGPR
-#' @param hp Vector of hyperparameters estimated by function NSGPR.
+#' @inheritParams nsgpr
+#' @param hp Vector of hyperparameters estimated by function nsgpr.
 #' @param input.new List of Q test set input variables.
 #' @param noiseFreePred Logical.  If TRUE, predictions will be noise-free.
 #'
@@ -631,7 +631,7 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx,
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("nsgpr", package = "GPFDA")
-NSGPprediction <- function(hp, response, input, input.new, noiseFreePred=F, 
+nsgprPredict <- function(hp, response, input, input.new, noiseFreePred=F, 
                            nBasis=nBasis, corrModel=corrModel, gamma=gamma, 
                            nu=nu, cyclic=cyclic, whichTau=whichTau){
   
@@ -639,18 +639,18 @@ NSGPprediction <- function(hp, response, input, input.new, noiseFreePred=F,
     inputnew <- input
   }
   
-  Kobs <- NSGPCovMat(hp=hp, input=input, inputSubsetIdx=NULL,
+  Kobs <- nsgpCovMat(hp=hp, input=input, inputSubsetIdx=NULL,
                         nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
                         cyclic=cyclic, whichTau=whichTau, calcCov=T)$Cov
   invQ <- chol2inv(chol(Kobs))
   
-  Q1 <- NSGPCovMat_Asym(hp=hp, input=input, inputNew=input.new, nBasis=nBasis, 
+  Q1 <- nsgpCovMat_Asym(hp=hp, input=input, inputNew=input.new, nBasis=nBasis, 
                         corrModel=corrModel, gamma=gamma, nu=nu, cyclic=cyclic, 
                         whichTau=whichTau)
   # response is a (n x nSamples) matrix
   mu <- t(Q1)%*%invQ%*%response
   
-  Qstar <- NSGPCovMat(hp=hp, input=input.new, inputSubsetIdx=NULL,
+  Qstar <- nsgpCovMat(hp=hp, input=input.new, inputSubsetIdx=NULL,
                          nBasis=nBasis, corrModel=corrModel, gamma=gamma, nu=nu,
                          cyclic=cyclic, whichTau=whichTau, calcCov=T)$Cov
   
@@ -672,7 +672,7 @@ NSGPprediction <- function(hp, response, input, input.new, noiseFreePred=F,
 
 #' Calculate an asymmetric NSGP covariance matrix
 #' 
-#' @inheritParams NSGPCovMat 
+#' @inheritParams nsgpCovMat 
 #' 
 #' @param inputNew  List of Q test set input variables.
 #'
@@ -684,7 +684,7 @@ NSGPprediction <- function(hp, response, input, input.new, noiseFreePred=F,
 #'   Structure" (https://arxiv.org/abs/1903.09981)
 #' @return A (asymmetric) covariance matrix
 #' @export
-NSGPCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel, 
+nsgpCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel, 
                             gamma=NULL, nu=NULL, cyclic=NULL, whichTau=NULL){
   
   if(!is.list(input)){
@@ -990,7 +990,7 @@ NSGPCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel,
   Scale.mat <- ScaleDistMats$Scale.mat
   Dist.mat <- ScaleDistMats$Dist.mat
   
-  UnscalCorr <- UnscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, 
+  UnscalCorr <- unscaledCorr( Dist.mat=Dist.mat, corrModel=corrModel, 
                               gamma=gamma, nu=nu)
   NS.corr <- Scale.mat*UnscalCorr
   
@@ -1004,7 +1004,7 @@ NSGPCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel,
 
 #' Calculate unscaled NSGP correlation matrix
 #'
-#' @inheritParams NSGPR
+#' @inheritParams nsgpr
 #' @param Dist.mat Distance matrix
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
@@ -1015,7 +1015,7 @@ NSGPCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel,
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("nsgpr", package = "GPFDA")
-UnscaledCorr <- function(Dist.mat, corrModel, gamma=NULL, nu=NULL){
+unscaledCorr <- function(Dist.mat, corrModel, gamma=NULL, nu=NULL){
   
   if(!(corrModel%in%c("pow.ex", "matern"))){
     stop("corrModel must be either 'pow.ex' or 'matern'")

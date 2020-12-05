@@ -106,7 +106,7 @@ main1 <- function(response,lReg=NULL,fReg=NULL,fxList=NULL,fbetaList=NULL){
           
         for(i in seq_along(fReg)){          
         ## functional regression with scalar response and functional covariates 
-        ## using fd.
+        ## using 'fd'.
           mf <- freg2(y,fReg[[i]],fbeta[[i]])
           res <- list(res,as.matrix(resid(mf)))
           temp <- c(temp,list(mf))
@@ -140,8 +140,8 @@ freg1 <- function(y,fx,nx_bas,nbeta_bas){
 freg2 <- function(y,xlist,fbeta){
   ### works for scalar response and single functional covariates,
   ### return the regression model
-  ### y is expected to be a column matrix; fx is expected to be an fd object
-  ### fbeta is expected to be an fd onject
+  ### y is expected to be a column matrix; fx is expected to be an 'fd' object
+  ### fbeta is expected to be an 'fd' onject
   fm <- fRegress(y[,1], xlist, fbeta)
   return(fm)
 }
@@ -173,7 +173,7 @@ main2 <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   }
   
   if(class(y)[1]=='matrix'){
-    ## define fd object for y if y is a matrix
+    ## define 'fd' object for y if y is a matrix
     y <- mat2fd(y,fyList)
   }
   if(class(y)[1]!='fd'){
@@ -246,7 +246,7 @@ main2 <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   if(!is.null(fReg)){
     y <- mat2fd(y,fyList)
     
-    ## set up list of fd object for x
+    ## set up list of 'fd' object for x
     if(class(fReg)[1]=='matrix' | class(fReg)[1]=='fd')
       fReg <- list(fReg)
     if(class(fReg)[1]=='list'){
@@ -380,20 +380,20 @@ main3 <- function(response,lReg){
 
 
 
-#' Create an fd object from a matrix
+#' Create an 'fd' object from a matrix
 #'
-#' Easy setting up for creating an fd object
+#' Easy setting up for creating an 'fd' object
 #'
 #' @param mat Input data, should be a matrix with ncol time points and nrow
 #'   replications or samples.
-#' @param fdList A list with following items: `time': a sequence of time points
-#'   default to be 100 points from 0 to 1; `nbasis': number of basis functions
-#'   used in smoothing, default to be less or equal to 23; `norder': the order
-#'   of the functional curves default to be 6, `bSpline': logical, if True,
-#'   b-spline is used, otherwise use Fourier basis, default to be True; `Pen':
+#' @param fdList A list with following items: 'time': a sequence of time points
+#'   default to be 100 points from 0 to 1; 'nbasis': number of basis functions
+#'   used in smoothing, default to be less or equal to 23; 'norder': the order
+#'   of the functional curves default to be 6, 'bSpline': logical, if TRUE,
+#'   b-spline is used, otherwise use Fourier basis, default to be TRUE; 'Pen':
 #'   default to be c(0,0), means that the penalty is on the second order
 #'   derivative of the curve, since the weight for zero-th and first order
-#'   derivatives of the curve are zero, `lambda':default to be 1e-4, the
+#'   derivatives of the curve are zero, 'lambda':default to be 1e-4, the
 #'   smoothing parameter for the penalty.
 #'
 #' @details All items listed above have default values. If any item is required
@@ -403,7 +403,7 @@ main3 <- function(response,lReg){
 #'
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'   Analysis for Functional Data'', CRC Press.
-#' @return An fd object
+#' @return An 'fd' object
 #' @export
 #'
 #' @examples
@@ -437,14 +437,14 @@ mat2fd <- function(mat,fdList=NULL){
 #'
 #' Easy setting up for create a fdPar object.
 #'
-#' @param betaList A list contain following items: `rtime': range of time,
-#'   default to be 0 and 1; `nbasis': number of basis functions used in
+#' @param betaList A list contain following items: 'rtime': range of time,
+#'   default to be 0 and 1; 'nbasis': number of basis functions used in
 #'   smoothing, default to be less or equal to 19; norder: the order of the
-#'   functional curves default to be 6;`bSpline': logical, if TRUE, b-spline is
-#'   used, otherwise use Fourier basis, default to be TRUE; `Pen': default to be
-#'   c(0,0);`lambda':default to be 1e4;'bivar':logical, if TRUE, the bivariate
+#'   functional curves default to be 6;'bSpline': logical, if TRUE, b-spline is
+#'   used, otherwise use Fourier basis, default to be TRUE; 'Pen': default to be
+#'   c(0,0);'lambda':default to be 1e4;'bivar':logical, if TRUE, the bivariate
 #'   basis will be calculated, otherwise normal basis, default to be FALSE;
-#'   `lambdas':the smoothing parameter for the penalty of the additional basis,
+#'   'lambdas':the smoothing parameter for the penalty of the additional basis,
 #'   default to be 1e4.
 #'
 #' @details All items listed above have default values. If any item is required
@@ -581,8 +581,8 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
                       fxList=NULL,fbetaList=NULL,concurrent=TRUE,
                       fbetaList_f=NULL,gpReg=NULL,hyper=NULL,
                       Cov,gamma=2,nu=1.5,useGradient=T,time=NULL,
-                      accuracy=c('high','normal','low'),
-                      trace.iter=5,fitting=FALSE,rPreIdx=FALSE){
+                      rel.tol=1e-10,
+                      trace.iter=5,fitting=FALSE){
   y <- y_raw <- response
   if(is.vector(y)) model <- 'main1'
   if(is.matrix(y)){
@@ -663,13 +663,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   Data <- lapply(Data,function(i) i=i[sample_idx,])
   
   init0 <- unlist(hyper)
-  accuracy <- accuracy[1]
-  if(accuracy=='high') acc <- 1e-10
-  if(accuracy=='normal') acc <- 1e-6
-  if(accuracy=='low') acc <- 1e-2
-  if(rPreIdx)   optm.idx <- 1:as.integer(nrow(response)/4)*3
-  optm.idx <- 1:as.integer(nrow(response)/4)*3;
-  
+
   if("pow.ex"%in%Cov & is.null(gamma)){
     stop("Argument 'gamma' must be informed for pow.ex kernel")
   }
@@ -686,16 +680,14 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
       For other values of 'nu', useGradient is automatically set to FALSE.")
     }}
   
-#   init1 <- nlminb(init0,repgp.loglikelihood,repgp.Dloglikelihood,
-#   response=response[optm.idx,],Data=lapply(Data,function(i) i=i[optm.idx,]),
-#                Cov=Cov,gamma=gamma,control=list(iter.max=5,rel.tol=1e-1))[[1]]
+
   cat('    optimizing    ','\n')
-#   hhhhp<<-init0;dadada<<-Data;rpp<<respo
+
   if(!useGradient){repgp.Dloglikelihood <- NULL}
   pp <- nlminb(init0,repgp.loglikelihood,repgp.Dloglikelihood,
                response=response,Data=Data,Cov=Cov,gamma=gamma,nu=nu, 
-               control=list(trace=trace.iter,rel.tol=acc))
-  #,Xprior=prior,Xprior2=NA)
+               control=list(trace=trace.iter,rel.tol=rel.tol))
+
   cat('    optimization done','\n','\n')
   pp.cg <- pp[[1]]
   
@@ -778,75 +770,74 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 
 #' Gaussian Process for functional data.
 #'
-#' Use functional regression to be the mean structure and Gaussian Process to be
-#' the covariance structure.
+#' Use functional regression (FR) model for the mean structure and Gaussian
+#' Process (GP) for the covariance structure. \cr \cr Let 'n' be the number of
+#' time points 't' of functional objects and 'nrep' the number of independent
+#' replications in the sample.
 #'
-#' @param response The training response. can be an fd object or a matrix with
-#'   nrow samples, ncol time points
-#' @param lReg The input variable for functional linear regression with scalar
-#'   covariates. Expected to be a matrix with nrow samples.
-#' @param fReg The input variable for functional linear regression with
-#'   functional covariates. Expected to be a matrix with nrow samples, or an fd
-#'   object, or a list of matrices or fd objects.
-#' @param fyList The list to control the smoothing of response. See details for
-#'   more info.
-#' @param fbetaList_l The list to control the smoothing of beta for functional
-#'   regression with scalar covariates. See details for more info.
-#' @param fxList The list to control the smoothing of functional covariates for
-#'   functional regression with functional covariates. See details for more
-#'   info.
-#' @param fbetaList The list to control the smoothing of functional covariates
-#'   for functional regression with functional covariates and scalar response.
-#'   Not available for now.
-#' @param concurrent Logical. If True concurrent functional regression will be
-#'   carried out, otherwise the full functional regression will be carried out.
-#' @param fbetaList_f The list to control the smoothing of beta for functional
-#'   regression with functional covariates. See details for more info.
-#' @param gpReg Data for training Gaussian Process. Expecting matrix, fd object,
-#'   list of matrices or list of fd objects.
+#' @param response Response data. It can be an 'fd' object or a matrix with
+#'   'nrep' rows and 'nrep' columns.
+#' @param time Input 't' of functional objects. It is a numerical vector.
+#' @param lReg Scalar covariates for the FR model. It should be a matrix with
+#'   'nrep' rows.
+#' @param fReg Functional covariates for the FR model. It can be a matrix with
+#'   'nrep' rows, or an 'fd' object, or a list of matrices or 'fd' objects.
+#' @param fyList A list to control the smoothing of response.
+#' @param fbetaList_l A list to control the smoothing of the regression
+#'   coefficient function of the scalar covariates in the FR model.
+#' @param fxList A list to control the smoothing of functional covariates in the
+#'   FR model.
+#' @param concurrent Logical. If TRUE (default), concurrent functional
+#'   regression will be carried out; otherwise, the full functional regression
+#'   will be carried out.
+#' @param fbetaList_f A list to control the smoothing of the regression
+#'   coefficient function of functional covariates in the FR model.
+#' @param fbetaList A list to control the smoothing of functional covariates in
+#'   the FR model with scalar response and functional covariates. Not available
+#'   for now.
+#' @param gpReg Covariates in the GP model. It should be a matrix, an 'fd'
+#'   object, a list of matrices or a list of 'fd' objects.
 #' @param hyper Vector of initial hyperparameters. Default to NULL.
-#' @param Cov Kernel function or covariance function type(s).
-#' @param gamma Power parameter that cannot be estimated by simple non-linear
-#'   optimization.
-#' @param nu Smoothness parameter of the Matern class. Must be a positive value.
+#' @param NewHyper Vector of names of new hyperparameters from the customized
+#'   kernel function.
+#' @param Cov Covariance function(s) to use. Options are: 'linear', 'pow.ex',
+#'   'rat.qu', and 'matern'. Default to 'power.ex'.
+#' @param gamma Power parameter used in powered exponential kernel function. It
+#'   must be 0<gamma<=2.
+#' @param nu Smoothness parameter of the Matern class. It must be a positive
+#'   value.
 #' @param useGradient Logical. If TRUE, first derivatives will be used in the
 #'   optimization.
-#' @param time Time used in globle setting for functional objects.
-#' @param NewHyper Vector of the names of the new hyperparameters from 
-#' customized kernel function.
-
-#' @param accuracy Optimization accuracy. Default to be high.
+#' @param rel.tol Relative tolerance passed to nlminb(). Default to be 1e-10.
 #' @param trace.iter Print the processing of iterations of optimization.
-#' @param fitting Is fitting required or not. Default to FALSE.
-#' @param rPreIdx Logical. If TRUE, do random selected index for
-#'   pre-optimization, otherwise use fixed index.
+#' @param fitting Logical. If TRUE, fitting is carried out. Default to FALSE.
 #'
-#' @details fyList is a list with items: `time': a sequence of time points
-#'   default to be 100 points from 0 to 1; `nbasis': number of basis functions
-#'   used in smoothing, default to be less or equal to 23; `norder': the order
-#'   of the functional curves default to be 6, `bSpline': logical, if True,
-#'   b-spline is used, otherwise use Fourier basis, default to be True; `Pen':
-#'   default to be c(0,0), means that the penalty is on the second order
-#'   derivative of the curve, since the weight for zero-th and first order
-#'   derivatives of the curve are zero, `lambda':default to be 1e-4, the
-#'   smoothing parameter for the penalty.
+#' @details fyList is a list with items: 'time': a sequence of time points
+#'   default to be 100 points from 0 to 1; 'nbasis': number of basis functions
+#'   used in smoothing, default to be less than or equal to 23; 'norder': the
+#'   order of the functional curves default to be 6; 'bSpline': logical, if
+#'   TRUE, b-spline is used, otherwise use Fourier basis, default to be TRUE;
+#'   'Pen': default to be c(0,0), meaning that the penalty is only applied to
+#'   the second order derivative of the curve, with no penalty for the zero-th
+#'   and first order derivatives of the curve; 'lambda': the smoothing parameter
+#'   for the penalty, default to be 1e-4.
 #'
-#'   fxList is a list of lists which are similar to fyList. Because it may
-#'   contain different information for more than one functional covariates.
+#'   fxList is similar to fyList. However, it is a list of lists to allow for
+#'   different specifications for each functional covariate if there are
+#'   multiple ones.
 #'
-#'   fbetaList, fbetaList_l and fbetaList_f are similar to each other. They are
-#'   also expected to be list of lists. The items in each sub-list are: `rtime':
-#'   range of time, default to be 0 and 1; `nbasis': number of basis functions
-#'   used in smoothing, default to be less or equal to 19; norder: the order of
-#'   the functional curves default to be 6;`bSpline': logical, if True, b-spline
-#'   is used, otherwise use Fourier basis, default to be True; `Pen': default to
-#'   be c(0,0);`lambda':default to be 1e4; 'bivar':logical, if True, the
-#'   bivariate basis will be calculated, otherwise normal basis, default to be
-#'   False; `lambdas':the smoothing parameter for the penalty of the additional
-#'   basis, default to be 1e4.
+#'   fbetaList, fbetaList_l and fbetaList_f are similar to each other. Each one
+#'   is expected to be a list of lists. The items in each sub-list are: 'rtime':
+#'   range of time, default to be 0 and 1; 'nbasis': number of basis functions
+#'   used in smoothing, default to be less or equal to 19; 'norder': the order
+#'   of the functional curves default to be 6; 'bSpline': logical, if TRUE
+#'   (default), B-spline representation is used, otherwise Fourier basis is
+#'   used; 'Pen': default to be c(0,0); 'lambda': default to be 1e4;
+#'   'bivar':logical, if TRUE, the bivariate basis will be calculated, otherwise
+#'   normal basis, default to be FALSE; 'lambdas': the smoothing parameter for
+#'   the penalty of the additional basis, default to be 1e4.
 #'
-#'   Note that user only write the item they need to change in the list, all
-#'   items have default settings. See example below.
+#'   Note that all items have default settings.
 #'
 #' @references \itemize{ \item Ramsay, J., and Silverman, B. W. (2006),
 #'   ``Functional Data Analysis'', 2nd ed., Springer, New York. \item Shi, J.
@@ -855,32 +846,29 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #'
 #' @return A list containing: \describe{ \item{hyper}{Estimated hyperparameters}
 #'   \item{I}{A vector of estimated standard deviation of hyperparameters}
-#'   \item{modellist}{List of models fitted before Gaussian process}
-#'   \item{CovFun}{Covariance function} \item{gamma}{gamma used in Gaussian
-#'   process powered exponential kernel} \item{init_resp}{Initial response
-#'   value} \item{resid_resp}{Residual after the fitted values from models has
-#'   been taken out} \item{fitted}{Fitted values} \item{fitted.sd}{Standard
-#'   deviation of the fitted values} \item{ModelType}{The model applied in the
-#'   function.} \item{lTrain}{Training data for functional regression with
-#'   scalper covariates} \item{fTrain}{Training data for functional regression
-#'   with functional covariates} \item{mfTrainfd}{List of fd objects that from
-#'   training data for functional regression with functional covariates}
-#'   \item{gpTrain}{Training data for Gaussian Process} \item{time}{Time used in
-#'   training in Gaussian Process} \item{iuuL}{Inverse of covariance matrix for
+#'   \item{modellist}{List of FR models fitted before Gaussian process}
+#'   \item{CovFun}{Covariance function used} \item{gamma}{Parameter 'gamma' used in Gaussian
+#'   process with powered exponential kernel} \item{nu}{Parameter 'nu' used in Gaussian
+#'   process with Matern kernel}
+#'   \item{init_resp}{Raw response data} \item{resid_resp}{Residual after the fitted values from FR models have been taken out} \item{fitted}{Fitted values} \item{fitted.sd}{Standard
+#'   deviation of the fitted values} \item{ModelType}{The type of the model applied in the
+#'   function.} \item{lTrain}{Training scalar covariates for the FR model} \item{fTrain}{Training functional covariates for the FR model} \item{mfTrainfd}{List of 'fd' objects from
+#'   training data for FR model with functional covariates}
+#'   \item{gpTrain}{Training data for Gaussian Process} \item{time}{Input time 't'} \item{iuuL}{Inverse of covariance matrix for
 #'   lReg} \item{iuuF}{Inverse of covariance matrix for fReg}
-#'   \item{fittedFM}{Fitted values from functional regression}
-#'   \item{fyList}{fyList used in the function} }
+#'   \item{fittedFM}{Fitted values from the FR model}
+#'   \item{fyList}{fyList object used} }
 #' @export
 #'
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpfr", package = "GPFDA")
-gpfr <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
-                 fxList=NULL,fbetaList=NULL,concurrent=TRUE,fbetaList_f=NULL,
-                 gpReg=NULL,hyper=NULL,Cov='pow.ex',gamma=2,nu=1.5,
-                 useGradient=T,time=NULL,NewHyper=NULL,
-                 accuracy=c('high','normal','low'),
-                 trace.iter=5,fitting=FALSE,rPreIdx=FALSE){
+gpfr <- function(response, time=NULL, lReg=NULL, fReg=NULL,
+                 fyList=NULL, fbetaList_l=NULL, 
+                 fxList=NULL, concurrent=TRUE, fbetaList_f=NULL,
+                 fbetaList=NULL,
+                 gpReg=NULL, hyper=NULL, NewHyper=NULL, Cov='pow.ex', gamma=2, nu=1.5, 
+                 useGradient=T, rel.tol=1e-10, trace.iter=5, fitting=FALSE){
   if(is.list(gpReg)) col.no <- length(gpReg)
   if(is.matrix(gpReg)) col.no <- 1
   if(!is.matrix(gpReg) & !is.list(gpReg)){
@@ -923,44 +911,42 @@ gpfr <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
                   fyList=fyList,fbetaList_l=fbetaList_l,fxList=fxList,
                   fbetaList_f=fbetaList_f,fbetaList=fbetaList,hyper=hyper,
                   Cov=Cov,gamma=gamma,nu=nu,useGradient=useGradient,
-                  fitting=fitting,time=time,rPreIdx=rPreIdx,
-                  accuracy=accuracy,trace.iter=trace.iter,
+                  fitting=fitting,time=time,
+                  rel.tol=rel.tol,trace.iter=trace.iter,
                   concurrent=concurrent)
   return(a1)
 }
 
 
-#' Prediction of the Gaussian Process using functional regression
+#' Prediction of GPFR model
 #'
-#' Predict the new points in Gaussian Process using the training results
+#' Make predictions for test input data based on the GPFR model learnt by the
+#' 'gpfr' function. Both type I and type II predictions can be made.
 #'
-#' @param object The result from training with class`gpfda'. If missing,
-#'   function stops running.
-#' @param TestData Test input data. Must be matrix or fd object.
-#' @param NewTime New time for test data. If NULL, default setting will be
+#' @param object An object of class 'gpfr' obtained by the the 'gpfr' function.
+#' @param TestData Test input data. It must be a matrix or an 'fd' object.
+#' @param NewTime New time 't' for test data. If NULL, default settings will be
 #'   applied.
-#' @param lReg The test scalar data for functional regression with scalar
-#'   covariates.
-#' @param fReg The test functional data for functional regression with
-#'   functional covariates.
-#' @param gpReg List of three items. The names of the items must be `response',
-#'   `input', `time'. For type I prediction, `response' is the observed response
-#'   for a new batch, `input' is the observed functional covariates for a new
-#'   batch, `time' is the observation time for the previous two. If NULL, type
-#'   II prediction will be carried out.
-#' @param GP_predict Logical. If true, GP prediction is carried out, otherwise
-#'   functional prediction is carried out. Default to TRUE.
+#' @param lReg The test scalar data for the FR model.
+#' @param fReg The test functional data for the FR model.
+#' @param gpReg List of three items. The names of the items must be 'response',
+#'   'input', 'time'. For type I prediction, 'response' is the observed response
+#'   for a new batch, 'input' is the observed functional covariates for a new
+#'   batch, 'time' is the observed time for the previous two. If NULL, type II
+#'   prediction, will be carried out.
+#' @param GP_predict Logical. If TRUE (default), GP prediction is carried out;
+#'   otherwise only functional prediction is carried out.
 #'
 #' @importFrom  fda.usc is.fdata
 #'
-#' @details Two types of prediction are supplied. Type one is the new batch has
-#'   a few observations, type two is the new batch has no observations.
-#' @return A list containing: \describe{ \item{ypred}{matrix of predicted value
-#'   with confidence interval. First column is the fitted values, second and
-#'   third are the confidence interval.} \item{ypred.mean}{The mean value of the
-#'   prediction.} \item{ypred.sd}{The standard deviation of the prediction.}
-#'   \item{time}{time of test data} \item{object}{all items trained from gpfr if
-#'   exists} }
+#' @details If 'gpReg' is provided, then type I prediction is made. Otherwise,
+#'   type II prediction is made.
+#' @return A list containing: \describe{ \item{ypred}{matrix of predicted values
+#'   with confidence intervals. The first column has the fitted values, while
+#'   the second and third columnas have the confidence interval bounds.}
+#'   \item{ypred.mean}{The mean values of the prediction.} \item{ypred.sd}{The
+#'   standard deviation of the predictions.} \item{time}{Time 't' of test data.}
+#'   \item{object}{All items trained by 'gpfr'.} }
 #'
 #' @references \itemize{ \item Ramsay, J., and Silverman, B. W. (2006),
 #'   ``Functional Data Analysis'', 2nd ed., Springer, New York. \item Shi, J.
@@ -971,10 +957,10 @@ gpfr <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpfr", package = "GPFDA")
-gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
-                     gpReg=NULL,GP_predict=TRUE){
+gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
+                     gpReg=NULL, GP_predict=TRUE){
   if(class(object)!='gpfr'){
-    stop('The object is expected to be a gpfda object','\n')
+    stop("The argument 'object' is expected to be an object of class 'gpfr' ",'\n')
   }
   
   if(is.null(gpReg)){
@@ -1206,7 +1192,7 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
     gpresp <- as.matrix(gpReg$response)
     if(nrow(gpresp)==1) gpresp <- t(gpresp)
     ygpobs <- as.matrix(gpresp)-gpyhat_ml-apply(gpyhat_mf,1,sum)    
-    y_gppred <- gppredict(train=FALSE,hyper=object$hyper, 
+    y_gppred <- gprPredict(train=FALSE,hyper=object$hyper, 
                           input=as.matrix(gpReg$input), Y=as.matrix(ygpobs), 
                           input.new=t(as.matrix(test)), Cov=object$CovFun, 
                           gamma=object$gamma, nu=object$nu)
@@ -1214,7 +1200,7 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
     s2 <- ((y_gppred$pred.sd)^2-exp(object$hyper$vv))%*%(1 + ml_var)
     #+sum(mf_var))
     ypred <- yhat_ml+apply(yhat_mf,1,sum) + ygppred 
-    ## fd rgression plus gp regression
+    ## fd regression plus gp regression
   }
   
   ## type II prediction
@@ -1226,7 +1212,7 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
     
     for(i in 1:ncol(object$resid_resp)){
       input <- do.call('cbind',lapply(object$gpTrain,function(j) j=j[,i]))
-      y_gppred <- gppredict(train=FALSE,input.new=t(as.matrix(test)),
+      y_gppred <- gprPredict(train=FALSE,input.new=t(as.matrix(test)),
                             hyper=object$hyper,input=as.matrix(input), 
                             Y=as.matrix(object$resid_resp[,i]), 
                             Cov=object$CovFun,gamma=object$gamma, nu=object$nu)
@@ -1257,13 +1243,12 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
 
 
 
-#' Plot Gaussian Process regression with functional mean for either training or
-#' prediction
+#' Plot GPFR model for either training or prediction
 #'
-#' @param x Plot Gaussian Process with functional mean for training or
-#'   predicting with 'gpfr' class object.
-#' @param type Function provides the following types of plots: raw,
-#'   meanFunction, fitted and prediction.
+#' @param x Plot GPFR for training or prediction from a given object of 'gpfr'
+#'   class.
+#' @param type Required type of plots. Options are: 'raw',
+#'   'meanFunction', 'fitted' and 'prediction'.
 #' @param ylab  Title for the y axis.
 #' @param xlab  Title for the x axis.
 #' @param ... Other graphical parameters passed to plot().
@@ -1273,7 +1258,7 @@ gpfrpred <- function(object,TestData,NewTime=NULL,lReg=NULL,fReg=NULL,
 #' @importFrom graphics lines
 #' @importFrom grDevices rgb
 #' @importFrom fda matplot
-#' @return A plot
+#' @return A plot.
 #' @export
 #'
 #' @examples
@@ -1288,7 +1273,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
     
   op <- par(mar=c(4.5,5.1,2.2,0.8), 
             oma=c(0,0,1,0),
-            cex.lab=1.5, cex.axis=1.5, cex.main=2)
+            cex.lab=1.5, cex.axis=1, cex.main=1.5)
   
   if(type=='raw'){
     matplot(obj$time,t(obj$init_resp),type='l',lwd=1,lty=3,

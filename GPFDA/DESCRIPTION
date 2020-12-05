@@ -1,7 +1,7 @@
 Package: GPFDA
 Type: Package
 Title: Gaussian Process Regression for Functional Data Analysis
-Version: 3.0
+Version: 3.0.0
 Date: 2020-09-28
 Author: Jian Qing Shi, Yafeng Cheng, Evandro Konzen
 Maintainer: GPFDA's authors <gpfda.r@gmail.com>

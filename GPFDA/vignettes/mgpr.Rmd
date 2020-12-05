@@ -1,8 +1,8 @@
 ---
-title: "CGPR example"
+title: "MGPR example"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{cgpr}
+  %\VignetteIndexEntry{mgpr}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -24,7 +24,7 @@ library(GPFDA)
 require(MASS)
 ```
 
-## Simulating data from a multiple convolved GP with three outputs
+## Simulating data from a multiple GP with three outputs
 ```{r}
 set.seed(123)
 
@@ -55,19 +55,19 @@ sigm <- 0.05
 hp <- c(nu0s, log(nu1s), log(a0s), log(a1s), log(sigm))
 
 # Calculate covariance matrix
-Psi <- CGPCovMat(Data=Data, hp=hp)
+Psi <- mgpCovMat(Data=Data, hp=hp)
 ```
 
 
 ```{r}
 # Plot auto-covariance functions
-plotCGPCovFun(type="Cov", output=1, outputp=1, Data=Data, hp=hp, idx=idx)
+plotmgpCovFun(type="Cov", output=1, outputp=1, Data=Data, hp=hp, idx=idx)
 # Plot cross-covariance functions
-plotCGPCovFun(type="Cov", output=1, outputp=2, Data=Data, hp=hp, idx=idx)
+plotmgpCovFun(type="Cov", output=1, outputp=2, Data=Data, hp=hp, idx=idx)
 # Plot auto-correlation functions
-plotCGPCovFun(type="Cor", output=1, outputp=1, Data=Data, hp=hp, idx=idx)
+plotmgpCovFun(type="Cor", output=1, outputp=1, Data=Data, hp=hp, idx=idx)
 # Plot cross-correlation functions
-plotCGPCovFun(type="Cor", output=1, outputp=2, Data=Data, hp=hp, idx=idx)
+plotmgpCovFun(type="Cor", output=1, outputp=2, Data=Data, hp=hp, idx=idx)
 ```
 
 
@@ -81,8 +81,8 @@ for(j in 1:N){
 }
 Data$response <- response
 
-# CGPR estimation 
-res <- CGPR(Data=Data, m=200, meanModel = 't')
+# MGPR estimation 
+res <- mgpr(Data=Data, m=200, meanModel = 't')
 ```
 
 
@@ -101,25 +101,25 @@ trainSet[[1]] <- c(5, 10, 23, 50, 80, 200)
 trainSet[[2]] <- c(5, 10, 23, 200)
 trainSet[[3]] <- c(5, 10, 23, 200)
 
-Data.train <- list()
-Data.train$input[[1]] <- Data$input[[1]][trainSet[[1]]]
-Data.train$input[[2]] <- Data$input[[2]][trainSet[[2]]]
-Data.train$input[[3]] <- Data$input[[3]][trainSet[[3]]]
-Data.train$response[[1]] <- Data$response[[1]][trainSet[[1]], ]
-Data.train$response[[2]] <- Data$response[[2]][trainSet[[2]], ]
-Data.train$response[[3]] <- Data$response[[3]][trainSet[[3]], ]
+Data.obs <- list()
+Data.obs$input[[1]] <- Data$input[[1]][trainSet[[1]]]
+Data.obs$input[[2]] <- Data$input[[2]][trainSet[[2]]]
+Data.obs$input[[3]] <- Data$input[[3]][trainSet[[3]]]
+Data.obs$response[[1]] <- Data$response[[1]][trainSet[[1]], ]
+Data.obs$response[[2]] <- Data$response[[2]][trainSet[[2]], ]
+Data.obs$response[[3]] <- Data$response[[3]][trainSet[[3]], ]
 
 # Calculate predictions for the test set given training set observations
-# predCGP <- CGPprediction(train=res,
-#                          Data.train=Data.train,
+# predCGP <- mgprPredict(train=res,
+#                          Data.obs=Data.obs,
 #                          Data.new=Data.new)
 # str(predCGP)
 
 # Plot prediction of the 5-th realisation
-plotCGPprediction(train=res,
-                   Data.train=Data.train,
-                   Data.new=Data.new, i=5,
-                   cex=2, cex.lab=2, cex.axis=2)
+plot(res,
+    Data.obs=Data.obs,
+    Data.new=Data.new, i=5,
+    cex=2, cex.lab=2, cex.axis=2)
 
 ```
 
