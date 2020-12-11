@@ -2,7 +2,7 @@
 % Please edit documentation in R/nsgp.functions.R
 \name{unscaledCorr}
 \alias{unscaledCorr}
-\title{Calculate unscaled NSGP correlation matrix}
+\title{Calculates an unscaled NSGP correlation matrix}
 \usage{
 unscaledCorr(Dist.mat, corrModel, gamma = NULL, nu = NULL)
 }
@@ -22,7 +22,7 @@ value.}
 A matrix
 }
 \description{
-Calculate unscaled NSGP correlation matrix
+Calculates an unscaled NSGP correlation matrix
 }
 \examples{
 ## See examples in vignette:

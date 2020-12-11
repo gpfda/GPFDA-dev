@@ -283,7 +283,7 @@ nsgpr <- function( response,
 
 
 
-#' Calculation of a NSGP covariance matrix given a vector of hyperparameters
+#' Calculates a NSGP covariance matrix given a vector of hyperparameters
 #'
 #'
 #' @inheritParams nsgpr
@@ -1002,7 +1002,7 @@ nsgpCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel,
 }
 
 
-#' Calculate unscaled NSGP correlation matrix
+#' Calculates an unscaled NSGP correlation matrix
 #'
 #' @inheritParams nsgpr
 #' @param Dist.mat Distance matrix

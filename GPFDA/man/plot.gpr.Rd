@@ -4,7 +4,19 @@
 \alias{plot.gpr}
 \title{Plot Gaussian Process regression -- training and prediction}
 \usage{
-\method{plot}{gpr}(x, fitted = F, col.no = 1, ylim = NULL, realisation = NULL, ...)
+\method{plot}{gpr}(
+  x,
+  fitted = F,
+  col.no = 1,
+  ylim = NULL,
+  realisation = NULL,
+  main = NULL,
+  cex.points = NULL,
+  lwd.points = NULL,
+  pch = NULL,
+  lwd = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{The 'gpr' object from either training or predicting of the Gaussian
@@ -21,6 +33,16 @@ the first one.}
 
 \item{realisation}{Integer identifying which realisation should be plotted
 (if there are multiple).}
+
+\item{main}{Title for the plot}
+
+\item{cex.points}{Graphical parameter}
+
+\item{lwd.points}{Graphical parameter}
+
+\item{pch}{Graphical parameter}
+
+\item{lwd}{Graphical parameter}
 
 \item{...}{Graphical parameters passed to plot().}
 }

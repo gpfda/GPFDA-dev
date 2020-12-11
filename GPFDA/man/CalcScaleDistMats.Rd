@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{CalcScaleDistMats}
 \alias{CalcScaleDistMats}
-\title{Calculate ScaleMat and DistMat matrices}
+\title{Calculates ScaleMat and DistMat matrices}
 \usage{
 CalcScaleDistMats(A_List, coords)
 }
@@ -15,5 +15,5 @@ CalcScaleDistMats(A_List, coords)
 A list of ScaleMat and DistMat.Mat matrices
 }
 \description{
-Calculate ScaleMat and DistMat matrices
+Calculates ScaleMat and DistMat matrices
 }

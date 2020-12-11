@@ -2,7 +2,7 @@
 % Please edit documentation in R/gpfr.functions6.R
 \name{mat2fd}
 \alias{mat2fd}
-\title{Create an 'fd' object from a matrix}
+\title{Creates an 'fd' object from a matrix}
 \usage{
 mat2fd(mat, fdList = NULL)
 }

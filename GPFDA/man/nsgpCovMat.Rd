@@ -2,7 +2,7 @@
 % Please edit documentation in R/nsgp.functions.R
 \name{nsgpCovMat}
 \alias{nsgpCovMat}
-\title{Calculation of a NSGP covariance matrix given a vector of hyperparameters}
+\title{Calculates a NSGP covariance matrix given a vector of hyperparameters}
 \usage{
 nsgpCovMat(
   hp,
@@ -62,7 +62,7 @@ A list containing  \describe{
 }
 }
 \description{
-Calculation of a NSGP covariance matrix given a vector of hyperparameters
+Calculates a NSGP covariance matrix given a vector of hyperparameters
 }
 \examples{
 ## See examples in vignette:

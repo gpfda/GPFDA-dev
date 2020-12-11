@@ -380,7 +380,7 @@ main3 <- function(response,lReg){
 
 
 
-#' Create an 'fd' object from a matrix
+#' Creates an 'fd' object from a matrix
 #'
 #' Easy setting up for creating an 'fd' object
 #'
@@ -433,7 +433,7 @@ mat2fd <- function(mat,fdList=NULL){
   return(matfd)
 }
 
-#' Create an fdPar object
+#' Creates an fdPar object
 #'
 #' Easy setting up for create a fdPar object.
 #'
@@ -768,7 +768,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 
 
 
-#' Gaussian Process for functional data.
+#' Gaussian Process for functional data
 #'
 #' Use functional regression (FR) model for the mean structure and Gaussian
 #' Process (GP) for the covariance structure. \cr \cr Let 'n' be the number of

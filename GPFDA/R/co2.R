@@ -1,4 +1,4 @@
-#' co2: data set for a real data example.
+#' co2: data set for a real data example
 #'
 #' A data.frame containing monthly CO2 data and and annual average for each
 #' year. The original data has a sample size of 612, but the 5 of them which are

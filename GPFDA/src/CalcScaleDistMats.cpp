@@ -4,7 +4,7 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
-//' Calculate ScaleMat and DistMat matrices
+//' Calculates ScaleMat and DistMat matrices
 //' @param A_List List of anisotropy matrices
 //' @param coords Matrix of input coordinates (covariates)
 //' 

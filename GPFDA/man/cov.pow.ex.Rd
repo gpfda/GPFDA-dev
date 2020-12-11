@@ -2,7 +2,7 @@
 % Please edit documentation in R/gp.functions6.R
 \name{cov.pow.ex}
 \alias{cov.pow.ex}
-\title{Stationary powered exponential covariance function.}
+\title{Stationary powered exponential covariance function}
 \usage{
 cov.pow.ex(hyper, input, input.new = NULL, gamma = 2)
 }
@@ -22,7 +22,7 @@ must be 0<gamma<=2.}
 A covariance matrix
 }
 \description{
-Stationary powered exponential covariance function.
+Stationary powered exponential covariance function
 }
 \details{
 The names for the hyperparameters should be:"linear.a" for linear

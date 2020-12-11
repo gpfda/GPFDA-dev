@@ -5,11 +5,11 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-arma::mat CovMaternCpp(NumericMatrix X, NumericMatrix Xnew, NumericVector cc, 
+arma::mat CovMaternCpp(NumericMatrix input, NumericMatrix inputNew, NumericVector cc, 
                        NumericMatrix A, NumericVector nu) {
   
-  arma::mat x = Rcpp::as<arma::mat>(X);
-  arma::mat xNew = Rcpp::as<arma::mat>(Xnew);
+  arma::mat x = Rcpp::as<arma::mat>(input);
+  arma::mat xNew = Rcpp::as<arma::mat>(inputNew);
   int nn = x.n_rows;
   int nNew = xNew.n_rows;
   

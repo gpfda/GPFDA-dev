@@ -3,7 +3,7 @@
 \docType{data}
 \name{dataExampleGPFR}
 \alias{dataExampleGPFR}
-\title{Data simulated in the GPFR example.}
+\title{Data simulated in the GPFR example}
 \format{A list with seven elements:
 \describe{ \item{tt}{A vector of length 50} 
 \item{response_train}{A (20 x 50) matrix}

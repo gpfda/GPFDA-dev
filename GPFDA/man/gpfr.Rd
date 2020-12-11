@@ -2,7 +2,7 @@
 % Please edit documentation in R/gpfr.functions6.R
 \name{gpfr}
 \alias{gpfr}
-\title{Gaussian Process for functional data.}
+\title{Gaussian Process for functional data}
 \usage{
 gpfr(
   response,

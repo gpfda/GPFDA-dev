@@ -337,7 +337,7 @@ mgprPredict <- function(train,
 
 
 
-#' Calculation of a multivariate Gaussian processes covariance matrix given a
+#' Calculates a multivariate Gaussian processes covariance matrix given a
 #' vector of hyperparameters
 #'
 #' @inheritParams mgpr

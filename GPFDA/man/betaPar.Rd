@@ -2,7 +2,7 @@
 % Please edit documentation in R/gpfr.functions6.R
 \name{betaPar}
 \alias{betaPar}
-\title{Create an fdPar object}
+\title{Creates an fdPar object}
 \usage{
 betaPar(betaList = NULL)
 }

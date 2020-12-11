@@ -1,7 +1,7 @@
 
 ######################## Covariance functions ############################ 
 
-#' Stationary powered exponential covariance function.
+#' Stationary powered exponential covariance function
 #'
 #' @param hyper The hyperparameters. Must be a list with certain names.
 #' @param input The input data. It must be either a matrix, where each column
@@ -33,11 +33,11 @@ cov.pow.ex <- function(hyper, input, input.new=NULL, gamma=2){
   }
   
   if (is.null(input.new)) {
-    distMat <- DistMat_sq(X = input, A=A, power=gamma)
+    distMat <- DistMat_sq(input=input, A=A, power=gamma)
     exp.v.power <- hyper$pow.ex.v*exp(-distMat)
   }else{
     input.new <- as.matrix(input.new)
-    distMat <- DistMat(X = input, Xnew = input.new,A=A, power=gamma)
+    distMat <- DistMat(input=input, inputNew=input.new, A=A, power=gamma)
     exp.v.power <- hyper$pow.ex.v*exp(-distMat)
   }
 
@@ -69,11 +69,11 @@ cov.rat.qu <- function(hyper, input, input.new=NULL){
   }
   
   if (is.null(input.new)) {
-    distMat <- DistMat_sq(X=input, A=A, power=2)
+    distMat <- DistMat_sq(input=input, A=A, power=2)
     covratqu <- hyper$rat.qu.v*(1 + distMat)^(-hyper$rat.qu.a)
   }else{
     input.new <- as.matrix(input.new)
-    distMat <- DistMat(X=input, Xnew=input.new, A=A, power=2)
+    distMat <- DistMat(input=input, inputNew=input.new, A=A, power=2)
     covratqu <- hyper$rat.qu.v*(1 + distMat)^(-hyper$rat.qu.a)
   }
   
@@ -106,30 +106,30 @@ cov.matern <- function(hyper, input, input.new=NULL, nu){
   if (is.null(input.new)) {
     
     if(nu==3/2){
-      distmat <- sqrt(DistMat_sq(X=input, A=A, power=2))
+      distmat <- sqrt(DistMat_sq(input=input, A=A, power=2))
       covmatern <- cc*(1+sqrt(3)*distmat)*exp(-sqrt(3)*distmat)
     }else{
       if(nu==5/2){
-        distmat <- sqrt(DistMat_sq(X=input, A=A, power=2))
+        distmat <- sqrt(DistMat_sq(input=input, A=A, power=2))
         covmatern <- cc*(1+sqrt(5)*distmat+(5/3)*distmat^2)*
           exp(-sqrt(5)*distmat)
       }else{
-        covmatern <- CovMaternCpp_sq(X=input, cc=cc, A=A, nu=nu)
+        covmatern <- CovMaternCpp_sq(input=input, cc=cc, A=A, nu=nu)
       }
     }
 
   }else{
     input.new <- as.matrix(input.new)
     if(nu==3/2){
-      distmat <- sqrt(DistMat(X=input, Xnew=input.new, A=A, power=2))
+      distmat <- sqrt(DistMat(input=input, inputNew=input.new, A=A, power=2))
       covmatern <- cc*(1+sqrt(3)*distmat)*exp(-sqrt(3)*distmat)
     }else{
       if(nu==5/2){
-        distmat <- sqrt(DistMat(X=input, Xnew=input.new, A=A, power=2))
+        distmat <- sqrt(DistMat(input=input, inputNew=input.new, A=A, power=2))
         covmatern <- cc*(1+sqrt(5)*distmat+(5/3)*distmat^2)*
           exp(-sqrt(5)*distmat)
       }else{
-        covmatern <- CovMaternCpp(X=input, Xnew=input.new, cc=cc, A=A, nu=nu)   
+        covmatern <- CovMaternCpp(input=input, inputNew=input.new, cc=cc, A=A, nu=nu)   
       }
     }
   }
@@ -161,10 +161,10 @@ cov.linear <- function(hyper, input, input.new=NULL){
   }
   
   if (is.null(input.new)) {
-    cov.lin <- DistMatLinear_sq(X=input, A=A)
+    cov.lin <- DistMatLinear_sq(input=input, A=A)
   }else{
     input.new <- as.matrix(input.new)
-    cov.lin <- DistMatLinear(X=input, Xnew=input.new, A=A)
+    cov.lin <- DistMatLinear(input=input, inputNew=input.new, A=A)
   }
   
   cov.lin <- hyper$linear.i + cov.lin
@@ -327,9 +327,9 @@ gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL,
     hyper_low <- unlist(hyper)
     
     if(!is.null(NewHyper)){
-      hyper.nam <- c(names(hyper_low),NewHyper)
+      hyper.nam <- c(names(hyper_low), NewHyper)
       for(i in 1:length(NewHyper)){
-        hyper_low <- c(hyper_low, -1)
+        hyper_low <- c(hyper_low, log(1e-4))
       }
       names(hyper_low) <- hyper.nam
     }
@@ -357,9 +357,9 @@ gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL,
     hyper_upp <- unlist(hyper)
     
     if(!is.null(NewHyper)){
-      hyper.nam <- c(names(hyper_upp),NewHyper)
+      hyper.nam <- c(names(hyper_upp), NewHyper)
       for(i in 1:length(NewHyper)){
-        hyper_upp <- c(hyper_upp, 1)
+        hyper_upp <- c(hyper_upp, log(1e4))
       }
       names(hyper_upp) <- hyper.nam
     }
@@ -773,7 +773,7 @@ Dloglik.linear.a <- function(hyper, input, AlphaQ){
   Dlinear.aj <- sapply(1:ncol(input),function(i){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    DPsi <- exp(hyper$linear.a[i])*DistMatLinear_sq(X=Xi, A=A1)
+    DPsi <- exp(hyper$linear.a[i])*DistMatLinear_sq(input=Xi, A=A1)
     res <- sum(diag(AlphaQ%*%DPsi))
     return(res)
   })
@@ -791,7 +791,7 @@ Dloglik.pow.ex.w <- function(hyper, input, AlphaQ, gamma){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
     DPsi <- -cov.pow.ex(hyper=hyper, input=input, gamma=gamma)*
-      DistMat_sq(X=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i])
+      DistMat_sq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i])
     res <- 0.5*sum(diag(AlphaQ%*%DPsi))
     return(res)
   })
@@ -823,13 +823,13 @@ Dloglik.matern.w <- function(hyper, input, AlphaQ, nu){
     A <- diag((exp(hyper$matern.w)))
   }
   
-  dist_C <- DistMat_sq(X=input, A=A, power=2)
+  dist_C <- DistMat_sq(input=input, A=A, power=2)
   dist_D <- sqrt(dist_C)
   
   Dmatern.wj <- sapply(1:ncol(input),function(i){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    dist_i <- DistMat_sq(X=Xi, A=A1, power=2)
+    dist_i <- DistMat_sq(input=Xi, A=A1, power=2)
     if(nu==3/2){
       DPsi <- -1.5*cc*exp(hyper$matern.w[i])*dist_i*exp(-sqrt(3)*dist_D)
     }
@@ -860,7 +860,7 @@ Dloglik.rat.qu.w <- function(hyper, input, AlphaQ){
     covmatrixAdj_0 <- cov.rat.qu(hyper=hyperAdj, input=input)
     
     d1 <- -exp(hyper$rat.qu.a)*exp(hyper$rat.qu.v)*covmatrixAdj_a*
-      covmatrixAdj_0*DistMat_sq(X=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
+      covmatrixAdj_0*DistMat_sq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
     d1list[[i]] <- d1
   }
 
@@ -880,7 +880,7 @@ Dloglik.rat.qu.a <- function(hyper, input, AlphaQ){
   }else{
     A <- diag(hyper$rat.qu.w)
   }
-  v.power <- DistMat_sq(X=input,A=A,power=2)
+  v.power <- DistMat_sq(input=input,A=A,power=2)
   log_term <- log( 1 + v.power )
   
   DDrat.qu.a <- log_term*covmatrix*(-hyper$rat.qu.a)
@@ -908,7 +908,7 @@ D2linear.a <- function(hyper, input, Alpha.Q){
   D2linear.aj <- sapply(1:ncol(input),function(i){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    DPsi <- exp(hyper$linear.a[i])*DistMatLinear_sq(X=Xi, A=A1)
+    DPsi <- exp(hyper$linear.a[i])*DistMatLinear_sq(input=Xi, A=A1)
     res <- sum(diag(Alpha.Q%*%DPsi))
     return(res)
   })
@@ -933,11 +933,11 @@ D2pow.ex.w <- function(hyper,input,gamma,inv.Q,Alpha.Q){
     covmatrix <- cov.pow.ex(hyper=hyper, input=input, gamma=gamma)
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    d1 <- -covmatrix*DistMat_sq(X=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i])
+    d1 <- -covmatrix*DistMat_sq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i])
     d1list[[i]] <- d1
     d2 <- covmatrix*
-      (DistMat_sq(X=Xi, A=A1, power=2*gamma)*exp(2*hyper$pow.ex.w[i]) - 
-         DistMat_sq(X=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i]))
+      (DistMat_sq(input=Xi, A=A1, power=2*gamma)*exp(2*hyper$pow.ex.w[i]) - 
+         DistMat_sq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i]))
     d2list[[i]] <- d2
   }
 
@@ -976,7 +976,7 @@ D2matern.w <- function(hyper, input, nu, inv.Q, Alpha.Q){
     A <- diag((exp(hyper$matern.w)))
   }
 
-  dist_C <- DistMat_sq(X=input, A=A, power=2)
+  dist_C <- DistMat_sq(input=input, A=A, power=2)
   dist_D <- sqrt(dist_C)
 
   d1list <- vector("list", dimData)
@@ -985,7 +985,7 @@ D2matern.w <- function(hyper, input, nu, inv.Q, Alpha.Q){
   for(i in 1:dimData){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    dist_i <- DistMat_sq(X=Xi, A=A1, power=2)
+    dist_i <- DistMat_sq(input=Xi, A=A1, power=2)
     
     if(nu==3/2){
       d1list[[i]] <- -1.5*cc*exp(hyper$matern.w[i])*dist_i*exp(-sqrt(3)*dist_D)
@@ -1036,15 +1036,15 @@ D2rat.qu.w <- function(hyper, input, inv.Q, Alpha.Q){
     covmatrixAdj_0 <- cov.rat.qu(hyper=hyperAdj, input=input)
     
     d1 <- -exp(hyper$rat.qu.a)*exp(hyper$rat.qu.v)*covmatrixAdj_a*
-      covmatrixAdj_0*DistMat_sq(X=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
+      covmatrixAdj_0*DistMat_sq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
     d1list[[i]] <- d1
     
     # calc D2rat.qu
     d2 <- -exp(hyper$rat.qu.a)*exp(hyper$rat.qu.v)*covmatrixAdj_a*
       covmatrixAdj_0*((-exp(hyper$rat.qu.a)-1)*covmatrixAdj_0*
-                        DistMat_sq(X=Xi, A=A1, power=4)*
+                        DistMat_sq(input=Xi, A=A1, power=4)*
                         exp(2*hyper$rat.qu.w[i]) + 
-        DistMat_sq(X=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
+        DistMat_sq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
     )
     
     d2list[[i]] <- d2
@@ -1071,7 +1071,7 @@ D2rat.qu.a <- function(hyper, input, inv.Q, Alpha.Q){
   }else{
     A <- diag(hyper$rat.qu.w)
   }
-  v.power <- DistMat_sq(X=input, A=A, power=2)
+  v.power <- DistMat_sq(input=input, A=A, power=2)
   log_term <- log( 1 + v.power )
   
   d1 <- log_term*covmatrix*(-hyper$rat.qu.a)
@@ -1158,8 +1158,13 @@ diag.rat.qu <- function(hyper, input){
 #'   than one columns, than one of them will be used in the plot. Default to be
 #'   the first one.
 #' @param ylim Range value for y-axis.
+#' @param cex.points Graphical parameter
+#' @param lwd.points Graphical parameter
+#' @param pch Graphical parameter
+#' @param lwd Graphical parameter
 #' @param realisation Integer identifying which realisation should be plotted
 #'   (if there are multiple).
+#' @param main Title for the plot
 #' @param ... Graphical parameters passed to plot().
 #' @importFrom  graphics polygon
 #' @importFrom  graphics points
@@ -1172,7 +1177,8 @@ diag.rat.qu <- function(hyper, input){
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpr_ex1", package = "GPFDA")
-plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, ...){
+plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, main=NULL, 
+                     cex.points=NULL, lwd.points=NULL, pch=NULL, lwd=NULL, ...){
   obj <- x
   if(fitted==T){
     if(is.null(obj$fitted.mean)){
@@ -1213,13 +1219,32 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, ...){
   }
   if(dim(X)[1]<=150|length(X)<=150){
     pchType <- 4
-    PcexNo <- 0.8
+    PcexNo <- 1
     LcexNo <- 1.5
+    PLcexNo <- 2
   }else{
     pchType <- 20
     PcexNo <- 0.1
     LcexNo <- 0.8
+    PLcexNo <- 1
   }
+  
+  if(!is.null(cex.points)){
+    PcexNo <- cex.points
+  }
+  if(!is.null(lwd.points)){
+    PLcexNo <- lwd.points
+  }
+  if(!is.null(pch)){
+    pchType <- pch
+  }
+  if(!is.null(lwd)){
+    LcexNo <- lwd
+  }
+  
+  
+  
+  
   noiseFreePred <- obj$noiseFreePred
   if(type=='Prediction'){
     if(noiseFreePred){
@@ -1227,6 +1252,9 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, ...){
     }
   }
   
+  if(!is.null(main)){
+    type <- main
+  }
   if(!is.null(realisation)){
     mu <- mu[,realisation]
     Y <- Y[,realisation]
@@ -1240,10 +1268,93 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, ...){
        xlab="input ", ylab="response",...)
   polygon(c(x[,col.no], rev(x[,col.no])), c(upper, rev(lower)), 
           col=rgb(127,127,127,120, maxColorValue=255), border=NA)
-  points(X[,col.no], Y, pch=pchType, col=2, cex=PcexNo)
+  points(X[,col.no], Y, pch=pchType, col=2, cex=PcexNo, lwd=PLcexNo)
   lines(x[,col.no], mu, col=4, lwd=LcexNo)
 }
 
+
+#' Draws an image plot for a given two-dimensional input
+#'
+#' @param response Data to be plotted (e.g. matrix of predictions)
+#' @param input Matrix of two columns representing the input coordinates.
+#' @param realisation Integer identifying which realisation should be plotted
+#'   (if there are multiple).
+#' @param n1 Number of datapoints in the first coordinate direction
+#' @param n2 Number of datapoints in the second coordinate direction
+#' @param main Title for the plot
+#' @param zlim Range of z-axis
+#' @param cex.axis Graphical parameter
+#' @param cex.lab Graphical parameter
+#' @param font.main Graphical parameter
+#' @param cex.main Graphical parameter
+#' @param legend.cex.axis Graphical parameter
+#' @param legend.width Graphical parameter
+#' @param mar Graphical parameter
+#' @param oma Graphical parameter
+#' @param nGrid Dimension of output grid in each coordinate direction
+#' @param enlarge_zlim Additional quantity to increase the range of zlim
+#' @importFrom  graphics par
+#' @importFrom  graphics image
+#' @importFrom  graphics title
+#' @importFrom  akima interp
+#' @importFrom  fields image.plot
+#' @importFrom  fields tim.colors
+#' @return A plot
+#' @export
+#' @examples
+#' ## See examples in vignette:
+#' # vignette("gpr_ex2", package = "GPFDA")
+plotImage <- function(response, input, realisation, 
+                        n1, n2, 
+                        main=" ", zlim=NULL,
+                        cex.axis=1, cex.lab=2.5, 
+                        legend.cex.axis=1, font.main=2, cex.main=2, legend.width=2,
+                        mar=c(2.1,2.1,3.1,6.1), 
+                        oma=c( 0,1,0,0),
+                        nGrid=200,
+                        enlarge_zlim=NULL){
+  
+  if(!is.matrix(input)){
+    stop("The argument 'input' must be a matrix")
+  }
+  if(ncol(input)!=2){
+    stop("The argument 'input' must be a matrix of 2 columns")
+  }
+  
+  n <- nrow(input)
+  response <- as.matrix(response)
+  if(nrow(response)!=n){
+    stop("The arguments 'response' and 'input' must have the same sample size.")
+  }
+  
+  opar <- par(no.readonly = TRUE)
+  par(mar=mar, oma=oma)
+  
+  if(is.null(enlarge_zlim)){
+    enlarge_zlim <- 0.2*c(-1,1)
+  }
+  if(is.null(zlim)){
+    zlim <- range(response) + enlarge_zlim
+  }
+  if(is.null(realisation)){
+    realisation <- 1
+  }
+  responseMat <- matrix(response[,realisation], nrow=n1, ncol=n2, byrow=F)
+  
+  akima.li <- interp(x=input[,1], y=input[,2], z=as.numeric(responseMat),
+                     nx=nGrid, ny=nGrid, linear = F)
+  
+  image(x = akima.li$x, y=akima.li$y, z=akima.li$z, col=tim.colors(),
+        xlab=NA, ylab=NA, cex.lab=cex.lab, cex.axis=cex.axis, zlim=zlim)
+  
+  title(main = main, font.main=font.main, cex.main=cex.main, line=1)
+  
+  image.plot( legend.only=TRUE, zlim=zlim, 
+              legend.cex=0.5, legend.width=legend.width,
+                      axis.args=list(cex.axis=legend.cex.axis))
+  
+  par(opar)
+}
 
 # ########################### likelihood ######################################
 

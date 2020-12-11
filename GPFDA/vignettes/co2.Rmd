@@ -20,204 +20,203 @@ knitr::opts_chunk$set(
 options(scipen = 1, digits = 4)
 ```
 
-```{r setup}
-library(GPFDA)
-```
+
+In this example, we use a real dataset and apply a customised covariance kernel.
+See the documentation of the package for a description of this dataset.
 
 ## Loading co2 data
 ```{r}
+library(GPFDA)
 data(co2, package = "GPFDA")
 ```
 
+For visualisation purposes, we will use only the first five years of the sample.
+```{r}
+y <- c(t(data.matrix(co2[1:5, 1:12])))
+n <- length(y)
+input <- 5*(1:n)/n
+whichNeg <- (y<0) # removing negative values
+y <- y[!whichNeg]
+input <- input[!whichNeg]
+```
+
+We want to fit a GPR model using the observed data and then make predictions at
+a $1000$ equally spaced time points:
+```{r}
+input.new <- 5*seq(1/n, 1, length.out=1000) # input test for prediction
+```
+
+## Using exponential covariance kernel
+
+We will first fit a GPR model with a linear trend line for the mean function by 
+setting `meanModel='t'`, and a exponential covariance function by setting 
+`Cov='pow.ex'` and `gamma=1`.
+```{r, warnings=F, results=F, fig.width=8, fig.height=5}
+set.seed(789)
+fit1 <- gpr(input=input, response=y, Cov='pow.ex', gamma=1, meanModel='t',
+                      nInitCandidates=50, trace=2)
+```
 
 ```{r}
-# store data into matrix and remove missing values
-y=data.matrix(co2[,!names(co2)%in%'Annual_Average'])
-y=matrix(t(y),ncol=1)
-x=1:612/12; x[y<0]=NA
-mat=cbind(y,x)
-mat=na.omit(mat)
-
-X=as.matrix(mat[,2])
-Y=as.matrix(mat[,1])
-x=as.matrix(seq(1,612,len=1000)/12)
+sapply(fit1$hyper, exp)
 ```
 
-### Using powered exponential covariance kernel
-```{r, message=F}
-# First covariance matrix
-system.time(a1 <- gpr(as.matrix(X),as.matrix(Y),'pow.ex', gamma=2, meanModel='t',
-                      nInitCandidates=50, trace=2))
-system.time(b1 <- gprPredict(a1, input.new=as.matrix(x)))
+Since the noise variance `vv` estimate is extremely low, this fitted model basically 
+interpolates the datapoints:
+```{r, warnings=F, results=F, fig.width=8, fig.height=5}
+plot(fit1, main="exponential kernel - fitted model")
 ```
 
+See below the large uncertainty in predictions for test input points:
+```{r, warnings=F, results=F, fig.width=8, fig.height=5}
+pred1 <- gprPredict(train = fit1, input.new=input.new)
+plot(pred1, main="exponential kernel - predictions")
+```
+
+These results suggest that the exponential kernel is likely not to be the best 
+choice. A kernel which takes into account a periodic pattern may be wanted.
+
+## Using a customised covariance kernel
+
+To  capture the periodic pattern, we use the following covariance function:
+\begin{equation}
+k(t,t')=v \exp(-w (t-t')^2 - u \sin^2(\pi (t-t'))), \quad v,w,u > 0
+\label{cus-cov}
+\end{equation}
+(see Williams, C. K., \& Rasmussen, C. E. (2006). "Gaussian Processes for 
+Machine Learning", the MIT press).
+
+This is not a standard covariance kernel and is not included in the package. 
+Therefore, we will define it manually. 
+
+### Defining a customised covariance kernel
+
+The first step is to define the covariance kernel itself. The name of the kernel 
+must be constituted by the prefix  `cov.` and 6 letters  ( e.g., `cov.custom`). 
+
+Here the C++ function `DistMat` is used to calculate distances $\exp(w)(t-t')^2$.
+The similar `DistMat_sq` function is used when `t` and `t'` are identical. See
+package documentation for more details.
 
 ```{r}
-# plot(a1)
-# plot(b1)
-upper=b1$pred.mean+1.96*b1$pred.sd;
-lower=b1$pred.mean-1.96*b1$pred.sd;
-plot(-100,-100,col=0,xlim=range(X,x),ylim=range(upper,lower,Y),
-     main="Prediction by powered exponential", xlab="input ",ylab="response")
-polygon(c(x, rev(x)), c(upper, rev(lower)),col = "grey", border = NA)
-points(X,Y,pch=2,col=2,cex=0.1)
-# lines(X[,1],Y)
-lines(x,b1$pred.mean,col=4,lwd=0.8)
-```
-
-
-### Using rational quadratic covariance kernel
-
-```{r, message=F}
-a2 <- gpr(as.matrix(X),as.matrix(Y),'rat.qu',meanModel='t',
-          nInitCandidates=50, trace=2)
-b2 <- gprPredict(a2, input.new=as.matrix(x))
-```
-
-
-```{r}
-# plot(a2)
-# plot(b2)
-
-upper=b2$pred.mean+1.96*b2$pred.sd;
-lower=b2$pred.mean-1.96*b2$pred.sd;
-plot(-100,-100,col=0,xlim=range(X,x),ylim=range(upper,lower,Y),
-     main="Prediction by rational quadratic", xlab="input ",ylab="response")
-polygon(c(x, rev(x)), c(upper, rev(lower)),col = "grey", border = NA)
-points(X,Y,pch=2,col=2,cex=0.1)
-# lines(X[,1],Y)
-lines(x,b2$pred.mean,col=4,lwd=0.8)
-```
-
-
-### Defining a customized covariance kernel
-
-```{r}
-cov.custom=function(hyper,input,input.new=NULL){
-  hyper=lapply(hyper,exp);
-  datadim=dim(input)
-  if(is.null(input.new)) input.new=input
-  A1 <- GPFDA:::DistMat(X=input, Xnew = input.new, A=as.matrix(hyper$custom.w), 
+cov.custom <- function(hyper, input, input.new=NULL){
+  hyper <- lapply(hyper, exp)
+  if(is.null(input.new)){
+    input.new <- as.matrix(input)
+  }else{
+    input.new <- as.matrix(input.new)
+  }
+  input <- as.matrix(input)
+  A1 <- DistMat(input=input, inputNew=input.new, A=as.matrix(hyper$custom.w), 
                         power=2)
-  mdim=dim(input);mdim.new=dim(input.new)
-  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),
-                                           nrow=mdim.new[1],byrow=T)-input.new)
-  cov..=matrix(0,ncol=mdim[1],nrow=mdim.new[1])
-  if(mdim[2]>1){
-    for(i in 1:(mdim[2]-1)){
-      cov..=cov..+cov.[1:mdim.new[1],];cov.=cov.[-(1:mdim.new[1]),]}
-    cov.=cov..+cov.   # x-x'
-  }
-  A2=t(hyper$custom.u*(sin(pi*cov.))^2)
-  return(hyper$custom.v*exp(-A1-A2))
+  sept <- outer(input[,1], input.new[,1], "-")
+  A2 <- hyper$custom.u*(sin(pi*sept))^2
+  customCov <- hyper$custom.v*exp(-A1-A2)
+  return(customCov)
 }
+```
 
-# Define the first derivative of the customized covariance matrix 
-Dloglik.custom.w=function(hyper,input,AlphaQ){
-  Dcov=cov.custom(hyper,input)
-  A1 <- -GPFDA:::DistMat_sq(X=input, A=as.matrix(hyper$custom.w), power=2)
-  out=Dcov %*% A1
-  out=sum(out*AlphaQ)
+
+### Defining the first derivatives
+
+The second step is to define the first derivative of the log-likelihood with 
+respect to each of the hyperparameters of the covariance kernel. 
+
+The name of the functions should look like `Dloglik.custom.w`, where the middle 
+affix is the custom defined name, and the last letter (i.e. `w`) names the vector 
+of the hyperparameters. 
+
+For details about derivatives, see Shi, J. Q., and Choi, T. (2011), "Gaussian Process Regression Analysis for Functional Data", CRC Press.
+
+<!-- In this case, only the first derivative of the covariance matrix against the parameters need to be calculated. If define it as `out', the result should be the trace of `out' multiply `AlphaQ', which is same as `sum(out*AlphaQ)'. The argument `AlphaQ' is calculated in the main function, which will attach to these functions. $AlphaQ = (Q^{-1}y)^2-Q^{-1}$, where Q is the covariance matrix. -->
+
+
+
+```{r}
+Dloglik.custom.w <- function(hyper, input, AlphaQ){
+  A1 <- DistMat_sq(input=input, A=as.matrix(exp(hyper$custom.w)), power=2)
+  Dcov <- - cov.custom(hyper, input)*A1
+  out <- 0.5*sum(diag(AlphaQ%*%Dcov))
   return(out)
 }
 
-Dloglik.custom.u=function(hyper,input,AlphaQ){
-  Dcov=cov.custom(hyper,input)
-  hyper=lapply(hyper,exp)
-  mdim=dim(input);mdim.new=mdim
-  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),
-                                           nrow=mdim.new[1],byrow=T)-input)
-  cov..=matrix(0,ncol=mdim[1],nrow=mdim.new[1])
-  if(mdim[2]>1){
-    for(i in 1:(mdim[2]-1)){
-      cov..=cov..+cov.[1:mdim.new[1],];cov.=cov.[-(1:mdim.new[1]),]}
-    cov.=cov..+cov.
-  }
-  A2=-hyper$custom.u*(sin(pi*cov.))^2 
-  out=Dcov%*%A2
-  out=sum(out*AlphaQ)
+Dloglik.custom.u <- function(hyper, input, AlphaQ){
+  sept <- outer(input[,1], input[,1], "-")
+  A2 <- exp(hyper$custom.u)*(sin(pi*sept))^2
+  Dcov <- - cov.custom(hyper, input)*A2
+  out <- 0.5*sum(diag(AlphaQ%*%Dcov))
   return(out)
 }
 
-Dloglik.custom.v=function(hyper,input,AlphaQ){
-  out=cov.custom(hyper,input)
-  out=sum(out*AlphaQ)
+Dloglik.custom.v <- function(hyper, input, AlphaQ){
+  Dcov <- cov.custom(hyper, input)
+  out <- 0.5*sum(diag(AlphaQ%*%Dcov))
   return(out)
 }
+```
 
-# Define the second derivative of the customized covariance matrix 
-D2custom.w=function(hyper,input,inv.Q,Alpha.Q){
-  Dcov=cov.custom(hyper,input)
-  A1 <- -GPFDA:::DistMat_sq(X=input, A=as.matrix(hyper$custom.w), power=2)
-  wD2=Dcov%*%(A1^2+A1)
-  wD1=Dcov%*%A1
-  D2c.w=D2(wD1,wD2,inv.Q,Alpha.Q)
+### Defining the second derivatives
+
+The third step is to define the second derivatives of the log-likelihood.
+
+```{r}
+D2custom.w <- function(hyper, input, inv.Q, Alpha.Q){
+  Cov <- cov.custom(hyper, input)
+  A1 <- DistMat_sq(input=input, A=as.matrix(exp(hyper$custom.w)), power=2)
+  D1cov <- -Cov*A1
+  D2cov <- -(D1cov + Cov)*A1
+  D2c.w <- D2(D1cov, D2cov, inv.Q, Alpha.Q)
   return(D2c.w)
 }
 
-D2custom.w=function(hyper,input,inv.Q,Alpha.Q){
-  Dcov=cov.custom(hyper,input)
-  A1 <- -GPFDA:::DistMat_sq(X=input, A=as.matrix(hyper$custom.w), power=2)
-  wD2=Dcov%*%(A1^2+A1)
-  wD1=Dcov%*%A1
-  D2c.w=D2(wD1,wD2,inv.Q,Alpha.Q)
-  return(D2c.w)
-}
-
-
-D2custom.u=function(hyper,input,inv.Q,Alpha.Q){
-  Dcov=cov.custom(hyper,input)
-  hyper=lapply(hyper,exp)
-  mdim=dim(input);mdim.new=mdim
-  cov.=sapply(1:mdim[1],function(i) matrix(rep(input[i,],mdim.new[1]),
-                                           nrow=mdim.new[1],byrow=T)-input)
-  cov..=matrix(0,ncol=mdim[1],nrow=mdim.new[1])
-  if(mdim[2]>1){
-    for(i in 1:(mdim[2]-1)){
-      cov..=cov..+cov.[1:mdim.new[1],];cov.=cov.[-(1:mdim.new[1]),]}
-    cov.=cov..+cov.
-  }
-  A2=-hyper$custom.u*(sin(pi*cov.))^2  
-  uD2=Dcov%*%(A2^2+A2)
-  uD1=Dcov%*%A2
-  D2c.u=D2(uD1,uD2,inv.Q,Alpha.Q)
+D2custom.u <- function(hyper, input, inv.Q, Alpha.Q){
+  Cov <- cov.custom(hyper, input)
+  sept <- outer(input[,1], input[,1], "-")
+  A2 <- exp(hyper$custom.u)*(sin(pi*sept))^2
+  D1cov <- - Cov*A2
+  D2cov <- -(D1cov + Cov)*A2
+  D2c.u <- D2(D1cov, D2cov, inv.Q, Alpha.Q)
   return(D2c.u)
 }
 
-D2custom.v=function(hyper,input,inv.Q,Alpha.Q){
-  vD1=cov.custom(hyper,input)
-  vD2=vD1
-  D2c.v=D2(vD1,vD2,inv.Q,Alpha.Q)
-  return(D2c.v)
+D2custom.v <- function(hyper, input, inv.Q, Alpha.Q){
+  out <- cov.custom(hyper, input)
+  return(out)
 }
+```
 
-# Define the diagonal of the customized covariance matrix 
-diag.custom=function(hyper,input){
-  Qstar=rep(exp(hyper$custom.v),dim(input)[1])
+### Defining a diagonal matrix including the signal variance
+
+Finally, we define a function to calculate a diagonal matrix contanining the 
+variance of the customised covariance function. This is used for making 
+predictions at new input points.
+
+```{r}
+diag.custom <- function(hyper, input){
+  Qstar <- rep(exp(hyper$custom.v), nrow(input))
   return(Qstar)
 }
 ```
 
-### Using the three covariance functions 
-```{r, message=F}
-# Use all three covariance kernels
-a3 <- gpr(as.matrix(X),as.matrix(Y),Cov=c('pow.ex','custom','rat.qu'),
-		NewHyper=c('custom.w','custom.u','custom.v'), gamma=2, meanModel='t',
-		nInitCandidates=50, trace=2)
-b3 <- gprPredict(a3, input.new=as.matrix(x))
+
+### Fitting the GPR model with the customised kernel and making predictions
+
+```{r, message=F, results=F, fig.width=8, fig.height=5}
+fit2 <- gpr(input=input, response=y, Cov='custom',
+            NewHyper=c('custom.w','custom.u','custom.v'), gamma=2, meanModel='t',
+            nInitCandidates=50, trace=2, useGradient = F)
+```
+```{r}
+sapply(fit2$hyper, exp)
+```
+Note that now the noise variance `vv` estimate is no longer so small. Both the 
+fitted model and the predictions seem much more reasonable for this dataset:
+```{r, message=F, fig.width=8, fig.height=5}
+plot(fit2, main="customised kernel - fitted model")
 ```
 
-
-```{r}
-# plot(a3)    
-# plot(b3)
-upper=b3$pred.mean+1.96*b3$pred.sd;
-lower=b3$pred.mean-1.96*b3$pred.sd;
-plot(-100,-100,col=0,xlim=range(X,x),ylim=range(upper,lower,Y),
-     main="Prediction by sum of three kernels", xlab="input ",ylab="response")
-polygon(c(x, rev(x)), c(upper, rev(lower)),col = "grey", border = NA)
-points(X,Y,pch=2,col=2,cex=0.1)
-# lines(X[,1],Y)
-lines(x,b3$pred.mean,col=4,lwd=0.8)
+```{r, message=F, fig.width=8, fig.height=5}
+pred2 <- gprPredict(train = fit2, input.new=input.new)
+plot(pred2, main="customised kernel - predictions")
 ```
 

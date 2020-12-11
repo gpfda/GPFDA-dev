@@ -33,83 +33,83 @@ BEGIN_RCPP
 END_RCPP
 }
 // CovMaternCpp
-arma::mat CovMaternCpp(NumericMatrix X, NumericMatrix Xnew, NumericVector cc, NumericMatrix A, NumericVector nu);
-RcppExport SEXP _GPFDA_CovMaternCpp(SEXP XSEXP, SEXP XnewSEXP, SEXP ccSEXP, SEXP ASEXP, SEXP nuSEXP) {
+arma::mat CovMaternCpp(NumericMatrix input, NumericMatrix inputNew, NumericVector cc, NumericMatrix A, NumericVector nu);
+RcppExport SEXP _GPFDA_CovMaternCpp(SEXP inputSEXP, SEXP inputNewSEXP, SEXP ccSEXP, SEXP ASEXP, SEXP nuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type Xnew(XnewSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type inputNew(inputNewSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type cc(ccSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
     Rcpp::traits::input_parameter< NumericVector >::type nu(nuSEXP);
-    rcpp_result_gen = Rcpp::wrap(CovMaternCpp(X, Xnew, cc, A, nu));
+    rcpp_result_gen = Rcpp::wrap(CovMaternCpp(input, inputNew, cc, A, nu));
     return rcpp_result_gen;
 END_RCPP
 }
 // CovMaternCpp_sq
-arma::mat CovMaternCpp_sq(NumericMatrix X, NumericVector cc, NumericMatrix A, NumericVector nu);
-RcppExport SEXP _GPFDA_CovMaternCpp_sq(SEXP XSEXP, SEXP ccSEXP, SEXP ASEXP, SEXP nuSEXP) {
+arma::mat CovMaternCpp_sq(NumericMatrix input, NumericVector cc, NumericMatrix A, NumericVector nu);
+RcppExport SEXP _GPFDA_CovMaternCpp_sq(SEXP inputSEXP, SEXP ccSEXP, SEXP ASEXP, SEXP nuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type input(inputSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type cc(ccSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
     Rcpp::traits::input_parameter< NumericVector >::type nu(nuSEXP);
-    rcpp_result_gen = Rcpp::wrap(CovMaternCpp_sq(X, cc, A, nu));
+    rcpp_result_gen = Rcpp::wrap(CovMaternCpp_sq(input, cc, A, nu));
     return rcpp_result_gen;
 END_RCPP
 }
 // DistMat
-arma::mat DistMat(NumericMatrix X, NumericMatrix Xnew, NumericMatrix A, NumericVector power);
-RcppExport SEXP _GPFDA_DistMat(SEXP XSEXP, SEXP XnewSEXP, SEXP ASEXP, SEXP powerSEXP) {
+arma::mat DistMat(NumericMatrix input, NumericMatrix inputNew, NumericMatrix A, NumericVector power);
+RcppExport SEXP _GPFDA_DistMat(SEXP inputSEXP, SEXP inputNewSEXP, SEXP ASEXP, SEXP powerSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type Xnew(XnewSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type inputNew(inputNewSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
     Rcpp::traits::input_parameter< NumericVector >::type power(powerSEXP);
-    rcpp_result_gen = Rcpp::wrap(DistMat(X, Xnew, A, power));
-    return rcpp_result_gen;
-END_RCPP
-}
-// DistMatLinear
-arma::mat DistMatLinear(NumericMatrix X, NumericMatrix Xnew, NumericMatrix A);
-RcppExport SEXP _GPFDA_DistMatLinear(SEXP XSEXP, SEXP XnewSEXP, SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type Xnew(XnewSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(DistMatLinear(X, Xnew, A));
-    return rcpp_result_gen;
-END_RCPP
-}
-// DistMatLinear_sq
-arma::mat DistMatLinear_sq(NumericMatrix X, NumericMatrix A);
-RcppExport SEXP _GPFDA_DistMatLinear_sq(SEXP XSEXP, SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(DistMatLinear_sq(X, A));
+    rcpp_result_gen = Rcpp::wrap(DistMat(input, inputNew, A, power));
     return rcpp_result_gen;
 END_RCPP
 }
 // DistMat_sq
-arma::mat DistMat_sq(NumericMatrix X, NumericMatrix A, NumericVector power);
-RcppExport SEXP _GPFDA_DistMat_sq(SEXP XSEXP, SEXP ASEXP, SEXP powerSEXP) {
+arma::mat DistMat_sq(NumericMatrix input, NumericMatrix A, NumericVector power);
+RcppExport SEXP _GPFDA_DistMat_sq(SEXP inputSEXP, SEXP ASEXP, SEXP powerSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type input(inputSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
     Rcpp::traits::input_parameter< NumericVector >::type power(powerSEXP);
-    rcpp_result_gen = Rcpp::wrap(DistMat_sq(X, A, power));
+    rcpp_result_gen = Rcpp::wrap(DistMat_sq(input, A, power));
+    return rcpp_result_gen;
+END_RCPP
+}
+// DistMatLinear
+arma::mat DistMatLinear(NumericMatrix input, NumericMatrix inputNew, NumericMatrix A);
+RcppExport SEXP _GPFDA_DistMatLinear(SEXP inputSEXP, SEXP inputNewSEXP, SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type inputNew(inputNewSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(DistMatLinear(input, inputNew, A));
+    return rcpp_result_gen;
+END_RCPP
+}
+// DistMatLinear_sq
+arma::mat DistMatLinear_sq(NumericMatrix input, NumericMatrix A);
+RcppExport SEXP _GPFDA_DistMatLinear_sq(SEXP inputSEXP, SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(DistMatLinear_sq(input, A));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -156,9 +156,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_GPFDA_CovMaternCpp", (DL_FUNC) &_GPFDA_CovMaternCpp, 5},
     {"_GPFDA_CovMaternCpp_sq", (DL_FUNC) &_GPFDA_CovMaternCpp_sq, 4},
     {"_GPFDA_DistMat", (DL_FUNC) &_GPFDA_DistMat, 4},
+    {"_GPFDA_DistMat_sq", (DL_FUNC) &_GPFDA_DistMat_sq, 3},
     {"_GPFDA_DistMatLinear", (DL_FUNC) &_GPFDA_DistMatLinear, 3},
     {"_GPFDA_DistMatLinear_sq", (DL_FUNC) &_GPFDA_DistMatLinear_sq, 2},
-    {"_GPFDA_DistMat_sq", (DL_FUNC) &_GPFDA_DistMat_sq, 3},
     {"_GPFDA_KCGP", (DL_FUNC) &_GPFDA_KCGP, 7},
     {"_GPFDA_KCGPnm", (DL_FUNC) &_GPFDA_KCGPnm, 9},
     {NULL, NULL, 0}

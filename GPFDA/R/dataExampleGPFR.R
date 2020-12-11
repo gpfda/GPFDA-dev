@@ -1,4 +1,4 @@
-#' Data simulated in the GPFR example.
+#' Data simulated in the GPFR example
 #'
 #' A list containing training and test data simulated from a functional 
 #' regression model. \cr \cr
