@@ -7,7 +7,7 @@
 plotImage(
   response,
   input,
-  realisation,
+  realisation = 1,
   n1,
   n2,
   main = " ",

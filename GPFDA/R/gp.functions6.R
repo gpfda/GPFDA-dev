@@ -1,26 +1,46 @@
 
 ######################## Covariance functions ############################ 
 
-#' Stationary powered exponential covariance function
+#' @title Calculates a covariance matrix
+#' @description Evaluates one of the following covariance functions at input 
+#' vectors t and t': 
+#' \itemize{
+#' \item Powered exponential
+#' \item Rational quadratic
+#' \item Matern
+#' \item Linear
+#' }
 #'
-#' @param hyper The hyperparameters. Must be a list with certain names.
-#' @param input The input data. It must be either a matrix, where each column
+#' @param hyper The hyperparameters. It must be a list with certain names. See 
+#' details.
+#' @param input The covariate t. It must be either a matrix, where each column
 #'   represents a covariate, or a vector if there is only one covariate.
-#' @param input.new The test input for prediction. Must be a vector or a matrix.
-#'   Default to NULL. If NULL, input.new will be identical to 'input'.
+#' @param input.new The covariate t'. It also must be a vector or a matrix. 
+#' If NULL (default), 'input.new' will be set to be equal to 'input' and the 
+#' function will return a squared, symmetric covariance matrix.
 #' @param gamma Power parameter used in powered exponential kernel function. It
-#'   must be 0<gamma<=2.
+#'   must be 0<gamma<=2. Default to 2, which gives the squared exponential 
+#'   covariance function.
+#' @param nu Smoothness parameter of the Matern class. It must be a positive
+#'   value.
 #'
-#' @details The names for the hyperparameters should be:"linear.a" for linear
-#'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
-#'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
-#'   rational quadratic, "vv" for white noise. All hyperparameters should be in
-#'   one list.
+#' @details The names for the hyperparameters should be: 
+#' \itemize{
+#' \item "pow.ex.v" and "pow.ex.w" (powered exponential);
+#' \item "rat.qu.v", "rat.qu.w" and "rat.qu.a" (rational quadratic);
+#' \item "matern.v" and "matern.w" (Matern);
+#' \item "linear.i" and "linear.a" (linear);
+#' \item "vv" (Gaussian white noise).
+#' }
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'   Analysis for Functional input'', CRC Press.
 #' @return A covariance matrix
+#' @name covMat
+NULL
+
+
+#' @rdname covMat
 #' @export
-#' 
 cov.pow.ex <- function(hyper, input, input.new=NULL, gamma=2){
   
   hyper <- lapply(hyper,exp)
@@ -45,18 +65,8 @@ cov.pow.ex <- function(hyper, input, input.new=NULL, gamma=2){
 }
 
 
-#' Stationary rational quadratic covariance function
-#'
-#' @inheritParams cov.pow.ex
-#'
-#' @details The names for the hyperparameters should be:"linear.a" for linear
-#'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
-#'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
-#'   rational quadratic, "vv" for white noise. All hyperparameters should be in
-#'   one list.
-#' @return A covariance matrix
+#' @rdname covMat
 #' @export
-#'
 cov.rat.qu <- function(hyper, input, input.new=NULL){
   
   hyper <- lapply(hyper,exp)
@@ -80,18 +90,8 @@ cov.rat.qu <- function(hyper, input, input.new=NULL){
   return(covratqu)
 }
 
-#' Stationary Matern covariance function
-#'
-#' @inheritParams cov.pow.ex
-#' @param nu Smoothness parameter of the Matern class. It must be a positive
-#'   value.
-#' @details The names for the hyperparameters should be:"linear.a" for linear
-#'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
-#'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for rational
-#'   quadratic, "vv" for white noise. All hyperparameters should be in one list.
-#' @return A covariance matrix
+#' @rdname covMat
 #' @export
-#' 
 cov.matern <- function(hyper, input, input.new=NULL, nu){
   
   input <- as.matrix(input)
@@ -137,18 +137,9 @@ cov.matern <- function(hyper, input, input.new=NULL, nu){
   return(covmatern)
 }
 
-#' Linear covariance function
-#'
-#' @inheritParams cov.pow.ex
-#'
-#' @details The names for the hyperparameters should be:"linear.a" for linear
-#'   covariance function, "pow.ex.w", "pow.ex.v" for power exponential,
-#'   "matern.w", "matern.v" for Matern, "rat.qu.s", "rat.qu.a" for
-#'   rational quadratic, "vv" for white noise. All hyperparameters should be in
-#'   one list.
-#' @return A covariance matrix
+
+#' @rdname covMat
 #' @export
-#'
 cov.linear <- function(hyper, input, input.new=NULL){
   
   hyper <- lapply(hyper,exp)
@@ -1304,7 +1295,7 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, main=NU
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpr_ex2", package = "GPFDA")
-plotImage <- function(response, input, realisation, 
+plotImage <- function(response, input, realisation=1, 
                         n1, n2, 
                         main=" ", zlim=NULL,
                         cex.axis=1, cex.lab=2.5, 
@@ -1335,9 +1326,6 @@ plotImage <- function(response, input, realisation,
   }
   if(is.null(zlim)){
     zlim <- range(response) + enlarge_zlim
-  }
-  if(is.null(realisation)){
-    realisation <- 1
   }
   responseMat <- matrix(response[,realisation], nrow=n1, ncol=n2, byrow=F)
   
