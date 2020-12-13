@@ -9,12 +9,12 @@ model}
   x,
   Data.obs,
   Data.new,
-  i,
+  realisation,
   ylim = NULL,
   mfrow = NULL,
-  cex = 1,
-  cex.lab = 1,
-  cex.axis = 1,
+  cex = 2,
+  cex.lab = 2,
+  cex.axis = 2,
   ...
 )
 }
@@ -25,7 +25,7 @@ model}
 
 \item{Data.new}{List of test data}
 
-\item{i}{Index identifying which realisation should be plotted.}
+\item{realisation}{Index identifying which realisation should be plotted.}
 
 \item{ylim}{Range of y-axis}
 

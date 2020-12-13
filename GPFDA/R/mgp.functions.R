@@ -444,7 +444,7 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @param x An object of class 'mgpr'
 #' @param Data.obs List of observed data
 #' @param Data.new List of test data
-#' @param i Index identifying which realisation should be plotted.
+#' @param realisation Index identifying which realisation should be plotted.
 #' @param ylim Range of y-axis
 #' @param mfrow Graphical parameter
 #' @param cex  Graphical parameter
@@ -464,8 +464,8 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("mgpr", package = "GPFDA")
-plot.mgpr <- function(x, Data.obs, Data.new, i, ylim=NULL, 
-                              mfrow=NULL, cex=1, cex.lab=1, cex.axis=1, ...){
+plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL, 
+                              mfrow=NULL, cex=2, cex.lab=2, cex.axis=2, ...){
   
   train <- x
   op <- par(mar=c(4.5,5.1,0.2,0.8), 
@@ -488,18 +488,18 @@ plot.mgpr <- function(x, Data.obs, Data.new, i, ylim=NULL,
   
   for(variable in 1:N){
     
-    predMean <- predCGP$pred.mean[[variable]][,i]
+    predMean <- predCGP$pred.mean[[variable]][,realisation]
     upper <- predMean+1.96*predCGP$pred.sd[[variable]]
     lower <- predMean-1.96*predCGP$pred.sd[[variable]]
     
     if(is.null(ylim)){
-      ylim_i <- range(c(lower, upper)) #+ c(-0.5,0.5)
+      ylim_i <- range(c(lower, upper))
     }else{
       ylim_i <- ylim[[variable]]
     }
     
     xlim_i <- range(Data.obs$input[[variable]], Data.new$input[[variable]])
-    plot(Data.obs$input[[variable]], Data.obs$response[[variable]][,i], 
+    plot(Data.obs$input[[variable]], Data.obs$response[[variable]][,realisation], 
          type="p", xlab="t", ylab=bquote(X[.(variable)]), ylim=ylim_i, 
          xlim=xlim_i, pch=19, cex=cex, cex.axis=cex.axis, cex.lab=cex.lab, ...)
     lines(Data.new$input[[variable]], predMean, col="blue", lwd=2)

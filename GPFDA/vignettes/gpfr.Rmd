@@ -51,8 +51,9 @@ $x_m(t) = \exp(t) + v$, where $v \sim N(0, 0.1^2)$. The term $\tau_m(x_m(t))$ is
 a zero mean Gaussian process with squared exponential covariance kernel and 
 $\sigma_\varepsilon^2 = 1$.
 
-We also simulate an $(M+1)-th$ realisation which is used to assess predictions 
+We also simulate an $(M+1)$th realisation which is used to assess predictions 
 obtained by the model estimated by using the training data of size $M$.
+
 
 
 ```{r setup}
@@ -61,7 +62,6 @@ require("MASS")
 ```
 
 ```{r}
-require("MASS")
 set.seed(100)
 
 M <- 20
@@ -114,73 +114,85 @@ dataExampleGPFR <- list(tt=tt, response_train=response_train,
 save(dataExampleGPFR, file = "data/dataExampleGPFR.rda")
 ```
 
-
+The estimation of mean and covariance functions in the GPFR model is done using 
+the `gpfr` function:
 ```{r, results=F}
-a1 <- gpfr(response=response_train, lReg=scalar_train, 
-           fReg=NULL,
-           gpReg=list(x_train),
-           fyList=list(nbasis=23,lambda=0.0001),
-           fbetaList_l=list(list(lambda=0.0001,nbasi=23)),
-           hyper=NULL, Cov='pow.ex', fitting=T,
-           time=tt, concurrent=T)
+a1 <- gpfr(response = response_train, time = tt, lReg = scalar_train,
+           fReg = NULL, gpReg = list(x_train),
+           fyList = list(nbasis = 23, lambda = 0.0001),
+           fbetaList_l = list(list(lambda = 0.0001, nbasi = 23)),
+           Cov = 'pow.ex',  fitting = T)
 ```
 
-Note that the estimated hyperparameters are similar to the true values.
-
+Note that the estimated covariance function hyperparameters are similar to the 
+true values:
 ```{r}
 unlist(lapply(a1$hyper,exp))
 ```
 
 ### Plot of raw data
+
+To visualise the response data used for training, we type
 ```{r}
-plot(a1,type='raw')
+plot(a1, type='raw')
 ```
 
 
-### In-sample fit using mean function from FR model only
+### FR fit for training data
 
+The in-sample fit using mean function from FR model only can be seen:
 ```{r}
 plot(a1, type = 'meanFunction')
 ```
 
 ### GPFR fit for training data
  
+The GPFR model fit to the training data is visualised by using:
 ```{r}
 plot(a1, type = 'fitted')
 ```
 
 
+### Type I prediction: $y_{M+1}$ observed
 
-## Type I prediction: $y_{M+1}$ observed
+If $y_{M+1}(t)$ is observed over all the domain of $t$, the type I prediction can be seen:
+
 ```{r, results=F}
-b1 <- gpfrPredict(a1,TestData=as.matrix(x_new),NewTime=t_new,
-                  lReg=scalar_new, fReg=NULL,
-                  gpReg=list('response'=response_new,'input'=x_new,'time'=t_new))
+b1 <- gpfrPredict(a1, TestData = as.matrix(x_new), NewTime = t_new,
+               lReg = scalar_new, fReg = NULL,
+               gpReg = list('response' = response_new,
+                            'input' = x_new, 'time' = t_new))
 
-plot(b1, type = 'prediction') 
-lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
+plot(b1, type = 'prediction')
+lines(t_new, response_new, type = 'b', col = 4, pch = 19, cex = 0.6, lty = 3, lwd = 2)
 ```
 
-## Type I prediction: $y_{M+1}$ partially observed
+### Type I prediction: $y_{M+1}$ partially observed
+
+If we assume that $y_{M+1}(t)$ is only partially observed, we can obtain type I predictions via: 
+
 ```{r, results=F}
-b2 <- gpfrPredict(a1,TestData=as.matrix(x_new),NewTime=t_new,
-                  lReg=scalar_new, fReg=NULL,
-                  gpReg=list('response'=response_new[1:20],
-                          'input'=x_new[1:20],
-                          'time'=t_new[1:20]))
+b2 <- gpfrPredict(a1, TestData = as.matrix(x_new), NewTime = t_new,
+               lReg = scalar_new, fReg = NULL,
+               gpReg = list('response' = response_new[1:20],
+                          'input' = x_new[1:20],
+                          'time' = t_new[1:20]))
 
 plot(b2, type = 'prediction')
-lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
+lines(t_new, response_new, type = 'b', col = 4, pch = 19, cex = 0.6, lty = 3, lwd = 2)
 ```
 
 
-## Type II prediction: $y_{M+1}$ not observed
+### Type II prediction: $y_{M+1}$ not observed
+
+Type II prediction, which is made by not including any information about $y_{M+1}(t)$, 
+is visualised below.
 ```{r, results=F}
-b3 <- gpfrPredict(a1,TestData=as.matrix(x_new),NewTime=t_new,
-                  lReg=scalar_new, fReg=NULL, gpReg=NULL)
+b3 <- gpfrPredict(a1, TestData = as.matrix(x_new), NewTime = t_new,
+               lReg = scalar_new, fReg = NULL, gpReg = NULL)
 
 plot(b3, type = 'prediction')
-lines(t_new, response_new, type='b', col=4, pch=19, cex=0.6, lty=3, lwd=2)
+lines(t_new, response_new, type='b', col = 4, pch = 19, cex = 0.6, lty = 3, lwd = 2)
 ```
 
 

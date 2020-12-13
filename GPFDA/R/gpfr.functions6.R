@@ -1105,10 +1105,10 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
           }
           if(unique(unlist(lapply(fReg,ncol)))>1){
             if(length(fReg)!=1 & ii==1){
-              stop('new samples of functional covaraites for functional 
+              stop('new samples of functional covariates for functional 
                    regression are having wrong dimensions')}
             if(length(fReg)!=1 & ii==2){
-              stop('input functional covaraites for gaussian process are having 
+              stop('input functional covariates for Gaussian process are having 
                    wrong dimensions')}
             if(length(fReg)==1){
               ftmp <- vector('list',length=ncol(fReg[[1]]))
