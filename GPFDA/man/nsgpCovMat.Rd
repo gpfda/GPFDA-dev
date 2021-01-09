@@ -2,7 +2,7 @@
 % Please edit documentation in R/nsgp.functions.R
 \name{nsgpCovMat}
 \alias{nsgpCovMat}
-\title{Calculates a NSGP covariance matrix given a vector of hyperparameters}
+\title{Calculate a NSGP covariance matrix given a vector of hyperparameters}
 \usage{
 nsgpCovMat(
   hp,
@@ -62,7 +62,7 @@ A list containing  \describe{
 }
 }
 \description{
-Calculates a NSGP covariance matrix given a vector of hyperparameters
+Calculate a NSGP covariance matrix given a vector of hyperparameters
 }
 \examples{
 ## See examples in vignette:
@@ -71,5 +71,5 @@ Calculates a NSGP covariance matrix given a vector of hyperparameters
 \references{
 Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-  Structure" (https://arxiv.org/abs/1903.09981)
+  Structure" <arXiv:1903.09981>.
 }

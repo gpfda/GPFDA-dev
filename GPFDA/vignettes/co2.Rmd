@@ -94,8 +94,8 @@ Therefore, we will define it manually.
 The first step is to define the covariance kernel itself. The name of the kernel 
 must be constituted by the prefix  `cov.` and 6 letters  ( e.g., `cov.custom`). 
 
-Here the C++ function `DistMat` is used to calculate distances $\exp(w)(t-t')^2$.
-The similar `DistMat_sq` function is used when `t` and `t'` are identical. See
+Here the C++ function `distMat` is used to calculate distances $\exp(w)(t-t')^2$.
+The similar `distMatSq` function is used when `t` and `t'` are identical. See
 package documentation for more details.
 
 ```{r}
@@ -107,7 +107,7 @@ cov.custom <- function(hyper, input, input.new=NULL){
     input.new <- as.matrix(input.new)
   }
   input <- as.matrix(input)
-  A1 <- DistMat(input=input, inputNew=input.new, A=as.matrix(hyper$custom.w), 
+  A1 <- distMat(input=input, inputNew=input.new, A=as.matrix(hyper$custom.w), 
                         power=2)
   sept <- outer(input[,1], input.new[,1], "-")
   A2 <- hyper$custom.u*(sin(pi*sept))^2
@@ -134,7 +134,7 @@ For details about derivatives, see Shi, J. Q., and Choi, T. (2011), "Gaussian Pr
 
 ```{r}
 Dloglik.custom.w <- function(hyper, input, AlphaQ){
-  A1 <- DistMat_sq(input=input, A=as.matrix(exp(hyper$custom.w)), power=2)
+  A1 <- distMatSq(input=input, A=as.matrix(exp(hyper$custom.w)), power=2)
   Dcov <- - cov.custom(hyper, input)*A1
   out <- 0.5*sum(diag(AlphaQ%*%Dcov))
   return(out)
@@ -162,7 +162,7 @@ The third step is to define the second derivatives of the log-likelihood.
 ```{r}
 D2custom.w <- function(hyper, input, inv.Q, Alpha.Q){
   Cov <- cov.custom(hyper, input)
-  A1 <- DistMat_sq(input=input, A=as.matrix(exp(hyper$custom.w)), power=2)
+  A1 <- distMatSq(input=input, A=as.matrix(exp(hyper$custom.w)), power=2)
   D1cov <- -Cov*A1
   D2cov <- -(D1cov + Cov)*A1
   D2c.w <- D2(D1cov, D2cov, inv.Q, Alpha.Q)

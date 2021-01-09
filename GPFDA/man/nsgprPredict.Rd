@@ -72,5 +72,5 @@ NSGP predicion given a vector of hyperparameters
 \references{
 Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-  Structure" (https://arxiv.org/abs/1903.09981)
+  Structure" <arXiv:1903.09981>.
 }

@@ -6,7 +6,7 @@
 \alias{cov.rat.qu}
 \alias{cov.matern}
 \alias{cov.linear}
-\title{Calculates a covariance matrix}
+\title{Calculate a covariance matrix}
 \usage{
 cov.pow.ex(hyper, input, input.new = NULL, gamma = 2)
 

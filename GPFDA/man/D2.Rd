@@ -13,7 +13,7 @@ hyperparameter.}
 \item{d2}{Second derivative of the kernel function with respect to the
 required hyperparameter.}
 
-\item{inv.Q}{Inverse of covariance matrix Q}
+\item{inv.Q}{Inverse of covariance matrix Q.}
 
 \item{Alpha.Q}{This is alpha * alpha'- invQ, where invQ is the inverse of the
 covariance matrix Q, and alpha = invQ * Y, where Y is the response.}
@@ -22,13 +22,17 @@ covariance matrix Q, and alpha = invQ * Y, where Y is the response.}
 A number.
 }
 \description{
-Calculates the second derivative of the likelihood function with respect to
+Calculate the second derivative of the likelihood function with respect to
 one of the hyperparameters, given the first and second derivative of the
 kernel with respect to that hyperparameter.
 }
 \details{
 The function calculates the second derivative of the log-likelihood,
  using the first and second derivative of the kernel functions.
+}
+\examples{
+## This function is used in the vignette 'co2':
+# vignette("co2", package = "GPFDA")
 }
 \references{
 Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression

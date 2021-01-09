@@ -102,7 +102,7 @@ for(i in 1:n){
 }
 
 # Constructing the (n x n) covariance matrix K
-ScaleDistMats <- CalcScaleDistMats(A_List=A_List, coords=inputMat)
+ScaleDistMats <- calcScaleDistMats(A_List=A_List, coords=inputMat)
 Scale.mat <- ScaleDistMats$Scale.mat
 Dist.mat <- ScaleDistMats$Dist.mat
 
@@ -141,7 +141,7 @@ are saved in the object `hp`.
 #               corrModel = corrModel,
 #               gamma = gamma,
 #               whichTau = c(T,T),
-#               abs_bounds = 8,
+#               absBounds = 8,
 #               nBasis = 6,
 #               nInitCandidates = 1000,
 #               cyclic = c(F,F),

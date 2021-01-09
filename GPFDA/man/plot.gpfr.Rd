@@ -9,6 +9,8 @@
   type = c("raw", "meanFunction", "fitted", "prediction"),
   ylab = "y",
   xlab = "t",
+  ylim = NULL,
+  realisations = NULL,
   ...
 )
 }
@@ -22,6 +24,11 @@ class.}
 \item{ylab}{Title for the y axis.}
 
 \item{xlab}{Title for the x axis.}
+
+\item{ylim}{Graphical parameter. If NULL (default), it is chosen automatically.}
+
+\item{realisations}{Index vector identifying which training realisations
+should be plotted. If NULL (default), all training realisations are plotted.}
 
 \item{...}{Other graphical parameters passed to plot().}
 }

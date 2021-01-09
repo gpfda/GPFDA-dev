@@ -6,7 +6,7 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-arma::mat CovMaternCpp_sq(NumericMatrix input, NumericVector cc, NumericMatrix A, NumericVector nu) {
+arma::mat CovMaternCppSq(NumericMatrix input, NumericVector cc, NumericMatrix A, NumericVector nu) {
   
   arma::mat x = Rcpp::as<arma::mat>(input);
   int nn = x.n_rows;

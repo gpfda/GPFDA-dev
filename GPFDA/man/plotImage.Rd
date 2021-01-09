@@ -2,7 +2,7 @@
 % Please edit documentation in R/gp.functions6.R
 \name{plotImage}
 \alias{plotImage}
-\title{Draws an image plot for a given two-dimensional input}
+\title{Draw an image plot for a given two-dimensional input}
 \usage{
 plotImage(
   response,
@@ -64,7 +64,7 @@ plotImage(
 A plot
 }
 \description{
-Draws an image plot for a given two-dimensional input
+Draw an image plot for a given two-dimensional input
 }
 \examples{
 ## See examples in vignette:

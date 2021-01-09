@@ -2,7 +2,7 @@
 % Please edit documentation in R/mgp.functions.R
 \name{plotmgpCovFun}
 \alias{plotmgpCovFun}
-\title{Plot of auto- or cross-covariance function of a multivariate Gaussian process}
+\title{Plot auto- or cross-covariance function of a multivariate Gaussian process}
 \usage{
 plotmgpCovFun(
   type = "Cov",
@@ -45,5 +45,9 @@ concatenated vectors correspond to.}
 A plot
 }
 \description{
-Plot of auto- or cross-covariance function of a multivariate Gaussian process
+Plot auto- or cross-covariance function of a multivariate Gaussian process
+}
+\examples{
+## See examples in vignette:
+# vignette("mgpr", package = "GPFDA")
 }

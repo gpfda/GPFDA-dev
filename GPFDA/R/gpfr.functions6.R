@@ -206,17 +206,17 @@ main2 <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
     
     ## define list of beta
     if(length(fbetaList_l)!=length(lxList)){
-      cat('     Length of fbetaList_l list is not equal to the length of list of 
-          functional covariates','\n')
+      cat('  Length of fbetaList_l list is not equal to the length of list of 
+          functional covariates.','\n')
       if(length(fbetaList_l)==0){
-        cat('     Default fbetaList_l is applied ','\n')
+        cat('  Default fbetaList_l is applied.','\n')
         betalist <- lapply(lxList,function(i){
           i <- betaPar()
         })
       }
       
       if(length(fbetaList_l)>0){
-        cat('    The first fbetaList_l is applied to all items', '\n')
+        cat('  The first fbetaList_l is applied to all items.', '\n')
         betalist <- lapply(lxList,function(i){
           i <- betaPar(fbetaList_l[[1]])
         })
@@ -380,37 +380,39 @@ main3 <- function(response,lReg){
 
 
 
-#' Creates an 'fd' object from a matrix
+#' Create an 'fd' object from a matrix
 #'
 #' Easy setting up for creating an 'fd' object
 #'
 #' @param mat Input data, should be a matrix with ncol time points and nrow
 #'   replications or samples.
-#' @param fdList A list with following items: 'time': a sequence of time points
-#'   default to be 100 points from 0 to 1; 'nbasis': number of basis functions
-#'   used in smoothing, default to be less or equal to 23; 'norder': the order
-#'   of the functional curves default to be 6, 'bSpline': logical, if TRUE,
-#'   b-spline is used, otherwise use Fourier basis, default to be TRUE; 'Pen':
-#'   default to be c(0,0), means that the penalty is on the second order
-#'   derivative of the curve, since the weight for zero-th and first order
-#'   derivatives of the curve are zero, 'lambda':default to be 1e-4, the
-#'   smoothing parameter for the penalty.
+#' @param fdList A list with following items: \describe{ \item{time}{Sequence
+#'   of time points (default to be 100 points from 0 to 1).}
+#'   \item{nbasis}{Number of basis functions used in smoothing, default to be
+#'   less or equal to 23.} \item{norder}{Order of the functional curves default
+#'   to be 6.} \item{bSpline}{Logical, if TRUE (default), b-Spline basis is
+#'   used; otherwise, Fourier basis is used.} \item{Pen}{Default to be c(0,0),
+#'   meaning that the penalty is on the second order derivative of the curve,
+#'   since the weight for zero-th and first order derivatives of the curve are
+#'   set to zero.} \item{lambda}{Smoothing parameter for the penalty. Default to
+#'   be 1e-4.} }
 #'
 #' @details All items listed above have default values. If any item is required
-#'   to change, add that item into the list, otherwise leave it as NULL. For
+#'   to change, add that item into the list; otherwise, leave it as NULL. For
 #'   example, if one only wants to change the number of basis functions, do:
-#'   mat2fd{SomeMatrix,list(nbasis=21)}
+#'   \code{mat2fd(SomeMatrix,list(nbasis=21))}
 #'
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'   Analysis for Functional Data'', CRC Press.
 #' @return An 'fd' object
 #' @export
-#'
+#' @import fda
 #' @examples
-#' ry <- rnorm(20,sd=10)
-#' y1 <- matrix(0,ncol=100,nrow=20)
+#' require(fda)
+#' ry <- rnorm(20, sd=10)
+#' y1 <- matrix(NA, ncol=100, nrow=20)
 #' for(i in 1:20)  y1[i,] <- sin(seq(-1,pi,len=100))*ry[i]
-#' 
+#'
 #' y1fd <- mat2fd(y1)
 #' y1fd <- mat2fd(y1,list(lambda=1))
 mat2fd <- function(mat,fdList=NULL){
@@ -433,33 +435,41 @@ mat2fd <- function(mat,fdList=NULL){
   return(matfd)
 }
 
-#' Creates an fdPar object
-#'
-#' Easy setting up for create a fdPar object.
-#'
-#' @param betaList A list contain following items: 'rtime': range of time,
-#'   default to be 0 and 1; 'nbasis': number of basis functions used in
-#'   smoothing, default to be less or equal to 19; norder: the order of the
-#'   functional curves default to be 6;'bSpline': logical, if TRUE, b-spline is
-#'   used, otherwise use Fourier basis, default to be TRUE; 'Pen': default to be
-#'   c(0,0);'lambda':default to be 1e4;'bivar':logical, if TRUE, the bivariate
-#'   basis will be calculated, otherwise normal basis, default to be FALSE;
-#'   'lambdas':the smoothing parameter for the penalty of the additional basis,
-#'   default to be 1e4.
-#'
-#' @details All items listed above have default values. If any item is required
-#'   to change, add that item into the list, otherwise leave it as NULL. For
-#'   example, if one only wants to change the number of basis functions, do:
-#'   betaPar{list(nbasis=11)}
-#' @references  Ramsay, J., and Silverman, B. W. (2006),
-#'   ``Functional Data Analysis'', 2nd ed., Springer, New York. 
-#' @return A list
-#' @export
-#' @import fda
-#' @examples
-#' library(GPFDA)
-#' beta1 <- betaPar()
-#' beta2 <- betaPar(list(nbasis=7,lambda=0.01))
+# Create an fdPar object
+#
+# Easy setting up for creating an fdPar object.
+# 
+# @param betaList 
+# \describe{ 
+# \item{rtime}{Range of time, default to be 0 and 1}
+#  \item{nbasis}{Number of basis functions used in smoothing, default to be
+#   less or equal to 19.}
+#  \item{bSpline}{Logical, if TRUE (default), b-Spline basis is
+#   used; otherwise, Fourier basis is used.}
+#  \item{Pen}{Default to be c(0,0),
+#   meaning that the penalty is on the second order derivative of the curve,
+#   since the weight for zero-th and first order derivatives of the curve are
+#   set to zero.}
+#  \item{lambda}{Smoothing parameter for the penalty. Default to be 1e4.}
+#  \item{bivar}{Logical. If TRUE, bivariate basis is used; 
+#  if FALSE (default), normal basis is used}
+#  \item{lambdas}{Smoothing parameter for the penalty of the additional basis.
+#  Default to 1e4.}
+# }
+#
+# @details All items listed above have default values. If any item is required
+#   to change, add that item into the list, otherwise leave it as NULL. For
+#   example, if one only wants to change the number of basis functions, do:
+#   betaPar{list(nbasis=11)}
+# @references  Ramsay, J., and Silverman, B. W. (2006),
+#   ``Functional Data Analysis'', 2nd ed., Springer, New York. 
+# @return A list
+# @export
+# @import fda
+# @examples
+# require(fda)
+# beta1 <- betaPar()
+# beta2 <- betaPar(list(nbasis=7,lambda=0.01))
 betaPar <- function(betaList=NULL){
   bl <- list(rtime=c(0,1),nbasis=19,norder=4,bSpline=TRUE,Pen=c(0,0),lambda=1e4,
              bivar=FALSE,lambdas=1)
@@ -547,11 +557,6 @@ fisherinfo <- function(pp.cg,X,Y,Cov,gamma,nu){
   QR <- invQ%*%response
   AlphaQ <- QR%*%t(QR)-invQ
   
-  D2 <- function(d1,d2,inv.Q,Alpha.Q){
-    Aii <- t(d1)%*%inv.Q%*%d1
-    al <- Alpha.Q+inv.Q
-    return(0.5*(sum(Alpha.Q*(d2-Aii))-sum(al*Aii)))
-  }
   
   D2fx <- lapply(seq_along(pp.cg),function(i){
     Dp <- pp.cg[i]
@@ -707,7 +712,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
                                                 Y=l[,1],Cov=Cov,
                                                 gamma=gamma,nu=nu))
   II <- abs(-1/apply(do.call('cbind',Qlist),1,sum))
-  cat("fisher's information done",'\n','\n')
+  cat("Fisher's information done",'\n','\n')
   
   mean <- t(Reduce('+',fittedFM)) ## mean from functional regression model
   
@@ -748,7 +753,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
         (Q-diag(exp(hyper.cg$vv),dim(Q)[1]))*t(invQ))
       fitted[,i] <- yfit
       fitted.sd[,i] <- sqrt(s2)
-      if(i%%5==0) cat('fitting',i,' th curve','\n')
+      if(i%%5==0) cat(paste0('fitting ',i,'th curve','\n'))
     }
     
   }
@@ -793,8 +798,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #' @param fbetaList_f A list to control the smoothing of the regression
 #'   coefficient function of functional covariates in the FR model.
 #' @param fbetaList A list to control the smoothing of functional covariates in
-#'   the FR model with scalar response and functional covariates. Not available
-#'   for now.
+#'   the FR model with scalar response and functional covariates. 
 #' @param gpReg Covariates in the GP model. It should be a matrix, an 'fd'
 #'   object, a list of matrices or a list of 'fd' objects.
 #' @param hyper Vector of initial hyperparameters. Default to NULL.
@@ -1249,8 +1253,11 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
 #'   class.
 #' @param type Required type of plots. Options are: 'raw',
 #'   'meanFunction', 'fitted' and 'prediction'.
-#' @param ylab  Title for the y axis.
-#' @param xlab  Title for the x axis.
+#' @param ylab Title for the y axis.
+#' @param xlab Title for the x axis.
+#' @param ylim Graphical parameter. If NULL (default), it is chosen automatically.
+#' @param realisations Index vector identifying which training realisations
+#' should be plotted. If NULL (default), all training realisations are plotted.
 #' @param ... Other graphical parameters passed to plot().
 #' @importFrom graphics polygon
 #' @importFrom graphics matpoints
@@ -1265,41 +1272,76 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
 #' ## See examples in vignette:
 #' # vignette("gpfr", package = "GPFDA")
 plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'), 
-                       ylab='y', xlab='t', ...){
+                       ylab='y', xlab='t', ylim=NULL, realisations=NULL, ...){
   obj <- x
   if(!type%in%c('raw','meanFunction','fitted','prediction')) 
     stop('type must be one of the raw, fitted or prediction')
   type <- type[1]
-    
+  
+  if(is.null(realisations)){
+    idx <- 1:ncol(obj$fitted.mean)
+  }else{
+    idx <- realisations
+  }
+  numRealis <- length(idx)
+  
   op <- par(mar=c(4.5,5.1,2.2,0.8), 
             oma=c(0,0,1,0),
             cex.lab=1.5, cex.axis=1, cex.main=1.5)
   
+  
+  
   if(type=='raw'){
-    matplot(obj$time,t(obj$init_resp),type='l',lwd=1,lty=3,
-            main='Raw data',xlab=xlab,ylab=ylab)
-    matpoints(obj$time,t(obj$init_resp),pch=4,cex=1,lty=3)
-    
+    if(is.null(ylim)){
+      ylim <- range(obj$init_resp[idx,])
+    }
+    matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='l',lwd=2,lty=3,
+            main='Raw data',xlab=xlab,ylab=ylab, ylim=ylim)
+    if(numRealis<6){
+      matpoints(obj$time,t(obj$init_resp[idx,,drop=F]),pch=4,cex=1,lty=3)
+    }
   }
   
   if(type=='meanFunction'){
+    if(is.null(ylim)){
+      ylim <- range(c(obj$init_resp[idx,], c(obj$modellist$ml$yhatfdobj$y[,idx])))
+    }
+    matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='l',lwd=2,lty=3,
+            main='Mean function fit', xlab=xlab, ylab=ylab, ylim=ylim)
+    if(numRealis<6){
+      matpoints(obj$time,t(obj$init_resp[idx,,drop=F]),pch=4,cex=1,lty=3)
+    }
+    for(i in 1:numRealis){
+      ii <- idx[i]
+      lines(obj$modellist$ml$yhatfdobj$argvals[,1],
+            obj$modellist$ml$yhatfdobj$y[,ii], lwd=2, lty=1, col=ii)
+    }
     
-    matplot(obj$time,t(obj$init_resp),type='p',pch=4,lty=3,cex=1,lwd=1,
-            main='Mean function',xlab=xlab,ylab=ylab)
-    lines(obj$modellist$ml$yhatfdobj, lwd=2)
+    # lines(obj$modellist$ml$yhatfdobj, lwd=2, lty=1)
+    # matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='p',pch=4,lty=3,cex=1,lwd=1,
+    #         main='Mean function',xlab=xlab,ylab=ylab)
+    # lines(obj$modellist$ml$yhatfdobj, lwd=2)
   }
   
   if(type=='fitted'){
-    matplot(obj$time,t(obj$init_resp),type='p',pch=4,lty=3,cex=0,lwd=1,
-            main='Fitted',xlab=xlab,ylab=ylab)
-    for(i in 1:ncol(obj$fitted.mean)){
+    if(is.null(ylim)){
+      ylim <- range(c(obj$init_resp[idx,], 
+                      c((obj$fitted.mean-obj$fitted.sd*1.96)[,idx]),
+                      c((obj$fitted.mean+obj$fitted.sd*1.96)[,idx])
+                    ))
+    }
+    matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='p',pch=4,lty=3,cex=0,lwd=1,
+            main='GPFR fit',xlab=xlab,ylab=ylab, ylim=ylim)
+    for(i in 1:numRealis){
+      ii <- idx[i]
       polygon(c(obj$time, rev(obj$time)), 
-              c((obj$fitted.mean-obj$fitted.sd*1.96)[,i], 
-                rev((obj$fitted.mean+obj$fitted.sd*1.96)[,i])), 
+              c((obj$fitted.mean-obj$fitted.sd*1.96)[,ii], 
+                rev((obj$fitted.mean+obj$fitted.sd*1.96)[,ii])), 
               col = rgb(127,127,127,80, maxColorValue = 255), border = NA)
     }
-    matpoints(obj$time,t(obj$init_resp),pch=4,lty=3,cex=1,lwd=1)
-    matlines(obj$time,obj$fitted.mean,type='l',pch=4,lwd=1.5, lty=3)
+    matlines(obj$time,obj$fitted.mean[,idx,drop=F],type='l',pch=4,lwd=1.5, lty=1)
+    matpoints(obj$time,t(obj$init_resp[idx,,drop=F]),pch=4,lty=3,cex=1,lwd=1)
+    
   }
   
   if(type=='prediction'){
@@ -1309,10 +1351,17 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
     }else{
       main <- "Type II prediction"
     }
-    
-    matplot(obj$time,t(obj$init_resp),type='l',lwd=2,lty=3,col='pink',
-            main=main,xlab=xlab,ylab=ylab)
-    matpoints(obj$time,t(obj$init_resp),pch=4,cex=0.5,lty=3,col='red')
+    if(is.null(ylim)){
+      ylim <- range(c(obj$init_resp[idx,], 
+                      c((obj$fitted.mean+obj$fitted.sd*1.96)[,idx]),
+                      obj$ypred[,2], obj$ypred[,3], obj$ypred[,1]
+                    ))
+    }
+    matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='l',lwd=2,lty=3,col='pink',
+            main=main,xlab=xlab,ylab=ylab, ylim=ylim)
+    if(numRealis<6){
+      matpoints(obj$time,t(obj$init_resp[idx,,drop=F]),pch=4,cex=1,lty=3,col='red')
+    }
     polygon(c(obj$predtime, rev(obj$predtime)), 
             c(obj$ypred[,2], rev(obj$ypred[,3])), 
             col = rgb(127,127,127,100, maxColorValue = 255), border = NA)

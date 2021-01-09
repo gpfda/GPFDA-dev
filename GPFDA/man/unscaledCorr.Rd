@@ -2,7 +2,7 @@
 % Please edit documentation in R/nsgp.functions.R
 \name{unscaledCorr}
 \alias{unscaledCorr}
-\title{Calculates an unscaled NSGP correlation matrix}
+\title{Calculate an unscaled NSGP correlation matrix}
 \usage{
 unscaledCorr(Dist.mat, corrModel, gamma = NULL, nu = NULL)
 }
@@ -22,7 +22,7 @@ value.}
 A matrix
 }
 \description{
-Calculates an unscaled NSGP correlation matrix
+Calculate an unscaled NSGP correlation matrix
 }
 \examples{
 ## See examples in vignette:
@@ -31,5 +31,5 @@ Calculates an unscaled NSGP correlation matrix
 \references{
 Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-  Structure" (https://arxiv.org/abs/1903.09981)
+  Structure" <arXiv:1903.09981>.
 }

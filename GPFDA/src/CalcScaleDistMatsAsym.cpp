@@ -5,7 +5,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-List CalcScaleDistMatsAsym(List A_List, List Astar_List,
+List calcScaleDistMatsAsym(List A_List, List Astar_List,
                                 NumericMatrix coords, NumericMatrix coordsStar) {
 
   arma::mat coordins = Rcpp::as<arma::mat>(coords);
@@ -23,9 +23,6 @@ List CalcScaleDistMatsAsym(List A_List, List Astar_List,
     
     arma::mat Kerneli = inv(as<arma::mat>(AList[i]));
     double det_i = det(Kerneli);
-    
-    ScaleMat(i,i) = 1;
-    DistMat(i,i) = 0;
     
     for(int j=0; j<Nstar; j++){
       

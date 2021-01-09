@@ -1,7 +1,7 @@
 
 ######################## Covariance functions ############################ 
 
-#' @title Calculates a covariance matrix
+#' @title Calculate a covariance matrix
 #' @description Evaluates one of the following covariance functions at input 
 #' vectors t and t': 
 #' \itemize{
@@ -53,11 +53,11 @@ cov.pow.ex <- function(hyper, input, input.new=NULL, gamma=2){
   }
   
   if (is.null(input.new)) {
-    distMat <- DistMat_sq(input=input, A=A, power=gamma)
+    distMat <- distMatSq(input=input, A=A, power=gamma)
     exp.v.power <- hyper$pow.ex.v*exp(-distMat)
   }else{
     input.new <- as.matrix(input.new)
-    distMat <- DistMat(input=input, inputNew=input.new, A=A, power=gamma)
+    distMat <- distMat(input=input, inputNew=input.new, A=A, power=gamma)
     exp.v.power <- hyper$pow.ex.v*exp(-distMat)
   }
 
@@ -79,11 +79,11 @@ cov.rat.qu <- function(hyper, input, input.new=NULL){
   }
   
   if (is.null(input.new)) {
-    distMat <- DistMat_sq(input=input, A=A, power=2)
+    distMat <- distMatSq(input=input, A=A, power=2)
     covratqu <- hyper$rat.qu.v*(1 + distMat)^(-hyper$rat.qu.a)
   }else{
     input.new <- as.matrix(input.new)
-    distMat <- DistMat(input=input, inputNew=input.new, A=A, power=2)
+    distMat <- distMat(input=input, inputNew=input.new, A=A, power=2)
     covratqu <- hyper$rat.qu.v*(1 + distMat)^(-hyper$rat.qu.a)
   }
   
@@ -106,26 +106,26 @@ cov.matern <- function(hyper, input, input.new=NULL, nu){
   if (is.null(input.new)) {
     
     if(nu==3/2){
-      distmat <- sqrt(DistMat_sq(input=input, A=A, power=2))
+      distmat <- sqrt(distMatSq(input=input, A=A, power=2))
       covmatern <- cc*(1+sqrt(3)*distmat)*exp(-sqrt(3)*distmat)
     }else{
       if(nu==5/2){
-        distmat <- sqrt(DistMat_sq(input=input, A=A, power=2))
+        distmat <- sqrt(distMatSq(input=input, A=A, power=2))
         covmatern <- cc*(1+sqrt(5)*distmat+(5/3)*distmat^2)*
           exp(-sqrt(5)*distmat)
       }else{
-        covmatern <- CovMaternCpp_sq(input=input, cc=cc, A=A, nu=nu)
+        covmatern <- CovMaternCppSq(input=input, cc=cc, A=A, nu=nu)
       }
     }
 
   }else{
     input.new <- as.matrix(input.new)
     if(nu==3/2){
-      distmat <- sqrt(DistMat(input=input, inputNew=input.new, A=A, power=2))
+      distmat <- sqrt(distMat(input=input, inputNew=input.new, A=A, power=2))
       covmatern <- cc*(1+sqrt(3)*distmat)*exp(-sqrt(3)*distmat)
     }else{
       if(nu==5/2){
-        distmat <- sqrt(DistMat(input=input, inputNew=input.new, A=A, power=2))
+        distmat <- sqrt(distMat(input=input, inputNew=input.new, A=A, power=2))
         covmatern <- cc*(1+sqrt(5)*distmat+(5/3)*distmat^2)*
           exp(-sqrt(5)*distmat)
       }else{
@@ -152,10 +152,10 @@ cov.linear <- function(hyper, input, input.new=NULL){
   }
   
   if (is.null(input.new)) {
-    cov.lin <- DistMatLinear_sq(input=input, A=A)
+    cov.lin <- distMatLinearSq(input=input, A=A)
   }else{
     input.new <- as.matrix(input.new)
-    cov.lin <- DistMatLinear(input=input, inputNew=input.new, A=A)
+    cov.lin <- distMatLinear(input=input, inputNew=input.new, A=A)
   }
   
   cov.lin <- hyper$linear.i + cov.lin
@@ -764,7 +764,7 @@ Dloglik.linear.a <- function(hyper, input, AlphaQ){
   Dlinear.aj <- sapply(1:ncol(input),function(i){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    DPsi <- exp(hyper$linear.a[i])*DistMatLinear_sq(input=Xi, A=A1)
+    DPsi <- exp(hyper$linear.a[i])*distMatLinearSq(input=Xi, A=A1)
     res <- sum(diag(AlphaQ%*%DPsi))
     return(res)
   })
@@ -782,7 +782,7 @@ Dloglik.pow.ex.w <- function(hyper, input, AlphaQ, gamma){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
     DPsi <- -cov.pow.ex(hyper=hyper, input=input, gamma=gamma)*
-      DistMat_sq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i])
+      distMatSq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i])
     res <- 0.5*sum(diag(AlphaQ%*%DPsi))
     return(res)
   })
@@ -814,13 +814,13 @@ Dloglik.matern.w <- function(hyper, input, AlphaQ, nu){
     A <- diag((exp(hyper$matern.w)))
   }
   
-  dist_C <- DistMat_sq(input=input, A=A, power=2)
+  dist_C <- distMatSq(input=input, A=A, power=2)
   dist_D <- sqrt(dist_C)
   
   Dmatern.wj <- sapply(1:ncol(input),function(i){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    dist_i <- DistMat_sq(input=Xi, A=A1, power=2)
+    dist_i <- distMatSq(input=Xi, A=A1, power=2)
     if(nu==3/2){
       DPsi <- -1.5*cc*exp(hyper$matern.w[i])*dist_i*exp(-sqrt(3)*dist_D)
     }
@@ -851,7 +851,7 @@ Dloglik.rat.qu.w <- function(hyper, input, AlphaQ){
     covmatrixAdj_0 <- cov.rat.qu(hyper=hyperAdj, input=input)
     
     d1 <- -exp(hyper$rat.qu.a)*exp(hyper$rat.qu.v)*covmatrixAdj_a*
-      covmatrixAdj_0*DistMat_sq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
+      covmatrixAdj_0*distMatSq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
     d1list[[i]] <- d1
   }
 
@@ -871,7 +871,7 @@ Dloglik.rat.qu.a <- function(hyper, input, AlphaQ){
   }else{
     A <- diag(hyper$rat.qu.w)
   }
-  v.power <- DistMat_sq(input=input,A=A,power=2)
+  v.power <- distMatSq(input=input,A=A,power=2)
   log_term <- log( 1 + v.power )
   
   DDrat.qu.a <- log_term*covmatrix*(-hyper$rat.qu.a)
@@ -899,7 +899,7 @@ D2linear.a <- function(hyper, input, Alpha.Q){
   D2linear.aj <- sapply(1:ncol(input),function(i){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    DPsi <- exp(hyper$linear.a[i])*DistMatLinear_sq(input=Xi, A=A1)
+    DPsi <- exp(hyper$linear.a[i])*distMatLinearSq(input=Xi, A=A1)
     res <- sum(diag(Alpha.Q%*%DPsi))
     return(res)
   })
@@ -924,11 +924,11 @@ D2pow.ex.w <- function(hyper,input,gamma,inv.Q,Alpha.Q){
     covmatrix <- cov.pow.ex(hyper=hyper, input=input, gamma=gamma)
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    d1 <- -covmatrix*DistMat_sq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i])
+    d1 <- -covmatrix*distMatSq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i])
     d1list[[i]] <- d1
     d2 <- covmatrix*
-      (DistMat_sq(input=Xi, A=A1, power=2*gamma)*exp(2*hyper$pow.ex.w[i]) - 
-         DistMat_sq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i]))
+      (distMatSq(input=Xi, A=A1, power=2*gamma)*exp(2*hyper$pow.ex.w[i]) - 
+         distMatSq(input=Xi, A=A1, power=gamma)*exp(hyper$pow.ex.w[i]))
     d2list[[i]] <- d2
   }
 
@@ -967,7 +967,7 @@ D2matern.w <- function(hyper, input, nu, inv.Q, Alpha.Q){
     A <- diag((exp(hyper$matern.w)))
   }
 
-  dist_C <- DistMat_sq(input=input, A=A, power=2)
+  dist_C <- distMatSq(input=input, A=A, power=2)
   dist_D <- sqrt(dist_C)
 
   d1list <- vector("list", dimData)
@@ -976,7 +976,7 @@ D2matern.w <- function(hyper, input, nu, inv.Q, Alpha.Q){
   for(i in 1:dimData){
     Xi <- as.matrix(input[,i])
     A1 <- as.matrix(1)
-    dist_i <- DistMat_sq(input=Xi, A=A1, power=2)
+    dist_i <- distMatSq(input=Xi, A=A1, power=2)
     
     if(nu==3/2){
       d1list[[i]] <- -1.5*cc*exp(hyper$matern.w[i])*dist_i*exp(-sqrt(3)*dist_D)
@@ -1027,15 +1027,15 @@ D2rat.qu.w <- function(hyper, input, inv.Q, Alpha.Q){
     covmatrixAdj_0 <- cov.rat.qu(hyper=hyperAdj, input=input)
     
     d1 <- -exp(hyper$rat.qu.a)*exp(hyper$rat.qu.v)*covmatrixAdj_a*
-      covmatrixAdj_0*DistMat_sq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
+      covmatrixAdj_0*distMatSq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
     d1list[[i]] <- d1
     
     # calc D2rat.qu
     d2 <- -exp(hyper$rat.qu.a)*exp(hyper$rat.qu.v)*covmatrixAdj_a*
       covmatrixAdj_0*((-exp(hyper$rat.qu.a)-1)*covmatrixAdj_0*
-                        DistMat_sq(input=Xi, A=A1, power=4)*
+                        distMatSq(input=Xi, A=A1, power=4)*
                         exp(2*hyper$rat.qu.w[i]) + 
-        DistMat_sq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
+        distMatSq(input=Xi, A=A1, power=2)*exp(hyper$rat.qu.w[i])
     )
     
     d2list[[i]] <- d2
@@ -1062,7 +1062,7 @@ D2rat.qu.a <- function(hyper, input, inv.Q, Alpha.Q){
   }else{
     A <- diag(hyper$rat.qu.w)
   }
-  v.power <- DistMat_sq(input=input, A=A, power=2)
+  v.power <- distMatSq(input=input, A=A, power=2)
   log_term <- log( 1 + v.power )
   
   d1 <- log_term*covmatrix*(-hyper$rat.qu.a)
@@ -1087,29 +1087,30 @@ D2vv <- function(hyper, input, inv.Q, Alpha.Q){
 }
 
 
-#'Second derivative of the likelihood
+#' Second derivative of the likelihood
 #'
-#'Calculates the second derivative of the likelihood function with respect to
-#'one of the hyperparameters, given the first and second derivative of the
-#'kernel with respect to that hyperparameter.
+#' Calculate the second derivative of the likelihood function with respect to
+#' one of the hyperparameters, given the first and second derivative of the
+#' kernel with respect to that hyperparameter.
 #'
-#'@param d1 First derivative of the kernel function with respect to the required
+#' @param d1 First derivative of the kernel function with respect to the required
 #'  hyperparameter.
-#'@param d2 Second derivative of the kernel function with respect to the
+#' @param d2 Second derivative of the kernel function with respect to the
 #'  required hyperparameter.
-#'@param inv.Q Inverse of covariance matrix Q
-#'@param Alpha.Q  This is alpha * alpha'- invQ, where invQ is the inverse of the
+#' @param inv.Q Inverse of covariance matrix Q.
+#' @param Alpha.Q  This is alpha * alpha'- invQ, where invQ is the inverse of the
 #'  covariance matrix Q, and alpha = invQ * Y, where Y is the response.
 #'
-#'@details The function calculates the second derivative of the log-likelihood,
+#' @details The function calculates the second derivative of the log-likelihood,
 #'  using the first and second derivative of the kernel functions.
-#'@return A number.
+#' @return A number.
 #'
-#'@references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
+#' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'  Analysis for Functional Data'', CRC Press.
-#'
-#'@export
-#'
+#' @examples
+#' ## This function is used in the vignette 'co2':
+#' # vignette("co2", package = "GPFDA")
+#' @export
 D2 <- function(d1, d2, inv.Q, Alpha.Q){
   Aii <- t(d1)%*%inv.Q%*%d1
   al <- Alpha.Q+inv.Q
@@ -1264,7 +1265,7 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, main=NU
 }
 
 
-#' Draws an image plot for a given two-dimensional input
+#' Draw an image plot for a given two-dimensional input
 #'
 #' @param response Data to be plotted (e.g. matrix of predictions)
 #' @param input Matrix of two columns representing the input coordinates.

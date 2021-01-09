@@ -4,15 +4,20 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
-//' Calculates ScaleMat and DistMat matrices
+//' @title Calculate matrices for NSGP covariance function
+//' @description Calculates matrices 'ScaleMat' and 'DistMat', which are used to 
+//' obtain NSGP covariance matrices
 //' @param A_List List of anisotropy matrices
 //' @param coords Matrix of input coordinates (covariates)
 //' 
-//' @return A list of ScaleMat and DistMat.Mat matrices
+//' @return A list of ScaleMat and DistMat matrices
 //' 
 //' @export
+//' @examples
+//' ## See examples in vignette:
+//' # vignette("nsgpr", package = "GPFDA")
 // [[Rcpp::export]]
-List CalcScaleDistMats(List A_List, NumericMatrix coords) {
+List calcScaleDistMats(List A_List, NumericMatrix coords) {
   
   arma::mat coordins = Rcpp::as<arma::mat>(coords);
   Rcpp::List AList(A_List);

@@ -337,7 +337,7 @@ mgprPredict <- function(train,
 
 
 
-#' Calculates a multivariate Gaussian processes covariance matrix given a
+#' Calculate a multivariate Gaussian processes covariance matrix given a
 #' vector of hyperparameters
 #'
 #' @inheritParams mgpr
@@ -517,7 +517,7 @@ plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL,
 
 
 
-#' Plot of auto- or cross-covariance function of a multivariate Gaussian process
+#' Plot auto- or cross-covariance function of a multivariate Gaussian process
 #'
 #' @inheritParams mgpr
 #' @param type Logical. It can be either 'Cov' (for covariance function) or
@@ -538,7 +538,9 @@ plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL,
 #'
 #' @return A plot
 #' @export
-#' 
+#' @examples
+#' ## See examples in vignette:
+#' # vignette("mgpr", package = "GPFDA")
 plotmgpCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL, 
                           xlim=NULL){
   

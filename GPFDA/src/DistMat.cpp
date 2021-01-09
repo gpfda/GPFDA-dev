@@ -5,37 +5,37 @@
 using namespace Rcpp;
 
 //' @title Calculate generalised distances
-//' @description Calculates the generalised distance between vectors t and t'
+//' @description Calculate the generalised distance between vectors t and t'
 //' using an anisotropy matrix A.
 //' 
 //' \itemize{
-//' \item \code{DistMat} and \code{DistMat_sq} calculate:
+//' \item \code{distMat} and \code{distMatSq} calculate:
 //' \deqn{ [(t - t')^{p/2}]^T A  (t - t')^{p/2}  }
-//' \item \code{DistMatLinear} and \code{DistMatLinear_sq} calculate:
+//' \item \code{distMatLinear} and \code{distMatLinearSq} calculate:
 //' \deqn{ t^T A t' }
 //' }
 //' 
 //' 
-//' @name DistanceMatrix
+//' @name distanceMatrix
 //' @param input Vector of the input coordinate t
 //' @param inputNew Vector of the input coordinate t'
 //' @param A Anisotropy matrix A
 //' @param power Power value p
-//' @details The \code{DistMat_sq} and \code{DistMatLinear_sq} functions are 
+//' @details The \code{distMatSq} and \code{distMatLinearSq} functions are 
 //' used when input vectors t and t' are identical, returning a symmetric matrix. \cr \cr
-//' When \code{DistMat} and \code{DistMat_sq} functions are used in 
+//' When \code{distMat} and \code{distMatSq} functions are used in 
 //' powered exponential kernels, power=1 gives the exponential kernel and 
 //' power=2 gives the squared exponential one. \cr \cr
-//' \code{DistMatLinear} and \code{DistMatLinear_sq} functions are used in the 
+//' \code{distMatLinear} and \code{distMatLinearSq} functions are used in the 
 //' linear covariance kernel.
 //' @return A matrix
 // NULL
 
 
-//' @rdname DistanceMatrix
+//' @rdname distanceMatrix
 //' @export
 // [[Rcpp::export]]
-arma::mat DistMat(NumericMatrix input, NumericMatrix inputNew, NumericMatrix A, NumericVector power) {
+arma::mat distMat(NumericMatrix input, NumericMatrix inputNew, NumericMatrix A, NumericVector power) {
   
   arma::mat x = Rcpp::as<arma::mat>(input);
   arma::mat xNew = Rcpp::as<arma::mat>(inputNew);
@@ -63,10 +63,10 @@ arma::mat DistMat(NumericMatrix input, NumericMatrix inputNew, NumericMatrix A, 
 }
 
 
-//' @rdname DistanceMatrix
+//' @rdname distanceMatrix
 //' @export
 // [[Rcpp::export]]
-arma::mat DistMat_sq(NumericMatrix input, NumericMatrix A, NumericVector power) {
+arma::mat distMatSq(NumericMatrix input, NumericMatrix A, NumericVector power) {
   
   arma::mat x = Rcpp::as<arma::mat>(input);
   int nn = x.n_rows;
@@ -93,10 +93,10 @@ arma::mat DistMat_sq(NumericMatrix input, NumericMatrix A, NumericVector power) 
 }
 
 
-//' @rdname DistanceMatrix
+//' @rdname distanceMatrix
 //' @export
 // [[Rcpp::export]]
-arma::mat DistMatLinear(NumericMatrix input, NumericMatrix inputNew, NumericMatrix A) {
+arma::mat distMatLinear(NumericMatrix input, NumericMatrix inputNew, NumericMatrix A) {
   
   arma::mat x = Rcpp::as<arma::mat>(input);
   arma::mat xNew = Rcpp::as<arma::mat>(inputNew);
@@ -117,10 +117,10 @@ arma::mat DistMatLinear(NumericMatrix input, NumericMatrix inputNew, NumericMatr
   return(M);
 }
 
-//' @rdname DistanceMatrix
+//' @rdname distanceMatrix
 //' @export
 // [[Rcpp::export]]
-arma::mat DistMatLinear_sq(NumericMatrix input, NumericMatrix A) {
+arma::mat distMatLinearSq(NumericMatrix input, NumericMatrix A) {
   
   arma::mat x = Rcpp::as<arma::mat>(input);
   int nn = x.n_rows;

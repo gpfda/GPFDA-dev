@@ -2,7 +2,7 @@
 % Please edit documentation in R/mgp.functions.R
 \name{mgpCovMat}
 \alias{mgpCovMat}
-\title{Calculates a multivariate Gaussian processes covariance matrix given a
+\title{Calculate a multivariate Gaussian processes covariance matrix given a
 vector of hyperparameters}
 \usage{
 mgpCovMat(Data, hp)
@@ -20,7 +20,7 @@ single realisation) representing the response variables.}
 Covariance matrix
 }
 \description{
-Calculates a multivariate Gaussian processes covariance matrix given a
+Calculate a multivariate Gaussian processes covariance matrix given a
 vector of hyperparameters
 }
 \examples{

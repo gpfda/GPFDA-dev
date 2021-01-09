@@ -55,8 +55,7 @@ will be carried out.}
 coefficient function of functional covariates in the FR model.}
 
 \item{fbetaList}{A list to control the smoothing of functional covariates in
-the FR model with scalar response and functional covariates. Not available
-for now.}
+the FR model with scalar response and functional covariates.}
 
 \item{gpReg}{Covariates in the GP model. It should be a matrix, an 'fd'
 object, a list of matrices or a list of 'fd' objects.}

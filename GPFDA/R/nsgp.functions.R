@@ -43,7 +43,7 @@
 #'   used to evaluate the log-likelihood function at a first step. After
 #'   evaluating the log-likelihood using these 'nInitCandidates' vectors, the
 #'   optimisation via nlminb() begins with the best of these vectors.
-#' @param abs_bounds lower and upper boundaries for B-spline coefficients (if
+#' @param absBounds lower and upper boundaries for B-spline coefficients (if
 #'   wanted).
 #'
 #' @importFrom mgcv cSplineDes
@@ -58,7 +58,7 @@
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-#'   Structure" (https://arxiv.org/abs/1903.09981)
+#'   Structure" <arXiv:1903.09981>.
 #'
 #' @return A list containing:  \describe{ \item{MLEsts}{Maximum likelihood
 #'   estimates of B-spline coefficients and noise variance.}
@@ -82,7 +82,7 @@ nsgpr <- function( response,
                    zeroNoiseVariance=F, 
                    sepCov=F,
                    nInitCandidates=300,
-                   abs_bounds=6){
+                   absBounds=6){
   
   if(!is.list(input)){
     stop("The argument 'input' must be a list with Q elements")
@@ -174,16 +174,16 @@ nsgpr <- function( response,
   loc_coeffs <- matrix(1:total_num_coeffs, byrow=T, ncol=num_betas) 
   # last row is for logsig2
   
-  coeffs_omegas_LB <- rep(-abs_bounds, num_coeffs_omegas)
-  coeffs_omegas_UB <- rep(abs_bounds, num_coeffs_omegas)
+  coeffs_omegas_LB <- rep(-absBounds, num_coeffs_omegas)
+  coeffs_omegas_UB <- rep(absBounds, num_coeffs_omegas)
   if(sepCov){
     whichZero <- (num_coeffs_omegas-num_betas+1):num_coeffs_omegas
     coeffs_omegas_LB[whichZero] <- 0
     coeffs_omegas_UB[whichZero] <- 0
   }
   
-  coeffs_logsig2_LB <- rep(-abs_bounds, num_betas)
-  coeffs_logsig2_UB <- rep(abs_bounds, num_betas)
+  coeffs_logsig2_LB <- rep(-absBounds, num_betas)
+  coeffs_logsig2_UB <- rep(absBounds, num_betas)
   if(unitSignalVariance){
     coeffs_logsig2_LB <- rep(0, num_betas)
     coeffs_logsig2_UB <- rep(0, num_betas)
@@ -283,7 +283,7 @@ nsgpr <- function( response,
 
 
 
-#' Calculates a NSGP covariance matrix given a vector of hyperparameters
+#' Calculate a NSGP covariance matrix given a vector of hyperparameters
 #'
 #'
 #' @inheritParams nsgpr
@@ -294,7 +294,7 @@ nsgpr <- function( response,
 #' @importFrom splines bs
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-#'   Structure" (https://arxiv.org/abs/1903.09981)
+#'   Structure" <arXiv:1903.09981>.
 #' @return A list containing  \describe{ 
 #' \item{Cov}{Covariance matrix}
 #' \item{vareps}{Noise variance}
@@ -305,7 +305,7 @@ nsgpr <- function( response,
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("nsgpr", package = "GPFDA")
-nsgpCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis=5, 
+nsgpCovMat <- function(hp, input, inputSubsetIdx=NULL, nBasis=5, 
                        corrModel=corrModel, gamma=NULL, nu=NULL, cyclic=NULL, 
                        whichTau=NULL, calcCov=T){
   
@@ -317,11 +317,14 @@ nsgpCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis=5,
   Q <- length(input)
   
   if(is.null(inputSubsetIdx)){
+    
     inputSubset <- input
     inputMat <- as.matrix(expand.grid(input))
     
     inputIdx <- lapply(input, function(i) 1:length(i))
     inputIdxMat <- expand.grid(inputIdx)
+    
+    inputSubsetIdx <- inputIdx
   }else{
     
     inputSubset <- list()
@@ -486,7 +489,7 @@ nsgpCovMat <- function(hp, input,inputSubsetIdx=NULL, nBasis=5,
       obs_variance <- c(obs_variances_perTau)
     }
     
-    ScaleDistMats <- CalcScaleDistMats(A_List = A_List, coords = inputMat)
+    ScaleDistMats <- calcScaleDistMats(A_List = A_List, coords = inputMat)
     
     Scale.mat <- ScaleDistMats$Scale.mat
     Dist.mat <- ScaleDistMats$Dist.mat
@@ -581,7 +584,7 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx,
     obs_variance <- c(obs_variances_perTau)
   }
   
-  ScaleDistMats <- CalcScaleDistMats(A_List = A_List, coords = inputMat)
+  ScaleDistMats <- calcScaleDistMats(A_List = A_List, coords = inputMat)
   
   Scale.mat <- ScaleDistMats$Scale.mat
   Dist.mat <- ScaleDistMats$Dist.mat
@@ -620,7 +623,7 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx,
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-#'   Structure" (https://arxiv.org/abs/1903.09981)
+#'   Structure" <arXiv:1903.09981>.
 #' @return A list containing  \describe{ 
 #' \item{pred.mean}{Mean of predictions for the test set.}
 #' \item{pred.sd}{Standard deviation of predictions for the test set.}
@@ -636,7 +639,7 @@ nsgprPredict <- function(hp, response, input, input.new, noiseFreePred=F,
                            nu=nu, cyclic=cyclic, whichTau=whichTau){
   
   if(is.null(input.new)){
-    inputnew <- input
+    input.new <- input
   }
   
   Kobs <- nsgpCovMat(hp=hp, input=input, inputSubsetIdx=NULL,
@@ -644,7 +647,7 @@ nsgprPredict <- function(hp, response, input, input.new, noiseFreePred=F,
                         cyclic=cyclic, whichTau=whichTau, calcCov=T)$Cov
   invQ <- chol2inv(chol(Kobs))
   
-  Q1 <- nsgpCovMat_Asym(hp=hp, input=input, inputNew=input.new, nBasis=nBasis, 
+  Q1 <- nsgpCovMatAsym(hp=hp, input=input, inputNew=input.new, nBasis=nBasis, 
                         corrModel=corrModel, gamma=gamma, nu=nu, cyclic=cyclic, 
                         whichTau=whichTau)
   # response is a (n x nSamples) matrix
@@ -681,10 +684,10 @@ nsgprPredict <- function(hp, response, input, input.new, noiseFreePred=F,
 #' 
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-#'   Structure" (https://arxiv.org/abs/1903.09981)
-#' @return A (asymmetric) covariance matrix
+#'   Structure" <arXiv:1903.09981>.
+#' @return An asymmetric covariance matrix
 #' @export
-nsgpCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel, 
+nsgpCovMatAsym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel, 
                             gamma=NULL, nu=NULL, cyclic=NULL, whichTau=NULL){
   
   if(!is.list(input)){
@@ -968,7 +971,7 @@ nsgpCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel,
       k <- inputIdxMatStar[n_i,whitau]
       k <- which(k==inputIdxStar[[whitau]])
       # k <- which(k==unique(inputIdxMatStar[,which(whichTau==T)]))
-      A_List[[n_i]] <- As_perTau[[k]]
+      Astar_List[[n_i]] <- As_perTau[[k]]
       obs_varianceStar[n_i] <- c(obs_variances_perTau[k])
     }
   }
@@ -982,9 +985,9 @@ nsgpCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel,
   ### finish calculation of obs_varianceStar and Astar_List
   #######################################################################
   
-  # ScaleDistMats <- CalcScaleDistMats(A_List = A_List, coords = inputMat)
+  # ScaleDistMats <- calcScaleDistMats(A_List = A_List, coords = inputMat)
   
-  ScaleDistMats <- CalcScaleDistMatsAsym(A_List=A_List, Astar_List=Astar_List, 
+  ScaleDistMats <- calcScaleDistMatsAsym(A_List=A_List, Astar_List=Astar_List, 
                                          coords=inputMat, 
                                          coordsStar=inputMatStar)
   Scale.mat <- ScaleDistMats$Scale.mat
@@ -1002,14 +1005,14 @@ nsgpCovMat_Asym <- function(hp, input, inputNew, nBasis=5, corrModel=corrModel,
 }
 
 
-#' Calculates an unscaled NSGP correlation matrix
+#' Calculate an unscaled NSGP correlation matrix
 #'
 #' @inheritParams nsgpr
 #' @param Dist.mat Distance matrix
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-#'   Structure" (https://arxiv.org/abs/1903.09981)
+#'   Structure" <arXiv:1903.09981>.
 #' @return A matrix
 #' @export
 #' @examples

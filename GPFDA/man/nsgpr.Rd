@@ -18,7 +18,7 @@ nsgpr(
   zeroNoiseVariance = F,
   sepCov = F,
   nInitCandidates = 300,
-  abs_bounds = 6
+  absBounds = 6
 )
 }
 \arguments{
@@ -71,7 +71,7 @@ used to evaluate the log-likelihood function at a first step. After
 evaluating the log-likelihood using these 'nInitCandidates' vectors, the
 optimisation via nlminb() begins with the best of these vectors.}
 
-\item{abs_bounds}{lower and upper boundaries for B-spline coefficients (if
+\item{absBounds}{lower and upper boundaries for B-spline coefficients (if
 wanted).}
 }
 \value{
@@ -104,5 +104,5 @@ The input argument for Q=2 can be constructed as follows: \describe{
 \references{
 Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
-  Structure" (https://arxiv.org/abs/1903.09981)
+  Structure" <arXiv:1903.09981>.
 }
