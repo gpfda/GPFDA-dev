@@ -28,7 +28,9 @@ class.}
 \item{ylim}{Graphical parameter. If NULL (default), it is chosen automatically.}
 
 \item{realisations}{Index vector identifying which training realisations
-should be plotted. If NULL (default), all training realisations are plotted.}
+should be plotted. If NULL (default), all training realisations are plotted. 
+For predictions, 'realisations' should be '0' if no training realisation 
+is to be plotted.}
 
 \item{...}{Other graphical parameters passed to plot().}
 }

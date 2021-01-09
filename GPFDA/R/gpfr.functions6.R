@@ -1257,7 +1257,9 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
 #' @param xlab Title for the x axis.
 #' @param ylim Graphical parameter. If NULL (default), it is chosen automatically.
 #' @param realisations Index vector identifying which training realisations
-#' should be plotted. If NULL (default), all training realisations are plotted.
+#' should be plotted. If NULL (default), all training realisations are plotted. 
+#' For predictions, 'realisations' should be '0' if no training realisation 
+#' is to be plotted.
 #' @param ... Other graphical parameters passed to plot().
 #' @importFrom graphics polygon
 #' @importFrom graphics matpoints
@@ -1352,16 +1354,24 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
       main <- "Type II prediction"
     }
     if(is.null(ylim)){
-      ylim <- range(c(obj$init_resp[idx,], 
-                      c((obj$fitted.mean+obj$fitted.sd*1.96)[,idx]),
-                      obj$ypred[,2], obj$ypred[,3], obj$ypred[,1]
-                    ))
+      if(identical(idx, 0)){
+        ylim <- range(c(obj$ypred[,2], obj$ypred[,3], obj$ypred[,1]))
+      }else{
+        ylim <- range(c(obj$init_resp[idx,], 
+                        obj$ypred[,2], obj$ypred[,3], obj$ypred[,1]))
+      }
     }
-    matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='l',lwd=2,lty=3,col='pink',
-            main=main,xlab=xlab,ylab=ylab, ylim=ylim)
-    if(numRealis<6){
-      matpoints(obj$time,t(obj$init_resp[idx,,drop=F]),pch=4,cex=1,lty=3,col='red')
+    if(identical(idx, 0)){
+      plot(NA, main=main,xlab=xlab,ylab=ylab, ylim=ylim, 
+           xlim = range(obj$time))
+    }else{
+      matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='l',lwd=2,lty=3,col='pink',
+              main=main,xlab=xlab,ylab=ylab, ylim=ylim)
+        if(numRealis<6){
+          matpoints(obj$time,t(obj$init_resp[idx,,drop=F]),pch=4,cex=1,lty=3,col='red')
+        }
     }
+    
     polygon(c(obj$predtime, rev(obj$predtime)), 
             c(obj$ypred[,2], rev(obj$ypred[,3])), 
             col = rgb(127,127,127,100, maxColorValue = 255), border = NA)
