@@ -5,15 +5,17 @@ Version: 3.0.0
 Date: 2021-01-09
 Author: Jian Qing Shi, Yafeng Cheng, Evandro Konzen
 Maintainer: GPFDA's authors <gpfda.r@gmail.com>
-Description:  The package provides functions for modelling functional data with 
-    multidimensional inputs, multivariate functional data, and nonseparable 
-    and/or nonstationary covariance structure of function-valued processes. 
-    In addition, the package deals with functional regression models where 
+Description: Functionalities for modelling functional data with 
+    multidimensional inputs, multivariate functional data, and non-separable 
+    and/or non-stationary covariance structure of function-valued processes. 
+    In addition, there are functionalities for functional regression models where 
     the mean function depends on scalar and/or functional covariates and 
-    the covariance structure depends on functional covariates.
+    the covariance structure depends on functional covariates. 
+    The development version of the package can be found on 
+    <https://github.com/gpfda/GPFDA-dev>.
 License: GPL (>= 2)
 Depends: R (>= 3.6)
-Imports: Rcpp (>= 1.0.2), splines, mgcv, MASS, mvtnorm, fields, akima, stats, 
+Imports: Rcpp (>= 1.0.2), splines, mgcv, MASS, mvtnorm, fields, interp, stats, 
     graphics, grDevices, fda, fda.usc
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.0.2

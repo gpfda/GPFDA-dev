@@ -1,0 +1,92 @@
+---
+title: "GPR - example 1"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{gpr_ex1}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+        echo = TRUE, results = 'hold', warning=F, cache=F, 
+  #dev = 'pdf', 
+  message=F, 
+  fig.width=5, fig.height=5,
+  tidy.opts=list(width.cutoff=75), tidy=FALSE
+)
+options(scipen = 1, digits = 4)
+```
+
+```{r setup}
+library(GPFDA)
+require(MASS)
+```
+
+## Simulating data from a GP with unidimensional input
+
+We simulate $30$ independent realisations from a zero-mean GP with a covariance 
+function given by the sum of a liner kernel and a squared exponential kernel. 
+Each observed curve has a sample size of $15$ time points on $[0,1]$.
+
+```{r}
+set.seed(123)
+nrep <- 30
+n <- 15
+input <- seq(0, 1, length.out=n)
+hp <- list('linear.a'=log(40), 'linear.i'=log(10),
+           'pow.ex.v'=log(5), 'pow.ex.w'=log(15),
+           'vv'=log(0.3))
+Sigma <- cov.linear(hyper=hp, input=input) + 
+  cov.pow.ex(hyper=hp, input=input, gamma=2) + 
+  diag(exp(hp$vv), n, n)
+Y <- t(mvrnorm(n=nrep, mu=rep(0,n), Sigma=Sigma))
+```
+
+## Estimation
+
+Estimation of the GPR model can be carried out without using gradient:
+```{r}
+set.seed(111)
+fitNoGrad <- gpr(input=input, response=Y, Cov=c('linear','pow.ex'), gamma=2, 
+               trace=4, nInitCandidates = 1, useGradient = F)
+```
+
+If one wants to use gradient:
+```{r}
+set.seed(111)
+fit <- gpr(input=input, response=Y, Cov=c('linear','pow.ex'), gamma=2, 
+         trace=4, nInitCandidates = 1, useGradient = T)
+```
+
+Note the smaller number of iterations needed when the gradient analytical 
+expressions are used in the optimisation.
+
+We can see that the hyperparameter estimates are very accurate despite the fairly 
+small sample size:
+```{r}
+sapply(fit$hyper, exp)
+```
+
+The fitted model for the $10$th realisation can be seen:
+```{r}
+plot(fit, realisation=10)
+```
+
+
+## Prediction
+
+Predictions on a fine grid for the $10$th realisation can be obtained as follows:
+```{r}
+input.new <- seq(0, 1, length.out = 1000)
+pred1 <- gprPredict(train=fit, input.new=input.new, noiseFreePred=T)
+plot(pred1, realisation=10)
+```
+
+If one wants to include noise variance in the predictions for the new time points:
+```{r}
+pred2 <- gprPredict(train=fit, input.new=input.new, noiseFreePred=F)
+plot(pred2, realisation=10)
+```

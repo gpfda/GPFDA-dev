@@ -1,0 +1,36 @@
+D2                      Second derivative of the likelihood
+GPFDA                   GPFDA: A package for Gaussian Process
+                        Regression for Functional Data Analysis
+calcScaleDistMats       Calculate matrices for NSGP covariance function
+co2                     co2: data set for a real data example
+covMat                  Calculate a covariance matrix
+dataExampleGPFR         Data simulated in the GPFR example
+distanceMatrix          Calculate generalised distances
+gpfr                    Gaussian Process for functional data
+gpfrPredict             Prediction of GPFR model
+gpr                     Gaussian Process regression
+gprPredict              Prediction using Gaussian Process
+mat2fd                  Create an 'fd' object from a matrix
+mgpCovMat               Calculate a multivariate Gaussian processes
+                        covariance matrix given a vector of
+                        hyperparameters
+mgpr                    Multivariate Gaussian process regression
+mgprPredict             Prediction of multivariate Gaussian process
+nsgpCovMat              Calculate a NSGP covariance matrix given a
+                        vector of hyperparameters
+nsgpCovMatAsym          Calculate an asymmetric NSGP covariance matrix
+nsgpr                   Estimation of a nonseparable and/or
+                        nonstationary covariance structure
+nsgprPredict            NSGP predicion given a vector of
+                        hyperparameters
+plot.gpfr               Plot GPFR model for either training or
+                        prediction
+plot.gpr                Plot Gaussian Process regression - training and
+                        prediction
+plot.mgpr               Plot predictions of a multivariate Gaussian
+                        Process regression model
+plotImage               Draw an image plot for a given two-dimensional
+                        input
+plotmgpCovFun           Plot auto- or cross-covariance function of a
+                        multivariate Gaussian process
+unscaledCorr            Calculate an unscaled NSGP correlation matrix
