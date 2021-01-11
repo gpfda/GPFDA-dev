@@ -2,9 +2,9 @@ Package: GPFDA
 Type: Package
 Title: Gaussian Process Regression for Functional Data Analysis
 Version: 3.0.0
-Date: 2021-01-09
+Date: 2021-01-11
 Author: Jian Qing Shi, Yafeng Cheng, Evandro Konzen
-Maintainer: GPFDA's authors <gpfda.r@gmail.com>
+Maintainer: Evandro Konzen <gpfda.r@gmail.com>
 Description: Functionalities for modelling functional data with 
     multidimensional inputs, multivariate functional data, and non-separable 
     and/or non-stationary covariance structure of function-valued processes. 
@@ -13,7 +13,7 @@ Description: Functionalities for modelling functional data with
     the covariance structure depends on functional covariates. 
     The development version of the package can be found on 
     <https://github.com/gpfda/GPFDA-dev>.
-License: GPL (>= 2)
+License: GPL-3
 Depends: R (>= 3.6)
 Imports: Rcpp (>= 1.0.2), splines, mgcv, MASS, mvtnorm, fields, interp,
         stats, graphics, grDevices, fda, fda.usc
@@ -24,4 +24,4 @@ Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 LazyData: true
 NeedsCompilation: yes
-Packaged: 2021-01-10 22:22:13 UTC; evandro
+Packaged: 2021-01-11 08:38:21 UTC; evandro

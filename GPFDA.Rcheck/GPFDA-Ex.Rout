@@ -456,7 +456,7 @@ detaching ‘package:fda’, ‘package:Matrix’
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  2.94 0.852 2.381 0 0 
+Time elapsed:  3.278 0.724 2.723 0 0 
 > grDevices::dev.off()
 null device 
           1 

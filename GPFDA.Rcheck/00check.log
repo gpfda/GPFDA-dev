@@ -8,10 +8,10 @@
 * this is package ‘GPFDA’ version ‘3.0.0’
 * package encoding: UTF-8
 * checking CRAN incoming feasibility ... NOTE
-Maintainer: ‘GPFDA's authors <gpfda.r@gmail.com>’
+Maintainer: ‘Evandro Konzen <gpfda.r@gmail.com>’
 
 New maintainer:
-  GPFDA's authors <gpfda.r@gmail.com>
+  Evandro Konzen <gpfda.r@gmail.com>
 Old maintainer(s):
   Yafeng Cheng <yafeng.cheng@ncl.ac.uk>
 * checking package namespace information ... OK
