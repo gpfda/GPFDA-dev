@@ -2,19 +2,18 @@
 % Please edit documentation in R/gpfr.functions6.R
 \name{gpfr}
 \alias{gpfr}
-\title{Gaussian Process for functional data}
+\title{Gaussian process functional regression model (GPFR)}
 \usage{
 gpfr(
   response,
   time = NULL,
-  lReg = NULL,
-  fReg = NULL,
+  uReg = NULL,
+  fxReg = NULL,
   fyList = NULL,
-  fbetaList_l = NULL,
+  uCoefList = NULL,
   fxList = NULL,
   concurrent = TRUE,
-  fbetaList_f = NULL,
-  fbetaList = NULL,
+  fxCoefList = NULL,
   gpReg = NULL,
   hyper = NULL,
   NewHyper = NULL,
@@ -29,19 +28,21 @@ gpfr(
 }
 \arguments{
 \item{response}{Response data. It can be an 'fd' object or a matrix with
-'nrep' rows and 'nrep' columns.}
+'nrep' rows and 'n' columns.}
 
-\item{time}{Input 't' of functional objects. It is a numerical vector.}
+\item{time}{Input 't' of functional objects. It is a numeric vector of
+length 'n'.}
 
-\item{lReg}{Scalar covariates for the FR model. It should be a matrix with
+\item{uReg}{Scalar covariates for the FR model. It should be a matrix with
 'nrep' rows.}
 
-\item{fReg}{Functional covariates for the FR model. It can be a matrix with
-'nrep' rows, or an 'fd' object, or a list of matrices or 'fd' objects.}
+\item{fxReg}{Functional covariates for the FR model. It can be a matrix with
+'nrep' rows  and 'n' columns, an 'fd' object, or a list of matrices or 'fd'
+objects.}
 
 \item{fyList}{A list to control the smoothing of response.}
 
-\item{fbetaList_l}{A list to control the smoothing of the regression
+\item{uCoefList}{A list to control the smoothing of the regression
 coefficient function of the scalar covariates in the FR model.}
 
 \item{fxList}{A list to control the smoothing of functional covariates in the
@@ -51,14 +52,12 @@ FR model.}
 regression will be carried out; otherwise, the full functional regression
 will be carried out.}
 
-\item{fbetaList_f}{A list to control the smoothing of the regression
-coefficient function of functional covariates in the FR model.}
+\item{fxCoefList}{A list to control the smoothing of the regression
+coefficient function of functional covariates in the functional concurrent
+model.}
 
-\item{fbetaList}{A list to control the smoothing of functional covariates in
-the FR model with scalar response and functional covariates.}
-
-\item{gpReg}{Covariates in the GP model. It should be a matrix, an 'fd'
-object, a list of matrices or a list of 'fd' objects.}
+\item{gpReg}{Covariates in the GP model. It should be a matrix, a numeric vector, 
+an 'fd' object, a list of matrices or a list of 'fd' objects.}
 
 \item{hyper}{Vector of initial hyperparameters. Default to NULL.}
 
@@ -87,17 +86,21 @@ optimization.}
 A list containing: \describe{ \item{hyper}{Estimated hyperparameters}
   \item{I}{A vector of estimated standard deviation of hyperparameters}
   \item{modellist}{List of FR models fitted before Gaussian process}
-  \item{CovFun}{Covariance function used} \item{gamma}{Parameter 'gamma' used in Gaussian
-  process with powered exponential kernel} \item{nu}{Parameter 'nu' used in Gaussian
-  process with Matern kernel}
-  \item{init_resp}{Raw response data} \item{resid_resp}{Residual after the fitted values from FR models have been taken out} \item{fitted}{Fitted values} \item{fitted.sd}{Standard
-  deviation of the fitted values} \item{ModelType}{The type of the model applied in the
-  function.} \item{lTrain}{Training scalar covariates for the FR model} \item{fTrain}{Training functional covariates for the FR model} \item{mfTrainfd}{List of 'fd' objects from
-  training data for FR model with functional covariates}
-  \item{gpTrain}{Training data for Gaussian Process} \item{time}{Input time 't'} \item{iuuL}{Inverse of covariance matrix for
-  lReg} \item{iuuF}{Inverse of covariance matrix for fReg}
-  \item{fittedFM}{Fitted values from the FR model}
-  \item{fyList}{fyList object used} }
+  \item{CovFun}{Covariance function used} \item{gamma}{Parameter 'gamma' used
+  in Gaussian process with powered exponential kernel} \item{nu}{Parameter
+  'nu' used in Gaussian process with Matern kernel} \item{init_resp}{Raw
+  response data} \item{resid_resp}{Residual after the fitted values from FR
+  models have been taken out} \item{fitted}{Fitted values}
+  \item{fitted.sd}{Standard deviation of the fitted values}
+  \item{ModelType}{The type of the model applied in the function.}
+  \item{lTrain}{Training scalar covariates for the FR model}
+  \item{fTrain}{Training functional covariates for the FR model}
+  \item{mfTrainfd}{List of 'fd' objects from training data for FR model with
+  functional covariates} \item{gpTrain}{Training data for Gaussian Process}
+  \item{time}{Input time 't'} \item{iuuL}{Inverse of covariance matrix for
+  uReg} \item{iuuF}{Inverse of covariance matrix for fxReg}
+  \item{fittedFM}{Fitted values from the FR model} \item{fyList}{fyList
+  object used} }
 }
 \description{
 Use functional regression (FR) model for the mean structure and Gaussian
@@ -106,32 +109,39 @@ time points 't' of functional objects and 'nrep' the number of independent
 replications in the sample.
 }
 \details{
-fyList is a list with items: 'time': a sequence of time points
-  default to be 100 points from 0 to 1; 'nbasis': number of basis functions
-  used in smoothing, default to be less than or equal to 23; 'norder': the
-  order of the functional curves default to be 6; 'bSpline': logical, if
-  TRUE, b-spline is used, otherwise use Fourier basis, default to be TRUE;
-  'Pen': default to be c(0,0), meaning that the penalty is only applied to
-  the second order derivative of the curve, with no penalty for the zero-th
-  and first order derivatives of the curve; 'lambda': the smoothing parameter
-  for the penalty, default to be 1e-4.
+\code{fyList} is a list with the following items:
 
-  fxList is similar to fyList. However, it is a list of lists to allow for
-  different specifications for each functional covariate if there are
-  multiple ones.
+  \itemize{ \item \code{time}: a sequence of time points; default to be 100
+  points from 0 to 1. \item \code{nbasis}: number of basis functions used in
+  smoothing, default to be less than or equal to 23. \item \code{norder}:
+  order of the functional curves; default to be 6. \item \code{bSpline}:
+  logical. If TRUE (default), B-splines basis is used; otherwise, Fourier
+  basis is used. \item \code{Pen}: default to be c(0,0), meaning that the
+  penalty is only applied to the second order derivative of the curve, with
+  no penalty for the zero-th and first order derivatives of the curve. \item
+  \code{lambda}: smoothing parameter for the penalty, default to be 1e-4. }
+  \code{fxList} is similar to \code{fyList}. However, it is a list of lists
+  to allow for different specifications for each functional covariate if
+  there are multiple ones.
 
-  fbetaList, fbetaList_l and fbetaList_f are similar to each other. Each one
-  is expected to be a list of lists. The items in each sub-list are: 'rtime':
-  range of time, default to be 0 and 1; 'nbasis': number of basis functions
-  used in smoothing, default to be less or equal to 19; 'norder': the order
-  of the functional curves default to be 6; 'bSpline': logical, if TRUE
-  (default), B-spline representation is used, otherwise Fourier basis is
-  used; 'Pen': default to be c(0,0); 'lambda': default to be 1e4;
-  'bivar':logical, if TRUE, the bivariate basis will be calculated, otherwise
-  normal basis, default to be FALSE; 'lambdas': the smoothing parameter for
-  the penalty of the additional basis, default to be 1e4.
+  \code{uCoefList} and \code{fxCoefList} are similar to
+  each other. Each one is expected to be a list of lists. If a list of one 
+  element is provided, then the items of this element are applied to each of 
+  the functional coefficients of scalar covariates and of functional covariates,
+  respectively. 
 
-  Note that all items have default settings.
+  \itemize{ \item \code{rtime}: range of time, default to be c(0,1). \item
+  \code{nbasis}: nnumber of basis functions used in smoothing, default to be
+  less than or equal to 19. \item  \code{norder}: order of the functional
+  curves; default to be 6. \item \code{bSpline}: logical. If TRUE (default),
+  B-splines basis is used; otherwise, Fourier basis is used. \item
+  \code{Pen}: default to be c(0,0). \item \code{lambda}: smoothing parameter
+  for the penalty, default to be 1e4. \item \code{bivar}:logical. Used for
+  non-concurrent models; if TRUE, bivariate basis will be used; if FALSE
+  (default), normal basis will be used; see details in
+  \code{\link[fda]{bifdPar}}. \item \code{lambdas}: smoothing parameter for
+  the penalty of the additional basis, default to be 1. } Note that all items
+  have default settings.
 }
 \examples{
 ## See examples in vignette:

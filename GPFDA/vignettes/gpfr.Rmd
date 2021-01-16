@@ -13,12 +13,13 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-        echo = TRUE, results = 'hold', warning=F, cache=F, #dev = 'pdf', 
+        echo = TRUE, results = 'hold', warning=F, cache=F, eval=T,
+  #dev = 'pdf', 
   message=F, 
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=FALSE
 )
-options(scipen = 1, digits = 4)
+old <- options(scipen = 1, digits = 4)
 ```
 
 
@@ -48,12 +49,12 @@ $n=50$ points for each curve. We assume regression coefficient functions
 $\beta_0(t)=1$, $\beta_1(t)=\sin((0.5 t)^3)$, scalar covariates 
 $u_{m0} \sim N(0,1)$ and $u_{m1} \sim N(10,5^2)$ and a functional covariate
 $x_m(t) = \exp(t) + v$, where $v \sim N(0, 0.1^2)$. The term $\tau_m(x_m(t))$ is
-a zero mean Gaussian process with squared exponential covariance kernel and 
+a zero mean Gaussian process with exponential covariance kernel and 
 $\sigma_\varepsilon^2 = 1$.
 
 We also simulate an $(M+1)$th realisation which is used to assess predictions 
 obtained by the model estimated by using the training data of size $M$. The 
-$y_{M+1}(t)$ and $x_{M+1}(t)$ curves are observed on equally spaced $100$ time points on $[-4,4]$.
+$y_{M+1}(t)$ and $x_{M+1}(t)$ curves are observed on equally spaced $60$ time points on $[-4,4]$.
 
 
 
@@ -84,7 +85,7 @@ for(i in 1:M){
   u0 <- rnorm(1)
   u1 <- rnorm(1,10,5)
   x <- exp(tt) + rnorm(n, 0, 0.1)
-  Sigma <- cov.pow.ex(hp, cbind(x))
+  Sigma <- cov.pow.ex(hyper = hp, input = x, gamma = 1)
   diag(Sigma) <- diag(Sigma) + exp(hp$vv)
   y <- u0+u1*b + mvrnorm(n=1, mu=rep(0,n), Sigma=Sigma)
   scalar_train[i,] <- c(u0,u1)
@@ -94,14 +95,14 @@ for(i in 1:M){
 }
 
 ## Test data (M+1)-th realisation ------------------
-n_new <- 100
+n_new <- 60
 t_new <- seq(-4,4,len=n_new)
 b_new <- sin((0.5*t_new)^3)
 u0_new <- rnorm(1)
 u1_new <- rnorm(1,10,5)
 scalar_new <- cbind(u0_new, u1_new)
 x_new <- exp(t_new) + rnorm(n_new, 0, 0.1)
-Sigma_new <- cov.pow.ex(hp,cbind(x_new))
+Sigma_new <- cov.pow.ex(hyper = hp, input = x_new, gamma = 1)
 diag(Sigma_new) <- diag(Sigma_new) + exp(hp$vv)
 response_new <- u0_new + u1_new*b_new + mvrnorm(n=1, mu=rep(0,n_new), 
                                                 Sigma=Sigma_new)
@@ -122,11 +123,11 @@ save(dataExampleGPFR, file = "data/dataExampleGPFR.rda")
 The estimation of mean and covariance functions in the GPFR model is done using 
 the `gpfr` function:
 ```{r, results=F}
-a1 <- gpfr(response = response_train, time = tt, lReg = scalar_train,
-           fReg = NULL, gpReg = list(x_train),
+a1 <- gpfr(response = response_train, time = tt, uReg = scalar_train,
+           fxReg = NULL, gpReg = x_train,
            fyList = list(nbasis = 23, lambda = 0.0001),
-           fbetaList_l = list(list(lambda = 0.0001, nbasi = 23)),
-           Cov = 'pow.ex',  fitting = T)
+           uCoefList = list(list(lambda = 0.0001, nbasi = 23)),
+           Cov = 'pow.ex', gamma = 1, fitting = T)
 ```
 
 Note that the estimated covariance function hyperparameters are similar to the 
@@ -167,30 +168,31 @@ plot(a1, type = 'fitted', realisations = 1:3)
 
 ### Type I prediction: $y_{M+1}$ observed
 
-If $y_{M+1}(t)$ is observed over all the domain of $t$, the type I prediction can be seen:
+If $y_{M+1}(t)$ is observed over all the domain of $t$, the Type I prediction can be seen:
 
 ```{r, results=F}
-b1 <- gpfrPredict(a1, TestData = as.matrix(x_new), NewTime = t_new,
-               lReg = scalar_new, fReg = NULL,
+b1 <- gpfrPredict(a1, testInputGP = x_new, testTime = t_new,
+               uReg = scalar_new, fxReg = NULL,
                gpReg = list('response' = response_new,
-                            'input' = x_new, 'time' = t_new))
+                            'input' = x_new,
+                            'time' = t_new))
 
-plot(b1, type = 'prediction')
+plot(b1, type = 'prediction', colourTrain = 'pink')
 lines(t_new, response_new, type = 'b', col = 4, pch = 19, cex = 0.6, lty = 3, lwd = 2)
 ```
 
 ### Type I prediction: $y_{M+1}$ partially observed
 
-If we assume that $y_{M+1}(t)$ is only partially observed, we can obtain type I predictions via: 
+If we assume that $y_{M+1}(t)$ is only partially observed, we can obtain Type I predictions via: 
 
 ```{r, results=F}
-b2 <- gpfrPredict(a1, TestData = as.matrix(x_new), NewTime = t_new,
-               lReg = scalar_new, fReg = NULL,
+b2 <- gpfrPredict(a1, testInputGP = x_new, testTime = t_new,
+               uReg = scalar_new, fxReg = NULL,
                gpReg = list('response' = response_new[1:20],
                           'input' = x_new[1:20],
                           'time' = t_new[1:20]))
 
-plot(b2, type = 'prediction')
+plot(b2, type = 'prediction', colourTrain = 'pink')
 lines(t_new, response_new, type = 'b', col = 4, pch = 19, cex = 0.6, lty = 3, lwd = 2)
 ```
 
@@ -200,11 +202,14 @@ lines(t_new, response_new, type = 'b', col = 4, pch = 19, cex = 0.6, lty = 3, lw
 Type II prediction, which is made by not including any information about $y_{M+1}(t)$, 
 is visualised below.
 ```{r, results=F}
-b3 <- gpfrPredict(a1, TestData = as.matrix(x_new), NewTime = t_new,
-               lReg = scalar_new, fReg = NULL, gpReg = NULL)
+b3 <- gpfrPredict(a1, testInputGP = x_new, testTime = t_new,
+               uReg = scalar_new, fxReg = NULL, gpReg = NULL)
 
-plot(b3, type = 'prediction')
+plot(b3, type = 'prediction', colourTrain = 'pink')
 lines(t_new, response_new, type='b', col = 4, pch = 19, cex = 0.6, lty = 3, lwd = 2)
 ```
 
+```{r, include = FALSE}
+options(old)
+```
 

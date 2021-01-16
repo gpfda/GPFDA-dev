@@ -2,7 +2,7 @@
 % Please edit documentation in R/gp.functions6.R
 \name{gpr}
 \alias{gpr}
-\title{Gaussian Process regression}
+\title{Gaussian process regression}
 \usage{
 gpr(
   input,
@@ -95,7 +95,7 @@ A list containing: \describe{ \item{hyper}{Hyperparameters vector
   the hyperparameters vector.} }
 }
 \description{
-Gaussian Process regression for a single or multiple independent
+Gaussian process regression for a single or multiple independent
 realisations.
 }
 \details{

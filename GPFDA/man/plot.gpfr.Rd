@@ -11,6 +11,14 @@
   xlab = "t",
   ylim = NULL,
   realisations = NULL,
+  alpha = 0.05,
+  colourTrain = 2,
+  colourNew = 4,
+  mar = c(4.5, 5.1, 2.2, 0.8),
+  oma = c(0, 0, 1, 0),
+  cex.lab = 1.5,
+  cex.axis = 1,
+  cex.main = 1.5,
   ...
 )
 }
@@ -31,6 +39,24 @@ class.}
 should be plotted. If NULL (default), all training realisations are plotted. 
 For predictions, 'realisations' should be '0' if no training realisation 
 is to be plotted.}
+
+\item{alpha}{Significance level used for 'fitted' or 'prediction'. Default is 0.05.}
+
+\item{colourTrain}{Colour for training realisations when 'type' is set to 
+'prediction' and 'realisations' is positive.}
+
+\item{colourNew}{Colour for predictive mean for the new curve when 'type' is 
+set to 'prediction'.}
+
+\item{mar}{Graphical parameter passed to par().}
+
+\item{oma}{Graphical parameter passed to par().}
+
+\item{cex.lab}{Graphical parameter passed to par().}
+
+\item{cex.axis}{Graphical parameter passed to par().}
+
+\item{cex.main}{Graphical parameter passed to par().}
 
 \item{...}{Other graphical parameters passed to plot().}
 }

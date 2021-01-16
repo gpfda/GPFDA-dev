@@ -1,50 +1,50 @@
 
 
-### main1 is the function for the case that the response variable is 
-### one dimensional. This function will do lm, flm, gp, or conbinations 
+### main1 is the function for the case of scalar response variable. 
+### This function will do lm, flm, gp, or combinations 
 ### of the three, depends on the avaliable data.
-main1 <- function(response,lReg=NULL,fReg=NULL,fxList=NULL,fbetaList=NULL){ 
+main1 <- function(response,uReg=NULL,fxReg=NULL,fxList=NULL,fxCoefListScalarResp=NULL){ 
   
   y <- response
   
   ## multivariate linear regression
   ml <- NULL
-  if (!is.null(lReg)){
-     #  if(class(lReg)!='matrix') stop('The covariates for scalar multivariate 
+  if (!is.null(uReg)){
+     #  if(class(uReg)!='matrix') stop('The covariates for scalar multivariate 
      #  linear regression are expected to store in a matrix, not other format')
-    ml <- lm(y~lReg)
+    ml <- lm(y~uReg)
     resid_ml <- as.matrix(y-resid(ml))
     y <- resid_ml
   }
   
   ## functional regression
   temp <- list(NULL)
-  if(!is.null(fReg)){
-    if(class(fReg)=='matrix'|class(fReg)=='fd')
-      fReg <- list(fReg)
-    if(class(fReg)=='list'){
-      if(length(unique(unlist(lapply(fReg,class))))!=1) 
+  if(!is.null(fxReg)){
+    if(class(fxReg)=='matrix'|class(fxReg)=='fd')
+      fxReg <- list(fxReg)
+    if(class(fxReg)=='list'){
+      if(length(unique(unlist(lapply(fxReg,class))))!=1) 
         stop('functional covariates are expected to have same class')
-      if(unique(unlist(lapply(fReg,class)))=='matrix'){
+      if(unique(unlist(lapply(fxReg,class)))=='matrix'){
         temp <- list(NULL)
         res <- list(y)
         
         ## set up functional variable for fx
-        if(length(fxList)!=length(fReg)){
-          cat('Length of fx list is not equal to the length of list of 
+        if(length(fxList)!=length(fxReg)){
+          cat('Length of fxList is not equal to the length of list of 
               functional covariates','\n')
           
           if(length(fxList)==0){
-            cat('     Defualt fx list is applied','\n')
-            fxList <- lapply(fReg,function(i){
+            cat('     Default fxList is applied','\n')
+            fxList <- lapply(fxReg,function(i){
               i <- min(as.integer(ncol(i)/5),10)
               names(i) <- list('nx_basis')
               return(i)
             })
           } 
           else{
-            cat('     First item in fx list is applied to all items','\n')
-            fxList <- lapply(fReg,function(i){
+            cat('     First element of fxList is applied to all items','\n')
+            fxList <- lapply(fxReg,function(i){
               i <- fxList[[1]]
               return(i)
             })
@@ -53,61 +53,61 @@ main1 <- function(response,lReg=NULL,fReg=NULL,fxList=NULL,fbetaList=NULL){
         }
           
         ## set up functional parameter for fbeta
-        if(length(fbetaList)!=length(fReg)){
-          cat('Length of fbeta list is not equal to the length of list of 
+        if(length(fxCoefListScalarResp)!=length(fxReg)){
+          cat('       Length of fxCoefListScalarResp is not equal to the length of list of 
               functional covariates','\n')
-          if(length(fbetaList)==0){
-            cat('     Defualt fbeta list is applied','\n')
-            fbetaList <- fxList
-            fbetaList <- lapply(fbetaList,function(i){
+          if(length(fxCoefListScalarResp)==0){
+            cat('     Default fxCoefListScalarResp is applied','\n')
+            fxCoefListScalarResp <- fxList
+            fxCoefListScalarResp <- lapply(fxCoefListScalarResp,function(i){
               names(i) <- 'nbeta_basis'
               return(i)
             })
           }
           else{
-            cat('     First item in fbeta list is applied to all items','\n')
-            fbetaList <- lapply(fReg,function(i){
-              i <- fbetaList[[1]]
+            cat('     First element of fxCoefListScalarResp is applied to all items','\n')
+            fxCoefListScalarResp <- lapply(fxReg,function(i){
+              i <- fxCoefListScalarResp[[1]]
               return(i)
             })
           }
         }
           
-        for(i in seq_along(fReg)){
+        for(i in seq_along(fxReg)){
         ## functional regression with scalar response and functional covariates 
         ## using fdata.
-          mf <- freg1(y,fReg[[i]],fxList[[i]],fbetaList[[i]])
+          mf <- freg1(y,fxReg[[i]],fxList[[i]],fxCoefListScalarResp[[i]])
           res <- list(res,as.matrix(resid(mf)))
           temp <- c(temp,list(mf))
           if(is.null(temp[[1]])) temp <- temp[-1]
           y <- res[[length(res)]]
         } 
       }
-      if(unique(unlist(lapply(fReg,class)))=='fd'){
+      if(unique(unlist(lapply(fxReg,class)))=='fd'){
         res <- list(y)
         ## set up functional parameter for fbeta
-        if(length(fbetaList)!=length(fReg)){
-          cat('     Length of fbeta list is not equal to the length of list of 
+        if(length(fxCoefListScalarResp)!=length(fxReg)){
+          cat('     Length of fxCoefListScalarResp is not equal to the length of list of 
               functional covariates','\n')
-          if(length(fbetaList)==0){
-            cat('     Defualt fbeta list is applied','\n')
+          if(length(fxCoefListScalarResp)==0){
+            cat('     Default fxCoefListScalarResp is applied','\n')
             fbeta[[i]] <- betaPar()
           }
           else{
-            cat('     First item in fbeta list is applied to all items','\n')
-            fbeta <- lapply(fReg,function(i){
-              i <- betaPar(fbetaList[[1]])
+            cat('     First element of fxCoefListScalarResp is applied to all items','\n')
+            fbeta <- lapply(fxReg,function(i){
+              i <- betaPar(fxCoefListScalarResp[[1]])
               return(i)
             })
           }
         }
-        if(length(fbetaList)==length(fReg))
-          fbeta <- lapply(fbetaList,betaPar)
+        if(length(fxCoefListScalarResp)==length(fxReg))
+          fbeta <- lapply(fxCoefListScalarResp,betaPar)
           
-        for(i in seq_along(fReg)){          
+        for(i in seq_along(fxReg)){          
         ## functional regression with scalar response and functional covariates 
         ## using 'fd'.
-          mf <- freg2(y,fReg[[i]],fbeta[[i]])
+          mf <- freg2(y,fxReg[[i]],fbeta[[i]])
           res <- list(res,as.matrix(resid(mf)))
           temp <- c(temp,list(mf))
           if(is.null(temp[[1]])) temp <- temp[-1]
@@ -124,9 +124,9 @@ main1 <- function(response,lReg=NULL,fReg=NULL,fxList=NULL,fbetaList=NULL){
 #' @importFrom  fda.usc fregre.basis
 #' @importFrom  fda create.bspline.basis
 freg1 <- function(y,fx,nx_bas,nbeta_bas){
-  ### works for scalar response and single functional covariates, 
-  ### return the regression model.
-  ### y is expected to be a column matrix; fx is expected to be a matrix
+  ### works for scalar response and a single functional covariate;
+  ### y is expected to be a column matrix; 
+  ### fx is expected to be a matrix.
   if (nrow(fx)!=nrow(y)) stop('unequal sample size for response and functional
                               covariates')
   fx <- fdata(fx,argvals=seq(0,1,len=ncol(fx)))
@@ -138,35 +138,35 @@ freg1 <- function(y,fx,nx_bas,nbeta_bas){
 }
 
 freg2 <- function(y,xlist,fbeta){
-  ### works for scalar response and single functional covariates,
-  ### return the regression model
-  ### y is expected to be a column matrix; fx is expected to be an 'fd' object
-  ### fbeta is expected to be an 'fd' onject
+  ### works for scalar response and a single functional covariate;
+  ### y is expected to be a column matrix; 
+  ### fx is expected to be an 'fd' object;
+  ### fbeta is expected to be an 'fd' onject.
   fm <- fRegress(y[,1], xlist, fbeta)
   return(fm)
 }
 
 
 
-main2 <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
-               fxList=NULL,concurrent=TRUE,fbetaList_f=NULL,time=NULL){
+main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
+               fxList=NULL,concurrent=TRUE,fxCoefList=NULL,time=NULL){
   ### main2 is for the regression with functional response, 
   ### This function will do lm, flm, gp, or conbinations 
   ### of the three, depends on the avaliable data.
   y <- response
   ml <- NULL;res <- NULL;fittedFM <- NULL;
-  if(!is.null(lReg)){
+  if(!is.null(uReg)){
     if(class(y)[1]=='fdata') y <- y$data
   }
   if(!is.null(time)){
     if(!is.null(fyList)) fyList$time <- time
     if(is.null(fyList)) fyList <- list(time=time)
-    if(!is.null(fbetaList_l)) fbetaList_l <- lapply(fbetaList_l,function(i) 
+    if(!is.null(uCoefList)) uCoefList <- lapply(uCoefList,function(i) 
       c(i,list(rtime=range(time))))
-    if(is.null(fbetaList_l)) fbetaList_l <- list(list(rtime=range(time)))
-    if(!is.null(fbetaList_f)) fbetaList_f <- lapply(fbetaList_f,function(i) 
+    if(is.null(uCoefList)) uCoefList <- list(list(rtime=range(time)))
+    if(!is.null(fxCoefList)) fxCoefList <- lapply(fxCoefList,function(i) 
       c(i,list(rtime=range(time))))
-    if(is.null(fbetaList_f)) fbetaList_f <- list(list(rtime=range(time)))
+    if(is.null(fxCoefList)) fxCoefList <- list(list(rtime=range(time)))
     if(!is.null(fxList)) fxList <- lapply(fxList,function(i) 
       c(i,list(rtime=range(time))))
     if(is.null(fxList)) fxList <- list(list(time=time))
@@ -182,55 +182,55 @@ main2 <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   y_time <- seq(y$basis$rangeval[1],y$basis$rangeval[2],
                 len=length(y$fdnames$time))
   
-  if(is.null(fbetaList_l[[1]]$nbasis)){
-    fbetaList_l <- lapply(fbetaList_l,function(i)
+  if(is.null(uCoefList[[1]]$nbasis)){
+    uCoefList <- lapply(uCoefList,function(i)
       c(i,list(nbasis=y$basis$nbasis)))
   }
-  if(is.null(fbetaList_l[[1]]$norder)){
-    fbetaList_l <- lapply(fbetaList_l,function(i) 
+  if(is.null(uCoefList[[1]]$norder)){
+    uCoefList <- lapply(uCoefList,function(i) 
       c(i,list(norder=c(fyList$norder,6)[1])))
   }
-  if(is.null(fbetaList_l[[1]]$Pen)) {
-    fbetaList_l <- lapply(fbetaList_l,function(i){
+  if(is.null(uCoefList[[1]]$Pen)) {
+    uCoefList <- lapply(uCoefList,function(i){
     if(!is.null(fyList$Pen)) c(i,list(Pen=fyList$Pen))
     if(is.null(fyList$Pen)) c(i,Pen=c(0,0))
   })}
     
-  if(!is.null(lReg)){
+  if(!is.null(uReg)){
     ## define list of x 
-    if(class(lReg)[1]!='matrix') stop('class of lReg is expected to be matrix')
-    x <- lReg
+    if(class(uReg)[1]!='matrix') stop('class of uReg is expected to be matrix')
+    x <- uReg
     nx <- ncol(x)
     lxList <- vector('list',length=nx)
     for(i in 1:nx) lxList[[i]] <- x[,i]
     
     ## define list of beta
-    if(length(fbetaList_l)!=length(lxList)){
-      cat('  Length of fbetaList_l list is not equal to the length of list of 
+    if(length(uCoefList)!=length(lxList)){
+      cat('  Length of uCoefList list is not equal to the length of list of 
           functional covariates.','\n')
-      if(length(fbetaList_l)==0){
-        cat('  Default fbetaList_l is applied.','\n')
+      if(length(uCoefList)==0){
+        cat('  Default uCoefList is applied.','\n')
         betalist <- lapply(lxList,function(i){
           i <- betaPar()
         })
       }
       
-      if(length(fbetaList_l)>0){
-        cat('  The first fbetaList_l is applied to all items.', '\n')
+      if(length(uCoefList)>0){
+        cat('  The first element of uCoefList is applied to all items.', '\n')
         betalist <- lapply(lxList,function(i){
-          i <- betaPar(fbetaList_l[[1]])
+          i <- betaPar(uCoefList[[1]])
         })
       }
     }
-    if(length(fbetaList_l)==length(lxList))
-      betalist <- lapply(fbetaList_l,betaPar)
+    if(length(uCoefList)==length(lxList))
+      betalist <- lapply(uCoefList,betaPar)
     
     
     #regression
     ml <- fRegress(y, lxList, betalist)
     betaEstMat <- do.call('cbind',lapply(ml$betaestlist,function(i) 
       predict(i,y_time)))
-    ml_fitted <- lReg%*%t(betaEstMat)
+    ml_fitted <- uReg%*%t(betaEstMat)
     
     if(class(response)[1]=='fd') y_raw <- eval.fd(y_time,response)
     if(class(response)[1]=='matrix'){
@@ -243,70 +243,73 @@ main2 <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   mfTrainfd <- NULL
   ## functional response with functional covariates
   temp <- list(NULL)
-  if(!is.null(fReg)){
+  if(!is.null(fxReg)){
     y <- mat2fd(y,fyList)
     
     ## set up list of 'fd' object for x
-    if(class(fReg)[1]=='matrix' | class(fReg)[1]=='fd')
-      fReg <- list(fReg)
-    if(class(fReg)[1]=='list'){
-      if(length(unique(unlist(lapply(fReg,class))))!=1) 
+    if(class(fxReg)[1]=='matrix' | class(fxReg)[1]=='fd')
+      fxReg <- list(fxReg)
+    if(class(fxReg)[1]=='list'){
+      if(length(unique(unlist(lapply(fxReg,class))))!=1) 
         stop('functional covariates are expected to have same class')
-      if(unique(unlist(lapply(fReg,class)))=='matrix'){
-        if(ncol(fReg[[1]])!=length(y$fdnames$time)) fReg <- lapply(fReg,t)
-        if(length(fxList)!=length(fReg)){
-          cat('     Length of fxList list is not equal to the length of list of 
+      if(unique(unlist(lapply(fxReg,class)))=='matrix'){
+        if(ncol(fxReg[[1]])!=length(y$fdnames$time)) fxReg <- lapply(fxReg,t)
+        if(length(fxList)!=length(fxReg)){
+          cat('     Length of fxList is not equal to the length of list of 
               functional covariates','\n')
-          fReg <- lapply(fReg,t)
+          fxReg <- lapply(fxReg,t)
           if(length(fxList)==0){
             cat('     Default fxList is applied','\n')
-            fReg <- lapply(fReg,mat2fd)
+            fxReg <- lapply(fxReg,mat2fd)
           }
           if(length(fxList)>0){
-            cat('     First fxList is applied to all items','\n')
+            cat('     First element of fxList is applied to all items','\n')
             
-            fReg <- lapply(fReg,function(i){
+            fxReg <- lapply(fxReg,function(i){
               i <- mat2fd(i,fxList[[1]])
             })
           }
         }
-        if(length(fxList)==length(fReg)){
-          fReg <- lapply(1:length(fReg),function(i){
-            mat2fd(fReg[[i]],fxList[[i]])
+        if(length(fxList)==length(fxReg)){
+          fxReg <- lapply(1:length(fxReg),function(i){
+            mat2fd(fxReg[[i]],fxList[[i]])
           })
         }
       }
       
       
       ## set up list of fdPar object for beta
-      if(length(fbetaList_f)!=length(fReg)){
-        cat('     Length of fbetaList_f list is not equal to the length of list 
+      if(length(fxCoefList)!=length(fxReg)){
+        cat('     Length of fxCoefList list is not equal to the length of list 
             of functional covariates','\n')
-        if(length(fbetaList_f)==0){
-          cat('     Default fbetaList_f is applied','\n')
-          if(1-concurrent) betalist <- lapply(fReg,function(i) 
-            i=betaPar(list(bivar=TRUE)))
-          if(concurrent) betalist <- lapply(fReg,function(i) i=betaPar())
+        if(length(fxCoefList)==0){
+          cat('     Default fxCoefList is applied','\n')
+          if(1-concurrent){
+            betalist <- lapply(fxReg,function(i) i=betaPar(list(bivar=TRUE)))
+          }else{
+            betalist <- lapply(fxReg,function(i) i=betaPar())
+          }
         }
-        if(length(fbetaList_f)>0){
-          cat('     First fbetaList_f is applied to all items','\n')
-          if(1-concurrent) betalist <- lapply(fReg,function(i) 
-            i=betaPar(list(bivar=TRUE)))
-          if(concurrent) betalist <- lapply(fReg,function(i) 
-            i=betaPar(fbetaList_f[[1]]))
+        if(length(fxCoefList)>0){
+          cat('     First element of fxCoefList is applied to all items','\n')
+          if(1-concurrent) {
+            betalist <- lapply(fxReg,function(i) i=betaPar(list(bivar=TRUE)))
+          }else{
+            betalist <- lapply(fxReg,function(i) i=betaPar(fxCoefList[[1]]))
+            }
         }
       }
-      if(length(fbetaList_f)==length(fReg)){
-        if(1-concurrent) betalist <- lapply(fbetaList_f, function(i) 
+      if(length(fxCoefList)==length(fxReg)){
+        if(1-concurrent) betalist <- lapply(fxCoefList, function(i) 
           betaPar(list(bivar=TRUE)))
-        if(concurrent) betalist <- lapply(fbetaList_f, betaPar)
+        if(concurrent) betalist <- lapply(fxCoefList, betaPar)
       }
         
       ## regression
       temp <- NULL
-      for(i in seq_along(fReg)){
+      for(i in seq_along(fxReg)){
         if(is.matrix(y)) y <- mat2fd(y,fyList)
-        x <- fReg[[i]]
+        x <- fxReg[[i]]
         if(concurrent){
           const <- rep(1,dim(x$coef)[2])
           xlist <- list(const=const,x=x)
@@ -350,7 +353,7 @@ main2 <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
           res <- c(res,list(y)); fittedFM <- c(fittedFM,list(mf_fitted))
         }
       }
-      mfTrainfd <- fReg
+      mfTrainfd <- fxReg
     }
   }
   
@@ -361,14 +364,14 @@ main2 <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 }
 
 
-main3 <- function(response,lReg){
+main3 <- function(response,uReg){
   ### this is for the case that the response are longitudinal data, while the 
   ### covariates are scalars. 
   
   y <- response
   ml <- NULL
-  if(!is.null(lReg)){
-    ml <- lm(y~lReg)
+  if(!is.null(uReg)){
+    ml <- lm(y~uReg)
     y <- as.matrix(resid(ml))
   }
 
@@ -400,21 +403,32 @@ main3 <- function(response,lReg){
 #' @details All items listed above have default values. If any item is required
 #'   to change, add that item into the list; otherwise, leave it as NULL. For
 #'   example, if one only wants to change the number of basis functions, do:
+#'   
 #'   \code{mat2fd(SomeMatrix,list(nbasis=21))}
 #'
-#' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
-#'   Analysis for Functional Data'', CRC Press.
+#' @references Ramsay, J., and Silverman, B. W. (2006),
+#   ``Functional Data Analysis'', 2nd ed., Springer, New York. 
 #' @return An 'fd' object
 #' @export
 #' @import fda
 #' @examples
 #' require(fda)
-#' ry <- rnorm(20, sd=10)
-#' y1 <- matrix(NA, ncol=100, nrow=20)
-#' for(i in 1:20)  y1[i,] <- sin(seq(-1,pi,len=100))*ry[i]
-#'
-#' y1fd <- mat2fd(y1)
-#' y1fd <- mat2fd(y1,list(lambda=1))
+#' require(fda.usc)
+#' nrep <- 20   # number of replications
+#' n <- 100     # number of time points
+#' input <- seq(-1, pi, length.out=n) # time points
+#' ry <- rnorm(nrep, sd=10)
+#' y <- matrix(NA, ncol=n, nrow=nrep)
+#' for(i in 1:nrep)  y[i,] <- sin(2*input)*ry[i]
+#' 
+#' plot.fdata(fdata(y,input))
+#' 
+#' yfd <- mat2fd(y, list(lambda=0.01))
+#' plot(yfd)
+#' 
+#' yfd <- mat2fd(y, list(lambda=0.00001))
+#' plot(yfd)
+#' 
 mat2fd <- function(mat,fdList=NULL){
   fl <- list(time=seq(0,1,len=ncol(mat)),nbasis=min(as.integer(ncol(mat)/5),23),
              norder=6,bSpline=TRUE,Pen=c(0,0),lambda=1e-4)
@@ -451,10 +465,10 @@ mat2fd <- function(mat,fdList=NULL){
 #   since the weight for zero-th and first order derivatives of the curve are
 #   set to zero.}
 #  \item{lambda}{Smoothing parameter for the penalty. Default to be 1e4.}
-#  \item{bivar}{Logical. If TRUE, bivariate basis is used; 
+#  \item{bivar}{Logical. Used for non-concurrent models. If TRUE, bivariate basis is used; 
 #  if FALSE (default), normal basis is used}
 #  \item{lambdas}{Smoothing parameter for the penalty of the additional basis.
-#  Default to 1e4.}
+#  Default to 1.}
 # }
 #
 # @details All items listed above have default values. If any item is required
@@ -486,8 +500,9 @@ betaPar <- function(betaList=NULL){
   if(bSpline)  basis <- create.bspline.basis(rtime,nbasis,norder)
   if(1-bSpline) basis <- create.fourier.basis(rtime,nbasis,diff(rtime))
   Par <- vec2Lfd(Pen,rtime)
-  if(1-bivar) betaPar <- fdPar(basis, Par, lambda)
-  if(bivar){
+  if(1-bivar){
+    betaPar <- fdPar(basis, Par, lambda)
+  }else{
     lambdas <- c(betaList$lambdas,bl$lambdas)
     betaPar <- bifdPar(bifd(matrix(0,nbasis,nbasis), basis, basis),
                     Par, Par, lambda, lambdas)
@@ -582,9 +597,9 @@ fisherinfo <- function(pp.cg,X,Y,Cov,gamma,nu){
 
 #' @importFrom  fda.usc is.fdata
 #' @importFrom  fda is.fd
-gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
-                      fxList=NULL,fbetaList=NULL,concurrent=TRUE,
-                      fbetaList_f=NULL,gpReg=NULL,hyper=NULL,
+gpfrtrain <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
+                      fxList=NULL,fxCoefListScalarResp=NULL,concurrent=TRUE,
+                      fxCoefList=NULL,gpReg=NULL,hyper=NULL,
                       Cov,gamma=2,nu=1.5,useGradient=T,time=NULL,
                       rel.tol=1e-10,
                       trace.iter=5,fitting=FALSE){
@@ -599,15 +614,17 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   if(is.data.frame(y)) model <- 'main3'
   ModelType <- model
   
-  if(model=='main1') 
-    model <- main1(response=response,lReg=lReg,fReg=fReg,fxList=fxList,
-                   fbetaList=fbetaList)
-  if(model=='main2') 
-    model <- main2(response=response,lReg=lReg,fReg=fReg,fyList=fyList,
-                   fbetaList_l=fbetaList_l,fxList=fxList,concurrent=concurrent,
-                   fbetaList_f=fbetaList_f,time=time)  
+  if(model=='main1'){
+    model <- main1(response=response,uReg=uReg,fxReg=fxReg,fxList=fxList,
+                   fxCoefListScalarResp=fxCoefListScalarResp)
+  }
+  if(model=='main2'){
+    model <- main2(response=response,uReg=uReg,fxReg=fxReg,fyList=fyList,
+                   uCoefList=uCoefList,fxList=fxList,concurrent=concurrent,
+                   fxCoefList=fxCoefList,time=time)  
+  }
   iuuL <- NULL
-  iuuL <- chol2inv(chol(crossprod(cbind(lReg))))
+  iuuL <- chol2inv(chol(crossprod(cbind(uReg))))
   
   fittedFM <- model$fittedFM
   
@@ -639,7 +656,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   
   ### this is an approximation of iuu for functional regression
   iuuF <- NULL
-  if(ModelType=='main2' & !is.null(fReg)){
+  if(ModelType=='main2' & !is.null(fxReg)){
     if(concurrent){
       iuuF <- lapply(model$model$mf,function(i){
         BetaBasis=i$betaestlist$x$fd$basis
@@ -660,7 +677,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   
   sample_idx <- 1:tdsize*2-1
   response_raw <- response; 
-  Data_raw <- Data ## keep original data befreo reducing the dimension
+  Data_raw <- Data ## keep original data before reducing the dimension
   response <- response[sample_idx,]
   if(ncol(Data[[1]])!=ncol(response)){
     Data <- lapply(Data, t)
@@ -761,8 +778,8 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
   result <- list('hyper'=pp.cg,'I'=II, 'modellist'=model$model,'CovFun'=Cov,
                  'gamma'=gamma,'nu'=nu,'init_resp'=y_raw,meanFM=mean,
                  'resid_resp'=response_raw,'fitted.mean'=fitted,
-                 'fitted.sd'=fitted.sd,'ModelType'=ModelType,'lTrain'=lReg,
-                 'fTrain'=fReg,'mfTrainfd'=model$mfTrainfd,'gpTrain'=Data_raw,
+                 'fitted.sd'=fitted.sd,'ModelType'=ModelType,'lTrain'=uReg,
+                 'fTrain'=fxReg,'mfTrainfd'=model$mfTrainfd,'gpTrain'=Data_raw,
                  'time'=time,'iuuL'=iuuL,'iuuF'=iuuF,
                  'fittedFM'=fittedFM,'fyList'=fyList)
   class(result) <- 'gpfr'
@@ -773,7 +790,7 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 
 
 
-#' Gaussian Process for functional data
+#' Gaussian process functional regression model (GPFR)
 #'
 #' Use functional regression (FR) model for the mean structure and Gaussian
 #' Process (GP) for the covariance structure. \cr \cr Let 'n' be the number of
@@ -781,26 +798,29 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #' replications in the sample.
 #'
 #' @param response Response data. It can be an 'fd' object or a matrix with
-#'   'nrep' rows and 'nrep' columns.
-#' @param time Input 't' of functional objects. It is a numerical vector.
-#' @param lReg Scalar covariates for the FR model. It should be a matrix with
+#'   'nrep' rows and 'n' columns.
+#' @param time Input 't' of functional objects. It is a numeric vector of
+#'   length 'n'.
+#' @param uReg Scalar covariates for the FR model. It should be a matrix with
 #'   'nrep' rows.
-#' @param fReg Functional covariates for the FR model. It can be a matrix with
-#'   'nrep' rows, or an 'fd' object, or a list of matrices or 'fd' objects.
+#' @param fxReg Functional covariates for the FR model. It can be a matrix with
+#'   'nrep' rows  and 'n' columns, an 'fd' object, or a list of matrices or 'fd'
+#'   objects.
 #' @param fyList A list to control the smoothing of response.
-#' @param fbetaList_l A list to control the smoothing of the regression
+#' @param uCoefList A list to control the smoothing of the regression
 #'   coefficient function of the scalar covariates in the FR model.
 #' @param fxList A list to control the smoothing of functional covariates in the
 #'   FR model.
 #' @param concurrent Logical. If TRUE (default), concurrent functional
 #'   regression will be carried out; otherwise, the full functional regression
 #'   will be carried out.
-#' @param fbetaList_f A list to control the smoothing of the regression
-#'   coefficient function of functional covariates in the FR model.
-#' @param fbetaList A list to control the smoothing of functional covariates in
-#'   the FR model with scalar response and functional covariates. 
-#' @param gpReg Covariates in the GP model. It should be a matrix, an 'fd'
-#'   object, a list of matrices or a list of 'fd' objects.
+#' @param fxCoefList A list to control the smoothing of the regression
+#'   coefficient function of functional covariates in the functional concurrent
+#'   model.
+### @param fxCoefListScalarResp A list to control the smoothing of functional covariates in
+###   the FR model with scalar response and functional covariates.
+#' @param gpReg Covariates in the GP model. It should be a matrix, a numeric vector, 
+#' an 'fd' object, a list of matrices or a list of 'fd' objects.
 #' @param hyper Vector of initial hyperparameters. Default to NULL.
 #' @param NewHyper Vector of names of new hyperparameters from the customized
 #'   kernel function.
@@ -816,32 +836,39 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #' @param trace.iter Print the processing of iterations of optimization.
 #' @param fitting Logical. If TRUE, fitting is carried out. Default to FALSE.
 #'
-#' @details fyList is a list with items: 'time': a sequence of time points
-#'   default to be 100 points from 0 to 1; 'nbasis': number of basis functions
-#'   used in smoothing, default to be less than or equal to 23; 'norder': the
-#'   order of the functional curves default to be 6; 'bSpline': logical, if
-#'   TRUE, b-spline is used, otherwise use Fourier basis, default to be TRUE;
-#'   'Pen': default to be c(0,0), meaning that the penalty is only applied to
-#'   the second order derivative of the curve, with no penalty for the zero-th
-#'   and first order derivatives of the curve; 'lambda': the smoothing parameter
-#'   for the penalty, default to be 1e-4.
+#' @details \code{fyList} is a list with the following items:
 #'
-#'   fxList is similar to fyList. However, it is a list of lists to allow for
-#'   different specifications for each functional covariate if there are
-#'   multiple ones.
+#'   \itemize{ \item \code{time}: a sequence of time points; default to be 100
+#'   points from 0 to 1. \item \code{nbasis}: number of basis functions used in
+#'   smoothing, default to be less than or equal to 23. \item \code{norder}:
+#'   order of the functional curves; default to be 6. \item \code{bSpline}:
+#'   logical. If TRUE (default), B-splines basis is used; otherwise, Fourier
+#'   basis is used. \item \code{Pen}: default to be c(0,0), meaning that the
+#'   penalty is only applied to the second order derivative of the curve, with
+#'   no penalty for the zero-th and first order derivatives of the curve. \item
+#'   \code{lambda}: smoothing parameter for the penalty, default to be 1e-4. }
+#'   \code{fxList} is similar to \code{fyList}. However, it is a list of lists
+#'   to allow for different specifications for each functional covariate if
+#'   there are multiple ones.
 #'
-#'   fbetaList, fbetaList_l and fbetaList_f are similar to each other. Each one
-#'   is expected to be a list of lists. The items in each sub-list are: 'rtime':
-#'   range of time, default to be 0 and 1; 'nbasis': number of basis functions
-#'   used in smoothing, default to be less or equal to 19; 'norder': the order
-#'   of the functional curves default to be 6; 'bSpline': logical, if TRUE
-#'   (default), B-spline representation is used, otherwise Fourier basis is
-#'   used; 'Pen': default to be c(0,0); 'lambda': default to be 1e4;
-#'   'bivar':logical, if TRUE, the bivariate basis will be calculated, otherwise
-#'   normal basis, default to be FALSE; 'lambdas': the smoothing parameter for
-#'   the penalty of the additional basis, default to be 1e4.
+#'   \code{uCoefList} and \code{fxCoefList} are similar to
+#'   each other. Each one is expected to be a list of lists. If a list of one 
+#'   element is provided, then the items of this element are applied to each of 
+#'   the functional coefficients of scalar covariates and of functional covariates,
+#'   respectively. 
 #'
-#'   Note that all items have default settings.
+#'   \itemize{ \item \code{rtime}: range of time, default to be c(0,1). \item
+#'   \code{nbasis}: nnumber of basis functions used in smoothing, default to be
+#'   less than or equal to 19. \item  \code{norder}: order of the functional
+#'   curves; default to be 6. \item \code{bSpline}: logical. If TRUE (default),
+#'   B-splines basis is used; otherwise, Fourier basis is used. \item
+#'   \code{Pen}: default to be c(0,0). \item \code{lambda}: smoothing parameter
+#'   for the penalty, default to be 1e4. \item \code{bivar}:logical. Used for
+#'   non-concurrent models; if TRUE, bivariate basis will be used; if FALSE
+#'   (default), normal basis will be used; see details in
+#'   \code{\link[fda]{bifdPar}}. \item \code{lambdas}: smoothing parameter for
+#'   the penalty of the additional basis, default to be 1. } Note that all items
+#'   have default settings.
 #'
 #' @references \itemize{ \item Ramsay, J., and Silverman, B. W. (2006),
 #'   ``Functional Data Analysis'', 2nd ed., Springer, New York. \item Shi, J.
@@ -851,30 +878,42 @@ gpfrtrain <- function(response,lReg=NULL,fReg=NULL,fyList=NULL,fbetaList_l=NULL,
 #' @return A list containing: \describe{ \item{hyper}{Estimated hyperparameters}
 #'   \item{I}{A vector of estimated standard deviation of hyperparameters}
 #'   \item{modellist}{List of FR models fitted before Gaussian process}
-#'   \item{CovFun}{Covariance function used} \item{gamma}{Parameter 'gamma' used in Gaussian
-#'   process with powered exponential kernel} \item{nu}{Parameter 'nu' used in Gaussian
-#'   process with Matern kernel}
-#'   \item{init_resp}{Raw response data} \item{resid_resp}{Residual after the fitted values from FR models have been taken out} \item{fitted}{Fitted values} \item{fitted.sd}{Standard
-#'   deviation of the fitted values} \item{ModelType}{The type of the model applied in the
-#'   function.} \item{lTrain}{Training scalar covariates for the FR model} \item{fTrain}{Training functional covariates for the FR model} \item{mfTrainfd}{List of 'fd' objects from
-#'   training data for FR model with functional covariates}
-#'   \item{gpTrain}{Training data for Gaussian Process} \item{time}{Input time 't'} \item{iuuL}{Inverse of covariance matrix for
-#'   lReg} \item{iuuF}{Inverse of covariance matrix for fReg}
-#'   \item{fittedFM}{Fitted values from the FR model}
-#'   \item{fyList}{fyList object used} }
+#'   \item{CovFun}{Covariance function used} \item{gamma}{Parameter 'gamma' used
+#'   in Gaussian process with powered exponential kernel} \item{nu}{Parameter
+#'   'nu' used in Gaussian process with Matern kernel} \item{init_resp}{Raw
+#'   response data} \item{resid_resp}{Residual after the fitted values from FR
+#'   models have been taken out} \item{fitted}{Fitted values}
+#'   \item{fitted.sd}{Standard deviation of the fitted values}
+#'   \item{ModelType}{The type of the model applied in the function.}
+#'   \item{lTrain}{Training scalar covariates for the FR model}
+#'   \item{fTrain}{Training functional covariates for the FR model}
+#'   \item{mfTrainfd}{List of 'fd' objects from training data for FR model with
+#'   functional covariates} \item{gpTrain}{Training data for Gaussian Process}
+#'   \item{time}{Input time 't'} \item{iuuL}{Inverse of covariance matrix for
+#'   uReg} \item{iuuF}{Inverse of covariance matrix for fxReg}
+#'   \item{fittedFM}{Fitted values from the FR model} \item{fyList}{fyList
+#'   object used} }
 #' @export
 #'
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpfr", package = "GPFDA")
-gpfr <- function(response, time=NULL, lReg=NULL, fReg=NULL,
-                 fyList=NULL, fbetaList_l=NULL, 
-                 fxList=NULL, concurrent=TRUE, fbetaList_f=NULL,
-                 fbetaList=NULL,
+gpfr <- function(response, time=NULL, uReg=NULL, fxReg=NULL,
+                 fyList=NULL, uCoefList=NULL, 
+                 fxList=NULL, concurrent=TRUE, fxCoefList=NULL,
                  gpReg=NULL, hyper=NULL, NewHyper=NULL, Cov='pow.ex', gamma=2, nu=1.5, 
                  useGradient=T, rel.tol=1e-10, trace.iter=5, fitting=FALSE){
+  
+  
+  if(!is.matrix(response) & !is.fd(response)){
+    stop("'response' must be either a matrix or an 'fd' object.")
+  }
+  fxCoefListScalarResp <- NULL # models with scalar response not implemented yet
+  
+  if(is.numeric(gpReg)) gpReg <- as.matrix(gpReg)
+  if(is.matrix(gpReg)) gpReg <- list(gpReg)
   if(is.list(gpReg)) col.no <- length(gpReg)
-  if(is.matrix(gpReg)) col.no <- 1
+  # if(is.matrix(gpReg)) col.no <- 1
   if(!is.matrix(gpReg) & !is.list(gpReg)){
     cat('No gpReg found, doing functional regression only')
     col.no <- 1
@@ -911,9 +950,11 @@ gpfr <- function(response, time=NULL, lReg=NULL, fReg=NULL,
     }
   }
   
-  a1 <- gpfrtrain(response=response,lReg=lReg,fReg=fReg,gpReg=gpReg,
-                  fyList=fyList,fbetaList_l=fbetaList_l,fxList=fxList,
-                  fbetaList_f=fbetaList_f,fbetaList=fbetaList,hyper=hyper,
+  a1 <- gpfrtrain(response=response,uReg=uReg,fxReg=fxReg,gpReg=gpReg,
+                  fyList=fyList,uCoefList=uCoefList,fxList=fxList,
+                  fxCoefList=fxCoefList,
+                  fxCoefListScalarResp=fxCoefListScalarResp,
+                  hyper=hyper,
                   Cov=Cov,gamma=gamma,nu=nu,useGradient=useGradient,
                   fitting=fitting,time=time,
                   rel.tol=rel.tol,trace.iter=trace.iter,
@@ -925,32 +966,32 @@ gpfr <- function(response, time=NULL, lReg=NULL, fReg=NULL,
 #' Prediction of GPFR model
 #'
 #' Make predictions for test input data based on the GPFR model learnt by the
-#' 'gpfr' function. Both type I and type II predictions can be made.
+#' 'gpfr' function. Both Type I and Type II predictions can be made.
 #'
-#' @param object An object of class 'gpfr' obtained by the the 'gpfr' function.
-#' @param TestData Test input data. It must be a matrix or an 'fd' object.
-#' @param NewTime New time 't' for test data. If NULL, default settings will be
-#'   applied.
-#' @param lReg The test scalar data for the FR model.
-#' @param fReg The test functional data for the FR model.
-#' @param gpReg List of three items. The names of the items must be 'response',
-#'   'input', 'time'. For type I prediction, 'response' is the observed response
-#'   for a new batch, 'input' is the observed functional covariates for a new
-#'   batch, 'time' is the observed time for the previous two. If NULL, type II
-#'   prediction, will be carried out.
-#' @param GP_predict Logical. If TRUE (default), GP prediction is carried out;
-#'   otherwise only functional prediction is carried out.
+#' @param train An object of class 'gpfr' obtained by the the 'gpfr' function.
+#' @param testInputGP Test input data for the GP prediction. It must be a numeric 
+#' vector, a matrix or an 'fd' object.
+#' @param testTime Test time points for prediction. If NULL, default settings
+#'   will be applied.
+#' @param uReg Scalar covariates data of a new batch for the FR model.
+#' @param fxReg Functional covariates data of a new batch for the FR model.
+#' @param gpReg Input data for the GP part used for Type I prediction. It must
+#'   be a list of three items. The names of the items must be 'response',
+#'   'input', and 'time'. The item 'response' is the observed response for a new
+#'   batch; 'input' is the observed functional covariates for a new
+#'   batch,;'time' is the observed time for the previous two. If NULL (default),
+#'   Type II prediction is carried out.
+#' @param GPpredict Logical. If TRUE (default), GPFR prediction is carried out;
+#'   otherwise only predictions based on the FR model is carried out.
 #'
 #' @importFrom  fda.usc is.fdata
 #'
-#' @details If 'gpReg' is provided, then type I prediction is made. Otherwise,
-#'   type II prediction is made.
-#' @return A list containing: \describe{ \item{ypred}{matrix of predicted values
-#'   with confidence intervals. The first column has the fitted values, while
-#'   the second and third columnas have the confidence interval bounds.}
-#'   \item{ypred.mean}{The mean values of the prediction.} \item{ypred.sd}{The
-#'   standard deviation of the predictions.} \item{time}{Time 't' of test data.}
-#'   \item{object}{All items trained by 'gpfr'.} }
+#' @details If 'gpReg' is provided, then Type I prediction is made. Otherwise,
+#'   Type II prediction is made.
+#' @return A list containing: \describe{ \item{ypred.mean}{The mean values of
+#'   the prediction.} \item{ypred.sd}{The standard deviation of the
+#'   predictions.} \item{predictionType}{Prediction type if  GPFR prediction is
+#'   carried out.} \item{train}{All items trained by 'gpfr'.} }
 #'
 #' @references \itemize{ \item Ramsay, J., and Silverman, B. W. (2006),
 #'   ``Functional Data Analysis'', 2nd ed., Springer, New York. \item Shi, J.
@@ -961,10 +1002,10 @@ gpfr <- function(response, time=NULL, lReg=NULL, fReg=NULL,
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpfr", package = "GPFDA")
-gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
-                     gpReg=NULL, GP_predict=TRUE){
-  if(class(object)!='gpfr'){
-    stop("The argument 'object' is expected to be an object of class 'gpfr' ",'\n')
+gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL,
+                     gpReg=NULL, GPpredict=TRUE){
+  if(class(train)!='gpfr'){
+    stop("The argument 'train' is expected to be an object of class 'gpfr' ",'\n')
   }
   
   if(is.null(gpReg)){
@@ -972,27 +1013,27 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
   }else{
     predictionType <- 1
   }
-  model <- object$modellist
-  if(is.null(model$ml) & !is.null(lReg)){
-    cat('    model with scalar variable is not found, ignoring lReg','\n')
-    lReg <- NULL
+  model <- train$modellist
+  if(is.null(model$ml) & !is.null(uReg)){
+    cat('    model with scalar variable is not found, ignoring uReg','\n')
+    uReg <- NULL
   }
-  if(is.null(model$mf[[1]]) & !is.null(fReg)){
-    cat('    model with functional variable is not found, ignoring lReg','\n')
-    fReg <- NULL
+  if(is.null(model$mf[[1]]) & !is.null(fxReg)){
+    cat('    model with functional variable is not found, ignoring uReg','\n')
+    fxReg <- NULL
   }
-  if(!is.null(model$ml) & is.null(lReg) & object$ModelType=='main1'){
+  if(!is.null(model$ml) & is.null(uReg) & train$ModelType=='main1'){
     stop('    expecting input variable for model with scalar variable. ','\n')
-    lReg <- NULL
+    uReg <- NULL
   }
-  if(!is.null(model$ml) & is.null(lReg) & object$ModelType=='main2'){
+  if(!is.null(model$ml) & is.null(uReg) & train$ModelType=='main2'){
     stop('    expecting input variable for model with scalar variable. ','\n')
-    lReg <- NULL
+    uReg <- NULL
   }
-  if(!is.null(model$mf[[1]]) & is.null(fReg)){
+  if(!is.null(model$mf[[1]]) & is.null(fxReg)){
     stop('    expecting input variable for model with functional variable. ',
          '\n')
-    fReg <- NULL
+    fxReg <- NULL
   }
   
   if(!is.null(model$ml) | !is.null(model$mf))
@@ -1001,32 +1042,35 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
             model$mf[[1]]$yhatfdobj$fd$basis$rangeval)[1:2]
   if(is.null(model$ml) & is.null(model$mf)) rtime <- c(0,1)
   
-  if(class(TestData)[1]=='matrix'){
-    test <- TestData
+  if(class(testInputGP)=='numeric'){
+    testInputGP <- as.matrix(testInputGP)
+  }
+  if(class(testInputGP)=='matrix'){
+    test <- testInputGP
     test <- t(test)
-    if(is.null(NewTime)) time <- seq(rtime[1],rtime[2],len=col(test))
-    if(!is.null(NewTime)) time <- NewTime
+    if(is.null(testTime)) time <- seq(rtime[1],rtime[2],len=col(test))
+    if(!is.null(testTime)) time <- testTime
   }
   
-  if(class(TestData)[1]=='fd'){
-    if(is.null(NewTime)) time <- seq(rtime[1],rtime[2],
-                                     len=TestData$fdnames$time)
-    if(!is.null(NewTime)) time <- NewTime
-    test <- eval.fd(time,TestData)
+  if(class(testInputGP)[1]=='fd'){
+    if(is.null(testTime)) time <- seq(rtime[1],rtime[2],
+                                     len=testInputGP$fdnames$time)
+    if(!is.null(testTime)) time <- testTime
+    test <- eval.fd(time,testInputGP)
   } 
   testtime <- time
-  if(is.null(lReg)) lRegList <- NULL
-  if(!is.null(lReg)) lRegList <- list(f=lReg)
+  if(is.null(uReg)) uRegList <- NULL
+  if(!is.null(uReg)) uRegList <- list(f=uReg)
   timeList <- list(f=time)
-  if(is.null(fReg)) fRegList <- NULL
-  if(!is.null(fReg))  fRegList <- list(f=fReg)
+  if(is.null(fxReg)) fRegList <- NULL
+  if(!is.null(fxReg))  fRegList <- list(f=fxReg)
   
   ml_var <- 0
   mf_var <- 0
   
   if(!is.null(gpReg)& class(gpReg)!='list'){
     cat('Type I prediction is expecting gpReg to be a list with a response and 
-        an input. do type II prediction instead')
+        an input. Do Type II prediction instead')
     gpReg <- NULL
   }
   type <- 2
@@ -1039,47 +1083,47 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
     if(!1%in%dim(as.matrix(gpReg$response)))
       stop('check the diemsion of the "response", it must be a column or 
            row matrix, or a vector')
-    gplReg <- lReg
+    gplReg <- uReg
     gpfReg <- gpReg$input
     gpresp <- gpReg$response
     gptime <- gpReg$time
     yhat_ml_list <- vector('list',length=2)
-    if(!is.null(lReg)) lRegList <- list(f=lReg,gp=gplReg)
+    if(!is.null(uReg)) uRegList <- list(f=uReg,gp=gplReg)
     if(!is.null(time)) timeList <- list(f=time,gp=gptime)
-    if(!is.null(fReg)) fRegList <- list(f=fReg,gp=gpfReg)
+    if(!is.null(fxReg)) fRegList <- list(f=fxReg,gp=gpfReg)
     # else stop('expecting Test input')
   }
   
   ### predict ml for main2
-  if(is.null(lRegList)) yhat_ml <- 0
-  if(!is.null(lRegList)){
-    for(ii in seq_along(lRegList)){
-      lReg <- lRegList[[ii]]
+  if(is.null(uRegList)) yhat_ml <- 0
+  if(!is.null(uRegList)){
+    for(ii in seq_along(uRegList)){
+      uReg <- uRegList[[ii]]
       time <- timeList[[ii]]
       
-      if (object$ModelType=='main2'){
-        if(!is.null(lReg)){
-          if(is.vector(lReg)) lReg <- t(as.matrix(lReg))
-          if(is.matrix(lReg)){
-            if(length(model$ml$betaestlist)!=ncol(lReg))
-              stop('dimension of lReg does not match the model')
-            if(length(model$ml$betaestlist)==ncol(lReg)){
+      if (train$ModelType=='main2'){
+        if(!is.null(uReg)){
+          if(is.vector(uReg)) uReg <- t(as.matrix(uReg))
+          if(is.matrix(uReg)){
+            if(length(model$ml$betaestlist)!=ncol(uReg))
+              stop('dimension of uReg does not match the model')
+            if(length(model$ml$betaestlist)==ncol(uReg)){
               x <- model$ml$betaestlist
-              for(i in 1:ncol(lReg))
-                x[[i]] <- as.matrix(lReg[,i])
+              for(i in 1:ncol(uReg))
+                x[[i]] <- as.matrix(uReg[,i])
             }
           }
-          if(class(lReg)[1]=='list'){
-            if(unique(unlist(lapply(lReg,class)))=='fd')
-              x <- lapply(lReg,function(i) t(i$coefs))
-            if(unique(unlist(lapply(lReg,class)))=='matrix')
-              x <- lReg
+          if(class(uReg)[1]=='list'){
+            if(unique(unlist(lapply(uReg,class)))=='fd')
+              x <- lapply(uReg,function(i) t(i$coefs))
+            if(unique(unlist(lapply(uReg,class)))=='matrix')
+              x <- uReg
           }
           betalist <- lapply(model$ml$betaestlist,function(i){
             i <- predict(i,time)
           })
           if(ii==1){
-            ml_var <- do.call('cbind',x)%*%object$iuuL%*%t(do.call('cbind',x))
+            ml_var <- do.call('cbind',x)%*%train$iuuL%*%t(do.call('cbind',x))
           }
           for(i in 1:length(x)){
             x[[i]] <- x[[i]]%*%t(betalist[[i]])
@@ -1095,35 +1139,35 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
   if(is.null(fRegList)) yhat_mf <- gpyhat_mf <- matrix(0,ncol=1,nrow=1)
   if(!is.null(fRegList)){
     for(ii in seq_along(fRegList)){
-      fReg <- fRegList[[ii]]
+      fxReg <- fRegList[[ii]]
       time <- timeList[[ii]]
-      if (object$ModelType=='main2'){
-        if(!is.null(fReg)){
-          if(is.fdata(fReg)) fReg <- list(t(fReg$data))
-          if(is.matrix(fReg) | is.fd(fReg)) fReg <- list((fReg))
-          if(unique(unlist(lapply(fReg,class)))=='fd'){
-            fReg <- lapply(fReg,function(i) eval.fd(time,i))
+      if (train$ModelType=='main2'){
+        if(!is.null(fxReg)){
+          if(is.fdata(fxReg)) fxReg <- list(t(fxReg$data))
+          if(is.matrix(fxReg) | is.fd(fxReg)) fxReg <- list((fxReg))
+          if(unique(unlist(lapply(fxReg,class)))=='fd'){
+            fxReg <- lapply(fxReg,function(i) eval.fd(time,i))
           }
-          if(unique(unlist(lapply(fReg,class)))=='matrix'){
-            fReg <- lapply(fReg,t)
+          if(unique(unlist(lapply(fxReg,class)))=='matrix'){
+            fxReg <- lapply(fxReg,t)
           }
-          if(unique(unlist(lapply(fReg,ncol)))>1){
-            if(length(fReg)!=1 & ii==1){
+          if(unique(unlist(lapply(fxReg,ncol)))>1){
+            if(length(fxReg)!=1 & ii==1){
               stop('new samples of functional covariates for functional 
                    regression are having wrong dimensions')}
-            if(length(fReg)!=1 & ii==2){
+            if(length(fxReg)!=1 & ii==2){
               stop('input functional covariates for Gaussian process are having 
                    wrong dimensions')}
-            if(length(fReg)==1){
-              ftmp <- vector('list',length=ncol(fReg[[1]]))
-              for(i in seq_along(ftmp)) ftmp[[i]] <- as.matrix(fReg[[1]][,i])
-              fReg <- ftmp
+            if(length(fxReg)==1){
+              ftmp <- vector('list',length=ncol(fxReg[[1]]))
+              for(i in seq_along(ftmp)) ftmp[[i]] <- as.matrix(fxReg[[1]][,i])
+              fxReg <- ftmp
               rm(ftmp)
             }
           }
           
-          fReg <- lapply(fReg,function(i){
-            i=cbind(matrix(1,nrow=nrow(fReg[[1]])),i)
+          fxReg <- lapply(fxReg,function(i){
+            i=cbind(matrix(1,nrow=nrow(fxReg[[1]])),i)
           })
           ## find beta and multiply with the fx
           if(!'bifd'%in%unlist(lapply(model$mf[[1]],class))){
@@ -1136,24 +1180,24 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
             if(ii==1){
               mf_var <- rep(0,length(fbeta))
               for(i in seq_along(fbeta)){
-                iuuTime <- seq(object$mfTrainfd[[i]]$basis$rangeval[1],
-                               object$mfTrainfd[[i]]$basis$rangeval[2],
-                               len=nrow(fReg[[i]]))
-                Basis <- object$mfTrainfd[[i]]$basis
-                fx <- as.matrix(fReg[[i]][,2])
+                iuuTime <- seq(train$mfTrainfd[[i]]$basis$rangeval[1],
+                               train$mfTrainfd[[i]]$basis$rangeval[2],
+                               len=nrow(fxReg[[i]]))
+                Basis <- train$mfTrainfd[[i]]$basis
+                fx <- as.matrix(fxReg[[i]][,2])
                 fx <- t(
                   eval.fd(seq(
                     iuuTime[1],iuuTime[2],
-                    len=object$modellist$mf[[1]]$betaestlist$x$fd$basis$nbasis),
+                    len=train$modellist$mf[[1]]$betaestlist$x$fd$basis$nbasis),
                              smooth.basis(iuuTime,fx,Basis)$fd))
-                mf_var[i] <- fx%*%object$iuuF[[i]]%*%t(fx)
+                mf_var[i] <- fx%*%train$iuuF[[i]]%*%t(fx)
               }
             }
-            fReg[[i]] <- apply(fReg[[i]],2,function(j){
+            fxReg[[i]] <- apply(fxReg[[i]],2,function(j){
               j=as.matrix(fbeta[[i]][,1])+as.matrix(fbeta[[i]][,2])*j
             })
-            if(ii==1) yhat_mf <- Reduce('+',fReg)
-            if(ii==2) gpyhat_mf <- Reduce('+',fReg)
+            if(ii==1) yhat_mf <- Reduce('+',fxReg)
+            if(ii==2) gpyhat_mf <- Reduce('+',fxReg)
           }
           
           if('bifd'%in%unlist(lapply(model$mf[[1]],class))){
@@ -1163,12 +1207,12 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
               i=cbind(intcept,slope)
             })
             for(i in seq_along(fbeta)){
-              fReg[[i]] <- apply(fReg[[i]],2,function(j){
+              fxReg[[i]] <- apply(fxReg[[i]],2,function(j){
                 j <- as.matrix(fbeta[[i]][,1]) + 
                   as.matrix(fbeta[[i]][,-1])%*%as.matrix(j)
               })}
-            if(i==1) yhat_mf <- Reduce('+',fReg)
-            if(i==2) gpyhat_mf <- Reduce('+',fReg)
+            if(i==1) yhat_mf <- Reduce('+',fxReg)
+            if(i==2) gpyhat_mf <- Reduce('+',fxReg)
           }
           
         }
@@ -1178,50 +1222,55 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
   }
 #   
   f.mean <- yhat_ml+apply(yhat_mf,1,sum)
-  f.var <- apply((object$init_resp-t(object$resid_resp))^2,2,sum)/(nrow(
-    object$init_resp)-1)
-  object$fyList$time <- object$time
-  f.var <- mat2fd(t(as.matrix(f.var)),object$fyList)
+  f.var <- apply((train$init_resp-t(train$resid_resp))^2,2,sum)/(nrow(
+    train$init_resp)-1)
+  train$fyList$time <- train$time
+  f.var <- mat2fd(t(as.matrix(f.var)),train$fyList)
   f.var <- abs(eval.fd(testtime,f.var))
-  Fypredup <- f.mean + 1.96*sqrt(f.var)
-  Fypredlo <- f.mean - 1.96*sqrt(f.var)
-  if(1-GP_predict) return(list(ypred=cbind(f.mean,Fypredup,Fypredlo),
-                               unclass(object)))
-  ## type I prediction
-  
-  
+  # Fypredup <- f.mean + 1.96*sqrt(f.var)
+  # Fypredlo <- f.mean - 1.96*sqrt(f.var)
+  if(!GPpredict) {
+    # return(list(ypred=cbind(f.mean,Fypredup,Fypredlo),
+    #                            unclass(train)))
+    result <- c(list(ypred.mean = f.mean,
+                ypred.sd = sqrt(f.var),
+                testTime=testtime), 
+                unclass(train))
+  }else{
+    
+  ## Type I prediction
   if(type==1){
     
-    cat('    Working out type I prediction','\n')
+    cat('    Working out Type I prediction','\n')
     gpresp <- as.matrix(gpReg$response)
     if(nrow(gpresp)==1) gpresp <- t(gpresp)
     ygpobs <- as.matrix(gpresp)-gpyhat_ml-apply(gpyhat_mf,1,sum)    
-    y_gppred <- gprPredict(train=FALSE,hyper=object$hyper, 
+    y_gppred <- gprPredict(train=FALSE,hyper=train$hyper, 
                           input=as.matrix(gpReg$input), Y=as.matrix(ygpobs), 
-                          input.new=t(as.matrix(test)), Cov=object$CovFun, 
-                          gamma=object$gamma, nu=object$nu)
+                          input.new=t(as.matrix(test)), Cov=train$CovFun, 
+                          gamma=train$gamma, nu=train$nu)
     ygppred <- y_gppred$pred.mean
-    s2 <- ((y_gppred$pred.sd)^2-exp(object$hyper$vv))%*%(1 + ml_var)
+    s2 <- ((y_gppred$pred.sd)^2-exp(train$hyper$vv))%*%(1 + ml_var)
     #+sum(mf_var))
     ypred <- yhat_ml+apply(yhat_mf,1,sum) + ygppred 
     ## fd regression plus gp regression
   }
   
-  ## type II prediction
+  ## Type II prediction
   if(is.null(gpReg)|type==2){
-    cat('    Working out type II prediction','\n')
+    cat('    Working out Type II prediction','\n')
     
-    fitted <- matrix(0,ncol=ncol(object$resid_resp),nrow=ncol(test))
+    fitted <- matrix(0,ncol=ncol(train$resid_resp),nrow=ncol(test))
     fitted.var <- fitted
     
-    for(i in 1:ncol(object$resid_resp)){
-      input <- do.call('cbind',lapply(object$gpTrain,function(j) j=j[,i]))
+    for(i in 1:ncol(train$resid_resp)){
+      input <- do.call('cbind',lapply(train$gpTrain,function(j) j=j[,i]))
       y_gppred <- gprPredict(train=FALSE,input.new=t(as.matrix(test)),
-                            hyper=object$hyper,input=as.matrix(input), 
-                            Y=as.matrix(object$resid_resp[,i]), 
-                            Cov=object$CovFun,gamma=object$gamma, nu=object$nu)
+                            hyper=train$hyper,input=as.matrix(input), 
+                            Y=as.matrix(train$resid_resp[,i]), 
+                            Cov=train$CovFun,gamma=train$gamma, nu=train$nu)
       ygppred <- y_gppred$pred.mean
-      s2 <- ((y_gppred$pred.sd)^2-exp(object$hyper$vv))
+      s2 <- ((y_gppred$pred.sd)^2-exp(train$hyper$vv))
       #%*%(1 + ml_var+sum(mf_var))
       fitted[,i] <- yhat_ml+apply(yhat_mf,1,sum) + ygppred
       fitted.var[,i] <- s2
@@ -1231,14 +1280,25 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
   }
   
   
-  ypredup <- ypred + 1.96*sqrt(s2)
-  ypredlo <- ypred - 1.96*sqrt(s2)
+  # ypredup <- ypred + 1.96*sqrt(s2)
+  # ypredlo <- ypred - 1.96*sqrt(s2)
+  # 
+  # CI <- cbind(ypred, ypredup, ypredlo)
   
-  CI <- cbind(ypred, ypredup, ypredlo)
+  # result <- c(list(ypred=CI, testtime=time, predtime=testtime,
+  #                  ypred.mean=ypred,
+  #                  ypred.sd=sqrt(s2)),predictionType=predictionType,
+  #             unclass(train))
   
-  result <- c(list(ypred=CI, testtime=time,predtime=testtime,ypred.mean=ypred,
-                   ypred.sd=sqrt(s2)),predictionType=predictionType,
-              unclass(object))
+  result <- c(list(ypred.mean=ypred,
+                 ypred.sd=sqrt(s2),
+                 testTime=testtime, 
+                 predictionType=predictionType),
+                 unclass(train))
+  
+  }
+  
+
   class(result) <- 'gpfr'
   return(result)
 }
@@ -1260,6 +1320,16 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
 #' should be plotted. If NULL (default), all training realisations are plotted. 
 #' For predictions, 'realisations' should be '0' if no training realisation 
 #' is to be plotted.
+#' @param alpha Significance level used for 'fitted' or 'prediction'. Default is 0.05.
+#' @param colourTrain Colour for training realisations when 'type' is set to 
+#' 'prediction' and 'realisations' is positive.
+#' @param colourNew Colour for predictive mean for the new curve when 'type' is 
+#' set to 'prediction'.
+#' @param mar Graphical parameter passed to par().
+#' @param oma Graphical parameter passed to par().
+#' @param cex.lab Graphical parameter passed to par().
+#' @param cex.axis Graphical parameter passed to par().
+#' @param cex.main Graphical parameter passed to par().
 #' @param ... Other graphical parameters passed to plot().
 #' @importFrom graphics polygon
 #' @importFrom graphics matpoints
@@ -1273,12 +1343,18 @@ gpfrPredict <- function(object, TestData, NewTime=NULL, lReg=NULL, fReg=NULL,
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpfr", package = "GPFDA")
-plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'), 
-                       ylab='y', xlab='t', ylim=NULL, realisations=NULL, ...){
+plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
+                       ylab='y', xlab='t', ylim=NULL, realisations=NULL, 
+                       alpha=0.05,
+                       colourTrain=2, colourNew=4,
+                       mar=c(4.5,5.1,2.2,0.8), oma=c(0,0,1,0), 
+                       cex.lab=1.5, cex.axis=1, cex.main=1.5, ...){
   obj <- x
-  if(!type%in%c('raw','meanFunction','fitted','prediction')) 
+  if(!type%in%c('raw','meanFunction','fitted','prediction')){
     stop('type must be one of the raw, fitted or prediction')
-  type <- type[1]
+  }
+  
+  z <- stats::qnorm(1-alpha/2)
   
   if(is.null(realisations)){
     idx <- 1:ncol(obj$fitted.mean)
@@ -1287,11 +1363,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
   }
   numRealis <- length(idx)
   
-  op <- par(mar=c(4.5,5.1,2.2,0.8), 
-            oma=c(0,0,1,0),
-            cex.lab=1.5, cex.axis=1, cex.main=1.5)
-  
-  
+  old <- par(mar=mar, oma=oma, cex.lab=cex.lab, cex.axis=cex.axis, cex.main=cex.main)
   
   if(type=='raw'){
     if(is.null(ylim)){
@@ -1328,8 +1400,8 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
   if(type=='fitted'){
     if(is.null(ylim)){
       ylim <- range(c(obj$init_resp[idx,], 
-                      c((obj$fitted.mean-obj$fitted.sd*1.96)[,idx]),
-                      c((obj$fitted.mean+obj$fitted.sd*1.96)[,idx])
+                      c((obj$fitted.mean-obj$fitted.sd*z)[,idx]),
+                      c((obj$fitted.mean+obj$fitted.sd*z)[,idx])
                     ))
     }
     matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='p',pch=4,lty=3,cex=0,lwd=1,
@@ -1337,8 +1409,8 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
     for(i in 1:numRealis){
       ii <- idx[i]
       polygon(c(obj$time, rev(obj$time)), 
-              c((obj$fitted.mean-obj$fitted.sd*1.96)[,ii], 
-                rev((obj$fitted.mean+obj$fitted.sd*1.96)[,ii])), 
+              c((obj$fitted.mean-obj$fitted.sd*z)[,ii], 
+                rev((obj$fitted.mean+obj$fitted.sd*z)[,ii])), 
               col = rgb(127,127,127,80, maxColorValue = 255), border = NA)
     }
     matlines(obj$time,obj$fitted.mean[,idx,drop=F],type='l',pch=4,lwd=1.5, lty=1)
@@ -1355,29 +1427,34 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
     }
     if(is.null(ylim)){
       if(identical(idx, 0)){
-        ylim <- range(c(obj$ypred[,2], obj$ypred[,3], obj$ypred[,1]))
+        ylim <- range(c(obj$ypred.mean - z*obj$ypred.sd),
+                      c(obj$ypred.mean + z*obj$ypred.sd))
+        # ylim <- range(c(obj$ypred[,2], obj$ypred[,3], obj$ypred[,1]))
       }else{
-        ylim <- range(c(obj$init_resp[idx,], 
-                        obj$ypred[,2], obj$ypred[,3], obj$ypred[,1]))
+        ylim <- range(c(obj$init_resp[idx,]),
+                      c(obj$ypred.mean - z*obj$ypred.sd),
+                      c(obj$ypred.mean + z*obj$ypred.sd))
       }
     }
     if(identical(idx, 0)){
       plot(NA, main=main,xlab=xlab,ylab=ylab, ylim=ylim, 
            xlim = range(obj$time))
     }else{
-      matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='l',lwd=2,lty=3,col='pink',
+      matplot(obj$time,t(obj$init_resp[idx,,drop=F]),type='l',lwd=2,lty=3,col=colourTrain,
               main=main,xlab=xlab,ylab=ylab, ylim=ylim)
         if(numRealis<6){
-          matpoints(obj$time,t(obj$init_resp[idx,,drop=F]),pch=4,cex=1,lty=3,col='red')
+          matpoints(obj$time,t(obj$init_resp[idx,,drop=F]),pch=4,cex=1,lty=3,col=colourTrain)
         }
     }
     
-    polygon(c(obj$predtime, rev(obj$predtime)), 
-            c(obj$ypred[,2], rev(obj$ypred[,3])), 
+    polygon(c(obj$testTime, rev(obj$testTime)), 
+            c(obj$ypred.mean + z*obj$ypred.sd, rev(c(obj$ypred.mean - z*obj$ypred.sd))), 
             col = rgb(127,127,127,100, maxColorValue = 255), border = NA)
-    lines(obj$predtime,obj$ypred[,1],col=4,lwd=2)
+    lines(obj$testTime,obj$ypred.mean[,1],col=colourNew,lwd=2)
     
   }
-  par(op)
+  
+  par(old)
+  
 }
 

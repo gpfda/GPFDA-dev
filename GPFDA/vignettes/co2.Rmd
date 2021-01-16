@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=FALSE
 )
-options(scipen = 1, digits = 4)
+old <- options(scipen = 1, digits = 4)
 ```
 
 
@@ -220,3 +220,8 @@ pred2 <- gprPredict(train = fit2, input.new=input.new)
 plot(pred2, main="customised kernel - predictions")
 ```
 
+
+
+```{r, include = FALSE}
+options(old)
+```

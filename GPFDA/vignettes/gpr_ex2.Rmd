@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=FALSE
 )
-options(scipen = 1, digits = 4)
+old <- options(scipen = 1, digits = 4)
 ```
 
 ```{r setup}
@@ -99,4 +99,8 @@ plotImage(response = Ytest, input = inputTest, realisation = 1,
 plotImage(response = pred$pred.mean, input = inputTest, realisation = 1, 
             n1 = n1test, n2 = n2test,
             zlim = zlim, main = "prediction")
+```
+
+```{r, include = FALSE}
+options(old)
 ```

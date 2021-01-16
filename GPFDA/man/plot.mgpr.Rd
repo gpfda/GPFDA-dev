@@ -13,29 +13,38 @@ model}
   ylim = NULL,
   mfrow = NULL,
   cex = 2,
-  cex.lab = 2,
-  cex.axis = 2,
+  mar = c(4.5, 5.1, 0.2, 0.8),
+  oma = c(0, 0, 0, 0),
+  cex.lab = 1.5,
+  cex.axis = 1,
+  cex.main = 1.5,
   ...
 )
 }
 \arguments{
-\item{x}{An object of class 'mgpr'}
+\item{x}{An object of class 'mgpr'.}
 
-\item{Data.obs}{List of observed data}
+\item{Data.obs}{List of observed data.}
 
-\item{Data.new}{List of test data}
+\item{Data.new}{List of test data.}
 
 \item{realisation}{Index identifying which realisation should be plotted.}
 
-\item{ylim}{Range of y-axis}
+\item{ylim}{Range of y-axis.}
 
-\item{mfrow}{Graphical parameter}
+\item{mfrow}{Graphical parameter.}
 
-\item{cex}{Graphical parameter}
+\item{cex}{Graphical parameter.}
 
-\item{cex.lab}{Graphical parameter}
+\item{mar}{Graphical parameter passed to par().}
 
-\item{cex.axis}{Graphical parameter}
+\item{oma}{Graphical parameter passed to par().}
+
+\item{cex.lab}{Graphical parameter passed to par().}
+
+\item{cex.axis}{Graphical parameter passed to par().}
+
+\item{cex.main}{Graphical parameter passed to par().}
 
 \item{...}{Graphical parameters passed to plot().}
 }

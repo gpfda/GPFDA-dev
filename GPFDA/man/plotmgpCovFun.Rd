@@ -12,7 +12,12 @@ plotmgpCovFun(
   hp,
   idx,
   ylim = NULL,
-  xlim = NULL
+  xlim = NULL,
+  mar = c(4.5, 5.1, 2.2, 0.8),
+  oma = c(0, 0, 0, 0),
+  cex.lab = 1.5,
+  cex.axis = 1,
+  cex.main = 1.5
 )
 }
 \arguments{
@@ -40,6 +45,16 @@ concatenated vectors correspond to.}
 \item{ylim}{Graphical parameter}
 
 \item{xlim}{Graphical parameter}
+
+\item{mar}{Graphical parameter passed to par().}
+
+\item{oma}{Graphical parameter passed to par().}
+
+\item{cex.lab}{Graphical parameter passed to par().}
+
+\item{cex.axis}{Graphical parameter passed to par().}
+
+\item{cex.main}{Graphical parameter passed to par().}
 }
 \value{
 A plot

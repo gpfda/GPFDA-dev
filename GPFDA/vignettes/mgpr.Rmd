@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=FALSE
 )
-options(scipen = 1, digits = 4)
+old <- options(scipen = 1, digits = 4)
 ```
 
 \newcommand{\Cov}{\text{Cov}}
@@ -158,3 +158,6 @@ time points can be visualised by using the model estimated by the `mgpr` functio
 plot(res, Data.obs=Data.obs, Data.new=Data.new, realisation=5)
 ```
 
+```{r, include = FALSE}
+options(old)
+```

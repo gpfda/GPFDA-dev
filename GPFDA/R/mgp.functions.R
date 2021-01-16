@@ -1,5 +1,5 @@
 
-#' Multivariate Gaussian process regression
+#' Multivariate Gaussian process regression (MGPR) model
 #'
 #' Multivariate Gaussian process regression where each of the N
 #' outputs is unidimensional. The multivariate output is allowed to have
@@ -441,15 +441,18 @@ LogLikCGP <- function(hp, response, X, idx){
 #' Plot predictons of each element of the multivariate Gaussian Process for a
 #' given an object of class 'mgpr'.
 #'
-#' @param x An object of class 'mgpr'
-#' @param Data.obs List of observed data
-#' @param Data.new List of test data
+#' @param x An object of class 'mgpr'.
+#' @param Data.obs List of observed data.
+#' @param Data.new List of test data.
 #' @param realisation Index identifying which realisation should be plotted.
-#' @param ylim Range of y-axis
-#' @param mfrow Graphical parameter
-#' @param cex  Graphical parameter
-#' @param cex.lab  Graphical parameter
-#' @param cex.axis  Graphical parameter
+#' @param ylim Range of y-axis.
+#' @param mfrow Graphical parameter.
+#' @param cex  Graphical parameter.
+#' @param mar Graphical parameter passed to par().
+#' @param oma Graphical parameter passed to par().
+#' @param cex.lab Graphical parameter passed to par().
+#' @param cex.axis Graphical parameter passed to par().
+#' @param cex.main Graphical parameter passed to par().
 #' @param ... Graphical parameters passed to plot().
 #'
 #' @importFrom  graphics polygon
@@ -464,15 +467,14 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("mgpr", package = "GPFDA")
-plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL, 
-                              mfrow=NULL, cex=2, cex.lab=2, cex.axis=2, ...){
+plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL, mfrow=NULL, 
+                      cex=2, 
+                      mar=c(4.5,5.1,0.2,0.8), oma=c(0,0,0,0),
+                      cex.lab=1.5, cex.axis=1, cex.main=1.5, ...){
   
-  train <- x
-  op <- par(mar=c(4.5,5.1,0.2,0.8), 
-            oma=c(0,0,0,0),
-            cex.lab=1.5, cex.axis=1, cex.main=1.5)
+  old <- par(mar=mar, oma=oma, cex.lab=cex.lab, cex.axis=cex.axis, cex.main=cex.main)
   
-  predCGP <- mgprPredict(train=train, 
+  predCGP <- mgprPredict(train=x, 
                         Data.obs=Data.obs,
                         Data.new=Data.new)
   
@@ -510,7 +512,7 @@ plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL,
   }
   
   par(mfrow=c(1,1))
-  par(op)
+  par(old)
 }
 
 
@@ -532,6 +534,11 @@ plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL,
 #'   concatenated vectors correspond to.
 #' @param ylim Graphical parameter
 #' @param xlim Graphical parameter
+#' @param mar Graphical parameter passed to par().
+#' @param oma Graphical parameter passed to par().
+#' @param cex.lab Graphical parameter passed to par().
+#' @param cex.axis Graphical parameter passed to par().
+#' @param cex.main Graphical parameter passed to par().
 #'
 #' @importFrom  graphics plot
 #' @importFrom  graphics par
@@ -542,11 +549,10 @@ plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL,
 #' ## See examples in vignette:
 #' # vignette("mgpr", package = "GPFDA")
 plotmgpCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL, 
-                          xlim=NULL){
+                          xlim=NULL, mar=c(4.5,5.1,2.2,0.8), oma=c(0,0,0,0), 
+                          cex.lab=1.5, cex.axis=1, cex.main=1.5){
   
-  op <- par(mar=c(4.5,5.1,0.2,0.8), 
-            oma=c(0,0,0,0),
-            cex.lab=1.5, cex.axis=1, cex.main=1.5)
+  old <- par(mar=mar, oma=oma, cex.lab=cex.lab, cex.axis=cex.axis, cex.main=cex.main)
   
   Psi <- mgpCovMat(Data=Data, hp=hp)
   
@@ -565,5 +571,5 @@ plotmgpCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL,
        ylab=bquote(.(type)*"["*X[.(output)]*"(t),"~
                      X[.(outputp)]*"("*.(tp0)*")]"))
 
-  par(op)
+  par(old)
 }

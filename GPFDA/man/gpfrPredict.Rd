@@ -5,51 +5,51 @@
 \title{Prediction of GPFR model}
 \usage{
 gpfrPredict(
-  object,
-  TestData,
-  NewTime = NULL,
-  lReg = NULL,
-  fReg = NULL,
+  train,
+  testInputGP,
+  testTime = NULL,
+  uReg = NULL,
+  fxReg = NULL,
   gpReg = NULL,
-  GP_predict = TRUE
+  GPpredict = TRUE
 )
 }
 \arguments{
-\item{object}{An object of class 'gpfr' obtained by the the 'gpfr' function.}
+\item{train}{An object of class 'gpfr' obtained by the the 'gpfr' function.}
 
-\item{TestData}{Test input data. It must be a matrix or an 'fd' object.}
+\item{testInputGP}{Test input data for the GP prediction. It must be a numeric 
+vector, a matrix or an 'fd' object.}
 
-\item{NewTime}{New time 't' for test data. If NULL, default settings will be
-applied.}
+\item{testTime}{Test time points for prediction. If NULL, default settings
+will be applied.}
 
-\item{lReg}{The test scalar data for the FR model.}
+\item{uReg}{Scalar covariates data of a new batch for the FR model.}
 
-\item{fReg}{The test functional data for the FR model.}
+\item{fxReg}{Functional covariates data of a new batch for the FR model.}
 
-\item{gpReg}{List of three items. The names of the items must be 'response',
-'input', 'time'. For type I prediction, 'response' is the observed response
-for a new batch, 'input' is the observed functional covariates for a new
-batch, 'time' is the observed time for the previous two. If NULL, type II
-prediction, will be carried out.}
+\item{gpReg}{Input data for the GP part used for Type I prediction. It must
+be a list of three items. The names of the items must be 'response',
+'input', and 'time'. The item 'response' is the observed response for a new
+batch; 'input' is the observed functional covariates for a new
+batch,;'time' is the observed time for the previous two. If NULL (default),
+Type II prediction is carried out.}
 
-\item{GP_predict}{Logical. If TRUE (default), GP prediction is carried out;
-otherwise only functional prediction is carried out.}
+\item{GPpredict}{Logical. If TRUE (default), GPFR prediction is carried out;
+otherwise only predictions based on the FR model is carried out.}
 }
 \value{
-A list containing: \describe{ \item{ypred}{matrix of predicted values
-  with confidence intervals. The first column has the fitted values, while
-  the second and third columnas have the confidence interval bounds.}
-  \item{ypred.mean}{The mean values of the prediction.} \item{ypred.sd}{The
-  standard deviation of the predictions.} \item{time}{Time 't' of test data.}
-  \item{object}{All items trained by 'gpfr'.} }
+A list containing: \describe{ \item{ypred.mean}{The mean values of
+  the prediction.} \item{ypred.sd}{The standard deviation of the
+  predictions.} \item{predictionType}{Prediction type if  GPFR prediction is
+  carried out.} \item{train}{All items trained by 'gpfr'.} }
 }
 \description{
 Make predictions for test input data based on the GPFR model learnt by the
-'gpfr' function. Both type I and type II predictions can be made.
+'gpfr' function. Both Type I and Type II predictions can be made.
 }
 \details{
-If 'gpReg' is provided, then type I prediction is made. Otherwise,
-  type II prediction is made.
+If 'gpReg' is provided, then Type I prediction is made. Otherwise,
+  Type II prediction is made.
 }
 \examples{
 ## See examples in vignette:

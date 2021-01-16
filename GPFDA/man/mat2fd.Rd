@@ -31,18 +31,28 @@ Easy setting up for creating an 'fd' object
 All items listed above have default values. If any item is required
   to change, add that item into the list; otherwise, leave it as NULL. For
   example, if one only wants to change the number of basis functions, do:
+  
   \code{mat2fd(SomeMatrix,list(nbasis=21))}
 }
 \examples{
 require(fda)
-ry <- rnorm(20, sd=10)
-y1 <- matrix(NA, ncol=100, nrow=20)
-for(i in 1:20)  y1[i,] <- sin(seq(-1,pi,len=100))*ry[i]
+require(fda.usc)
+nrep <- 20   # number of replications
+n <- 100     # number of time points
+input <- seq(-1, pi, length.out=n) # time points
+ry <- rnorm(nrep, sd=10)
+y <- matrix(NA, ncol=n, nrow=nrep)
+for(i in 1:nrep)  y[i,] <- sin(2*input)*ry[i]
 
-y1fd <- mat2fd(y1)
-y1fd <- mat2fd(y1,list(lambda=1))
+plot.fdata(fdata(y,input))
+
+yfd <- mat2fd(y, list(lambda=0.01))
+plot(yfd)
+
+yfd <- mat2fd(y, list(lambda=0.00001))
+plot(yfd)
+
 }
 \references{
-Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
-  Analysis for Functional Data'', CRC Press.
+Ramsay, J., and Silverman, B. W. (2006),
 }

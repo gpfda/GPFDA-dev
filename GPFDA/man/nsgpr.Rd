@@ -2,7 +2,8 @@
 % Please edit documentation in R/nsgp.functions.R
 \name{nsgpr}
 \alias{nsgpr}
-\title{Estimation of a nonseparable and/or nonstationary covariance structure}
+\title{Estimation of a nonseparable and/or nonstationary covariance structure (NSGPR
+model)}
 \usage{
 nsgpr(
   response,
@@ -83,10 +84,10 @@ A list containing:  \describe{ \item{MLEsts}{Maximum likelihood
 }
 \description{
 Estimate the covariance structure of a zero-mean Gaussian Process with
-Q-dimensional input coordinates (covariates). \cr  \cr
-Multiple realisations for the response variable can be used, provided they 
-are observed on the same grid of dimension n_1 x n_2 x ... x n_Q.\cr \cr
-Let n = n_1 x n_2 x ... x n_Q and let nSamples be the number of realisations.
+Q-dimensional input coordinates (covariates). \cr  \cr Multiple realisations
+for the response variable can be used, provided they are observed on the same
+grid of dimension n_1 x n_2 x ... x n_Q.\cr \cr Let n = n_1 x n_2 x ... x n_Q
+and let nSamples be the number of realisations.
 }
 \details{
 The input argument for Q=2 can be constructed as follows: \describe{

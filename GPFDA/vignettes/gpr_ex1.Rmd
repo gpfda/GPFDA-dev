@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
   fig.width=5, fig.height=5,
   tidy.opts=list(width.cutoff=75), tidy=FALSE
 )
-options(scipen = 1, digits = 4)
+old <- options(scipen = 1, digits = 4)
 ```
 
 ```{r setup}
@@ -90,3 +90,8 @@ If one wants to include noise variance in the predictions for the new time point
 pred2 <- gprPredict(train=fit, input.new=input.new, noiseFreePred=F)
 plot(pred2, realisation=10)
 ```
+
+```{r, include = FALSE}
+options(old)
+```
+

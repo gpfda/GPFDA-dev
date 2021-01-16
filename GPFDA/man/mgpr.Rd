@@ -2,7 +2,7 @@
 % Please edit documentation in R/mgp.functions.R
 \name{mgpr}
 \alias{mgpr}
-\title{Multivariate Gaussian process regression}
+\title{Multivariate Gaussian process regression (MGPR) model}
 \usage{
 mgpr(Data, m = NULL, meanModel = 0, mu = NULL)
 }

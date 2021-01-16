@@ -164,9 +164,9 @@ cov.linear <- function(hyper, input, input.new=NULL){
 }
 
 
-#' Gaussian Process regression
+#' Gaussian process regression
 #'
-#' Gaussian Process regression for a single or multiple independent
+#' Gaussian process regression for a single or multiple independent
 #' realisations.
 #'
 #' @param input Input covariates. It must be either a matrix, where each column
@@ -1138,9 +1138,9 @@ diag.rat.qu <- function(hyper, input){
 }
 
 
-#' Plot Gaussian Process regression -- training and prediction
+#' Plot Gaussian process regression -- training and prediction
 #'
-#' Plot Gaussian Process for a given an object of class 'gpr'.
+#' Plot Gaussian process for a given an object of class 'gpr'.
 #'
 #' @param x The 'gpr' object from either training or predicting of the Gaussian
 #'   Process.
@@ -1319,8 +1319,8 @@ plotImage <- function(response, input, realisation=1,
     stop("The arguments 'response' and 'input' must have the same sample size.")
   }
   
-  opar <- par(no.readonly = TRUE)
-  par(mar=mar, oma=oma)
+  par(no.readonly = TRUE)
+  old <- par(mar=mar, oma=oma)
   
   if(is.null(enlarge_zlim)){
     enlarge_zlim <- 0.2*c(-1,1)
@@ -1342,7 +1342,7 @@ plotImage <- function(response, input, realisation=1,
               legend.cex=0.5, legend.width=legend.width,
                       axis.args=list(cex.axis=legend.cex.axis))
   
-  par(opar)
+  par(old)
 }
 
 # ########################### likelihood ######################################

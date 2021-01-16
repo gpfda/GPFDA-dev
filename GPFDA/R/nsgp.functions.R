@@ -1,11 +1,12 @@
 
-#' Estimation of a nonseparable and/or nonstationary covariance structure
-#' 
+#' Estimation of a nonseparable and/or nonstationary covariance structure (NSGPR
+#' model)
+#'
 #' Estimate the covariance structure of a zero-mean Gaussian Process with
-#' Q-dimensional input coordinates (covariates). \cr  \cr
-#' Multiple realisations for the response variable can be used, provided they 
-#' are observed on the same grid of dimension n_1 x n_2 x ... x n_Q.\cr \cr
-#' Let n = n_1 x n_2 x ... x n_Q and let nSamples be the number of realisations.
+#' Q-dimensional input coordinates (covariates). \cr  \cr Multiple realisations
+#' for the response variable can be used, provided they are observed on the same
+#' grid of dimension n_1 x n_2 x ... x n_Q.\cr \cr Let n = n_1 x n_2 x ... x n_Q
+#' and let nSamples be the number of realisations.
 
 #' @param response Response variable. This should be a (n x nSamples) matrix
 #'   where each column is a realisation
