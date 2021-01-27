@@ -2,7 +2,7 @@
 % Please edit documentation in R/gp.functions6.R
 \name{plot.gpr}
 \alias{plot.gpr}
-\title{Plot Gaussian process regression -- training and prediction}
+\title{Plot GPR model for either training or prediction}
 \usage{
 \method{plot}{gpr}(
   x,

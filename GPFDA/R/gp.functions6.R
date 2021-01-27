@@ -15,8 +15,8 @@
 #' details.
 #' @param input The covariate t. It must be either a matrix, where each column
 #'   represents a covariate, or a vector if there is only one covariate.
-#' @param input.new The covariate t'. It also must be a vector or a matrix. 
-#' If NULL (default), 'input.new' will be set to be equal to 'input' and the 
+#' @param inputNew The covariate t'. It also must be a vector or a matrix. 
+#' If NULL (default), 'inputNew' will be set to be equal to `input' and the 
 #' function will return a squared, symmetric covariance matrix.
 #' @param gamma Power parameter used in powered exponential kernel function. It
 #'   must be 0<gamma<=2. Default to 2, which gives the squared exponential 
@@ -41,7 +41,7 @@ NULL
 
 #' @rdname covMat
 #' @export
-cov.pow.ex <- function(hyper, input, input.new=NULL, gamma=2){
+cov.pow.ex <- function(hyper, input, inputNew=NULL, gamma=2){
   
   hyper <- lapply(hyper,exp)
   input <- as.matrix(input)
@@ -52,12 +52,12 @@ cov.pow.ex <- function(hyper, input, input.new=NULL, gamma=2){
     A <- diag(hyper$pow.ex.w)
   }
   
-  if (is.null(input.new)) {
+  if (is.null(inputNew)) {
     distMat <- distMatSq(input=input, A=A, power=gamma)
     exp.v.power <- hyper$pow.ex.v*exp(-distMat)
   }else{
-    input.new <- as.matrix(input.new)
-    distMat <- distMat(input=input, inputNew=input.new, A=A, power=gamma)
+    inputNew <- as.matrix(inputNew)
+    distMat <- distMat(input=input, inputNew=inputNew, A=A, power=gamma)
     exp.v.power <- hyper$pow.ex.v*exp(-distMat)
   }
 
@@ -67,7 +67,7 @@ cov.pow.ex <- function(hyper, input, input.new=NULL, gamma=2){
 
 #' @rdname covMat
 #' @export
-cov.rat.qu <- function(hyper, input, input.new=NULL){
+cov.rat.qu <- function(hyper, input, inputNew=NULL){
   
   hyper <- lapply(hyper,exp)
   input <- as.matrix(input)
@@ -78,12 +78,12 @@ cov.rat.qu <- function(hyper, input, input.new=NULL){
     A <- diag(hyper$rat.qu.w)
   }
   
-  if (is.null(input.new)) {
+  if (is.null(inputNew)) {
     distMat <- distMatSq(input=input, A=A, power=2)
     covratqu <- hyper$rat.qu.v*(1 + distMat)^(-hyper$rat.qu.a)
   }else{
-    input.new <- as.matrix(input.new)
-    distMat <- distMat(input=input, inputNew=input.new, A=A, power=2)
+    inputNew <- as.matrix(inputNew)
+    distMat <- distMat(input=input, inputNew=inputNew, A=A, power=2)
     covratqu <- hyper$rat.qu.v*(1 + distMat)^(-hyper$rat.qu.a)
   }
   
@@ -92,7 +92,7 @@ cov.rat.qu <- function(hyper, input, input.new=NULL){
 
 #' @rdname covMat
 #' @export
-cov.matern <- function(hyper, input, input.new=NULL, nu){
+cov.matern <- function(hyper, input, inputNew=NULL, nu){
   
   input <- as.matrix(input)
   cc <- exp(hyper$matern.v)
@@ -103,7 +103,7 @@ cov.matern <- function(hyper, input, input.new=NULL, nu){
     A <- diag((exp(hyper$matern.w)))
   }
   
-  if (is.null(input.new)) {
+  if (is.null(inputNew)) {
     
     if(nu==3/2){
       distmat <- sqrt(distMatSq(input=input, A=A, power=2))
@@ -119,17 +119,17 @@ cov.matern <- function(hyper, input, input.new=NULL, nu){
     }
 
   }else{
-    input.new <- as.matrix(input.new)
+    inputNew <- as.matrix(inputNew)
     if(nu==3/2){
-      distmat <- sqrt(distMat(input=input, inputNew=input.new, A=A, power=2))
+      distmat <- sqrt(distMat(input=input, inputNew=inputNew, A=A, power=2))
       covmatern <- cc*(1+sqrt(3)*distmat)*exp(-sqrt(3)*distmat)
     }else{
       if(nu==5/2){
-        distmat <- sqrt(distMat(input=input, inputNew=input.new, A=A, power=2))
+        distmat <- sqrt(distMat(input=input, inputNew=inputNew, A=A, power=2))
         covmatern <- cc*(1+sqrt(5)*distmat+(5/3)*distmat^2)*
           exp(-sqrt(5)*distmat)
       }else{
-        covmatern <- CovMaternCpp(input=input, inputNew=input.new, cc=cc, A=A, nu=nu)   
+        covmatern <- CovMaternCpp(input=input, inputNew=inputNew, cc=cc, A=A, nu=nu)   
       }
     }
   }
@@ -140,7 +140,7 @@ cov.matern <- function(hyper, input, input.new=NULL, nu){
 
 #' @rdname covMat
 #' @export
-cov.linear <- function(hyper, input, input.new=NULL){
+cov.linear <- function(hyper, input, inputNew=NULL){
   
   hyper <- lapply(hyper,exp)
   input <- as.matrix(input)
@@ -151,11 +151,11 @@ cov.linear <- function(hyper, input, input.new=NULL){
     A <- diag(hyper$linear.a)
   }
   
-  if (is.null(input.new)) {
+  if (is.null(inputNew)) {
     cov.lin <- distMatLinearSq(input=input, A=A)
   }else{
-    input.new <- as.matrix(input.new)
-    cov.lin <- distMatLinear(input=input, inputNew=input.new, A=A)
+    inputNew <- as.matrix(inputNew)
+    cov.lin <- distMatLinear(input=input, inputNew=inputNew, A=A)
   }
   
   cov.lin <- hyper$linear.i + cov.lin
@@ -164,7 +164,7 @@ cov.linear <- function(hyper, input, input.new=NULL){
 }
 
 
-#' Gaussian process regression
+#' Gaussian process regression (GPR) model
 #'
 #' Gaussian process regression for a single or multiple independent
 #' realisations.
@@ -243,7 +243,7 @@ cov.linear <- function(hyper, input, input.new=NULL){
 #' # vignette("gpr_ex1", package = "GPFDA")
 #' # vignette("gpr_ex2", package = "GPFDA")
 #' # vignette("co2", package = "GPFDA")
-gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL, 
+gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL, 
                 NewHyper=NULL, meanModel=0, mu=NULL, gamma=2, nu=1.5, 
                 useGradient=T, iter.max=100, rel.tol=8e-10, trace=0, 
                 nInitCandidates = 1000){
@@ -259,7 +259,7 @@ gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL,
   if("matern"%in%Cov & !is.null(nu)){
     if("matern"%in%Cov & !(nu%in%c(3/2, 5/2)) & useGradient){
       useGradient <- F
-      warning("Gradient was not used. For Matern kernel, the gradient is only 
+      cat("Gradient was not used. For Matern kernel, the gradient is only 
               available if either nu=3/2 or nu=5/2. For other values of 'nu', 
               useGradient is automatically set to FALSE.")
     }}
@@ -520,13 +520,13 @@ gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL,
 
 
 
-#' Prediction using Gaussian Process
+#' Prediction of GPR model
 #'
 #' @inheritParams gpr
 #' @param train A 'gpr' object obtained from 'gpr' function. Default to NULL. If
 #'   NULL, learning is done based on the other given arguments; otherwise,
 #'   prediction is made based on the trained model of class gpr'.
-#' @param input.new Test input covariates.  It must be either a matrix, where
+#' @param inputNew Test input covariates.  It must be either a matrix, where
 #'   each column represents a covariate, or a vector if there is only one
 #'   covariate.
 #' @param noiseFreePred Logical. If TRUE, predictions will be noise-free.
@@ -547,10 +547,10 @@ gpr <- function(input, response, Cov='pow.ex', m = NULL, hyper=NULL,
 #' # vignette("gpr_ex1", package = "GPFDA")
 #' # vignette("gpr_ex2", package = "GPFDA")
 #' # vignette("co2", package = "GPFDA")
-gprPredict <- function(train=NULL, input.new=NULL, noiseFreePred=F, hyper=NULL, 
+gprPredict <- function(train=NULL, inputNew=NULL, noiseFreePred=F, hyper=NULL, 
                          input=NULL, Y=NULL, mSR=NULL,
                          Cov=NULL, gamma=NULL, nu=NULL, meanModel=0, mu=0){
-  input.new <- as.matrix(input.new)
+  inputNew <- as.matrix(inputNew)
   if(mu==1 & !is.null(Y)){
     mu <- mean(Y)
   }
@@ -580,7 +580,7 @@ gprPredict <- function(train=NULL, input.new=NULL, noiseFreePred=F, hyper=NULL,
     train <- gpr(input=input, response=Y, Cov=Cov, hyper=hyper, 
                  gamma=gamma, nu=nu)
   }
-  if(is.null(input.new)) input.new <- input
+  if(is.null(inputNew)) inputNew <- input
 
   nkernels <- length(Cov)
 
@@ -594,12 +594,12 @@ if(is.null(mSR)){
   
   CovL1 <- lapply(CovList,function(j){
     f <- get(j)
-    if(j=='cov.pow.ex'){return(f(hyper=hyper, input=input, input.new=input.new, 
+    if(j=='cov.pow.ex'){return(f(hyper=hyper, input=input, inputNew=inputNew, 
                                  gamma=gamma))}
-    if(j=='cov.matern'){return(f(hyper=hyper, input=input, input.new=input.new, 
+    if(j=='cov.matern'){return(f(hyper=hyper, input=input, inputNew=inputNew, 
                                  nu=nu))}
     if(!(j%in%c('cov.pow.ex', 'cov.matern'))){
-      return(f(hyper=hyper, input=input, input.new=input.new))}
+      return(f(hyper=hyper, input=input, inputNew=inputNew))}
   })
   Q1 <- Reduce('+',CovL1)
   Q1 <- t(Q1)
@@ -617,7 +617,7 @@ if(is.null(mSR)){
   for(i in 1:nkernels) CovList[i] <- list(paste0('diag.',Cov[i]))
   CovLn <- lapply(CovList,function(j){
     f <- get(j)
-    f(hyper=hyper, input=input.new)
+    f(hyper=hyper, input=inputNew)
   })
   Qstar <- Reduce('+',CovLn)
 
@@ -627,15 +627,15 @@ if(is.null(mSR)){
   QR <- invQ%*%Y
 
   if(meanModel=='t'){
-    newtrend <- data.frame(xxx=input.new[,1])
+    newtrend <- data.frame(xxx=inputNew[,1])
     mu <- predict(meanLinearModel, newdata=newtrend)
     mu <- Q1%*%QR + matrix(rep(mu, nrep), ncol=nrep, byrow=F)
   }else{
     if(meanModel=='avg'){
-      if(!all(input.new[,1]%in%input[,1])){
-        stop("For predicting response values at input locations input.new, 
+      if(!all(inputNew[,1]%in%input[,1])){
+        stop("For predicting response values at input locations inputNew, 
              the mean function can only be 'avg' across replications if
-             all input.new are included in input.")
+             all inputNew are included in input.")
       }
       mu <- Q1%*%QR + mu
     }else{
@@ -665,11 +665,11 @@ if(is.null(mSR)){
   Cov_m_ns <- lapply(CovList,function(j){
     f <- get(j)
     if(j=='cov.pow.ex'){return(f(hyper=hyper, input=input[idx,,drop=F], 
-                                 input.new=input.new, gamma=gamma))}
+                                 inputNew=inputNew, gamma=gamma))}
     if(j=='cov.matern'){return(f(hyper=hyper, input=input[idx,,drop=F], 
-                                 input.new=input.new, nu=nu))}
+                                 inputNew=inputNew, nu=nu))}
     if(!(j%in%c('cov.pow.ex', 'cov.matern'))){
-      return(f(hyper=hyper, input=input[idx,,drop=F], input.new=input.new))}
+      return(f(hyper=hyper, input=input[idx,,drop=F], inputNew=inputNew))}
   })
   K_m_nstar <- Reduce('+',Cov_m_ns)
 
@@ -687,11 +687,11 @@ if(is.null(mSR)){
   Cov_m_n <- lapply(CovList,function(j){
     f <- get(j)
     if(j=='cov.pow.ex'){return(f(hyper=hyper, input=input[idx,,drop=F], 
-                                 input.new=input, gamma=gamma))}
+                                 inputNew=input, gamma=gamma))}
     if(j=='cov.matern'){return(f(hyper=hyper, input=input[idx,,drop=F], 
-                                 input.new=input, nu=nu))}
+                                 inputNew=input, nu=nu))}
     if(!(j%in%c('cov.pow.ex', 'cov.matern'))){
-      return(f(hyper=hyper, input=input[idx,,drop=F], input.new=input))}
+      return(f(hyper=hyper, input=input[idx,,drop=F], inputNew=input))}
   })
   K_m_n <- Reduce('+',Cov_m_n)
 
@@ -705,15 +705,15 @@ if(is.null(mSR)){
   
   
   if(meanModel=='t'){
-    newtrend <- data.frame(xxx=input.new[,1])
+    newtrend <- data.frame(xxx=inputNew[,1])
     mu <- predict(meanLinearModel,newdata=newtrend)
     mu <- centYpred + matrix(rep(mu, nrep), ncol=nrep, byrow=F)
   }else{
     if(meanModel=='avg'){
-      if(!all(input.new[,1]%in%input[,1])){
-        stop("For predicting response values at input locations input.new, 
+      if(!all(inputNew[,1]%in%input[,1])){
+        stop("For predicting response values at input locations inputNew, 
              the mean function can only be 'avg' across replications if
-             all input.new are included in input.")
+             all inputNew are included in input.")
       }
       mu <- centYpred + mu
     }else{
@@ -732,14 +732,14 @@ if(is.null(mSR)){
     pred.sd <- sqrt(sigma2[,1])
   }else{
     pred.sd <- NA
-    warning("Subset of Regressors give negative predictive variance.")
+    cat("Subset of Regressors gives negative predictive variance.")
   }
   
 }
 
   result <- c(list('pred.mean'=mu,
                 'pred.sd'=pred.sd,
-                'newdata'=input.new), 
+                'newdata'=inputNew), 
               'noiseFreePred'=noiseFreePred,
               unclass(train))
   class(result) <- 'gpr'
@@ -798,7 +798,7 @@ Dloglik.pow.ex.v <- function(hyper, input, AlphaQ, gamma){
 #######################
 
 Dloglik.matern.v <- function(hyper, input, AlphaQ, nu){
-  DDmatern.v <- cov.matern(hyper=hyper, input=input, input.new=NULL, nu=nu)
+  DDmatern.v <- cov.matern(hyper=hyper, input=input, inputNew=NULL, nu=nu)
   Dmatern.v <- 0.5*sum(diag(AlphaQ%*%DDmatern.v))
   return(Dmatern.v)
 }
@@ -942,14 +942,14 @@ D2pow.ex.w <- function(hyper,input,gamma,inv.Q,Alpha.Q){
 
 
 D2pow.ex.v <- function(hyper, input, gamma, inv.Q, Alpha.Q){
-  DDpow.ex.v <- cov.pow.ex(hyper=hyper, input=input, input.new=NULL, 
+  DDpow.ex.v <- cov.pow.ex(hyper=hyper, input=input, inputNew=NULL, 
                            gamma=gamma)
   D2pow.ex.v <- D2(DDpow.ex.v, DDpow.ex.v, inv.Q, Alpha.Q)  
   return(D2pow.ex.v)
 }
 
 D2matern.v <- function(hyper, input, nu, inv.Q, Alpha.Q){
-  DDmatern.v <- cov.matern(hyper=hyper, input=input, input.new=NULL, nu=nu)
+  DDmatern.v <- cov.matern(hyper=hyper, input=input, inputNew=NULL, nu=nu)
   D2matern.v <- D2(DDmatern.v, DDmatern.v, inv.Q, Alpha.Q)  
   return(D2matern.v)
 }
@@ -1138,7 +1138,7 @@ diag.rat.qu <- function(hyper, input){
 }
 
 
-#' Plot Gaussian process regression -- training and prediction
+#' Plot GPR model for either training or prediction
 #'
 #' Plot Gaussian process for a given an object of class 'gpr'.
 #'
@@ -1174,7 +1174,7 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, main=NU
   obj <- x
   if(fitted==T){
     if(is.null(obj$fitted.mean)){
-      warning('fitted values not found, ploting predicted values')
+      cat('Fitted values not found; plotting predicted values.')
       type <- 'Prediction'
       mu <- obj$pred.mean
       sd <- obj$pred.sd
@@ -1192,7 +1192,7 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, main=NU
     }
   }else{
     if(is.null(obj$pred.mean)){
-      warning('predicted values not found, ploting fitted values')
+      cat('Predicted values not found, ploting fitted values')
       type <- 'Fitted values'
       mu <- obj$fitted.mean
       sd <- obj$fitted.sd

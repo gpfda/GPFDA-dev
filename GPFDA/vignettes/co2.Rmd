@@ -43,7 +43,7 @@ input <- input[!whichNeg]
 We want to fit a GPR model using the observed data and then make predictions at
 a $1000$ equally spaced time points:
 ```{r}
-input.new <- 5*seq(1/n, 1, length.out=1000) # input test for prediction
+inputNew <- 5*seq(1/n, 1, length.out=1000) # input test for prediction
 ```
 
 ## Using exponential covariance kernel
@@ -69,7 +69,7 @@ plot(fit1, main="exponential kernel - fitted model")
 
 See below the large uncertainty in predictions for test input points:
 ```{r, warnings=F, results=F, fig.width=8, fig.height=5}
-pred1 <- gprPredict(train = fit1, input.new=input.new)
+pred1 <- gprPredict(train = fit1, inputNew=inputNew)
 plot(pred1, main="exponential kernel - predictions")
 ```
 
@@ -99,17 +99,17 @@ The similar `distMatSq` function is used when `t` and `t'` are identical. See
 package documentation for more details.
 
 ```{r}
-cov.custom <- function(hyper, input, input.new=NULL){
+cov.custom <- function(hyper, input, inputNew=NULL){
   hyper <- lapply(hyper, exp)
-  if(is.null(input.new)){
-    input.new <- as.matrix(input)
+  if(is.null(inputNew)){
+    inputNew <- as.matrix(input)
   }else{
-    input.new <- as.matrix(input.new)
+    inputNew <- as.matrix(inputNew)
   }
   input <- as.matrix(input)
-  A1 <- distMat(input=input, inputNew=input.new, A=as.matrix(hyper$custom.w), 
+  A1 <- distMat(input=input, inputNew=inputNew, A=as.matrix(hyper$custom.w), 
                         power=2)
-  sept <- outer(input[,1], input.new[,1], "-")
+  sept <- outer(input[,1], inputNew[,1], "-")
   A2 <- hyper$custom.u*(sin(pi*sept))^2
   customCov <- hyper$custom.v*exp(-A1-A2)
   return(customCov)
@@ -216,7 +216,7 @@ plot(fit2, main="customised kernel - fitted model")
 ```
 
 ```{r, message=F, fig.width=8, fig.height=5}
-pred2 <- gprPredict(train = fit2, input.new=input.new)
+pred2 <- gprPredict(train = fit2, inputNew=inputNew)
 plot(pred2, main="customised kernel - predictions")
 ```
 

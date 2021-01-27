@@ -696,10 +696,11 @@ gpfrtrain <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
   if("matern"%in%Cov & !is.null(nu)){
     if("matern"%in%Cov & !(nu%in%c(3/2, 5/2)) & useGradient){
       useGradient <- F
-      warning("Gradient was not used.
-      For Matern kernel, the gradient is only available if either nu=3/2 or 
-      nu=5/2.
-      For other values of 'nu', useGradient is automatically set to FALSE.")
+      cat("Gradient was not used.
+      For Matern kernel, the gradient is only available 
+          if either nu=3/2 or nu=5/2.
+      For other values of 'nu', useGradient is 
+          automatically set to FALSE.")
     }}
   
 
@@ -790,7 +791,7 @@ gpfrtrain <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
 
 
 
-#' Gaussian process functional regression model (GPFR)
+#' Gaussian process functional regression (GPFR) model
 #'
 #' Use functional regression (FR) model for the mean structure and Gaussian
 #' Process (GP) for the covariance structure. \cr \cr Let 'n' be the number of
@@ -1042,10 +1043,10 @@ gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL
             model$mf[[1]]$yhatfdobj$fd$basis$rangeval)[1:2]
   if(is.null(model$ml) & is.null(model$mf)) rtime <- c(0,1)
   
-  if(class(testInputGP)=='numeric'){
+    if(class(testInputGP)=='numeric'){
     testInputGP <- as.matrix(testInputGP)
   }
-  if(class(testInputGP)=='matrix'){
+  if(is.matrix(testInputGP)){
     test <- testInputGP
     test <- t(test)
     if(is.null(testTime)) time <- seq(rtime[1],rtime[2],len=col(test))
@@ -1247,7 +1248,7 @@ gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL
     ygpobs <- as.matrix(gpresp)-gpyhat_ml-apply(gpyhat_mf,1,sum)    
     y_gppred <- gprPredict(train=FALSE,hyper=train$hyper, 
                           input=as.matrix(gpReg$input), Y=as.matrix(ygpobs), 
-                          input.new=t(as.matrix(test)), Cov=train$CovFun, 
+                          inputNew=t(as.matrix(test)), Cov=train$CovFun, 
                           gamma=train$gamma, nu=train$nu)
     ygppred <- y_gppred$pred.mean
     s2 <- ((y_gppred$pred.sd)^2-exp(train$hyper$vv))%*%(1 + ml_var)
@@ -1265,7 +1266,7 @@ gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL
     
     for(i in 1:ncol(train$resid_resp)){
       input <- do.call('cbind',lapply(train$gpTrain,function(j) j=j[,i]))
-      y_gppred <- gprPredict(train=FALSE,input.new=t(as.matrix(test)),
+      y_gppred <- gprPredict(train=FALSE,inputNew=t(as.matrix(test)),
                             hyper=train$hyper,input=as.matrix(input), 
                             Y=as.matrix(train$resid_resp[,i]), 
                             Cov=train$CovFun,gamma=train$gamma, nu=train$nu)

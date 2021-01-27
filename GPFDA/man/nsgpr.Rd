@@ -8,7 +8,6 @@ model)}
 nsgpr(
   response,
   input,
-  inputSubsetIdx = NULL,
   corrModel = "pow.ex",
   gamma = 2,
   nu = 1.5,
@@ -19,7 +18,8 @@ nsgpr(
   zeroNoiseVariance = F,
   sepCov = F,
   nInitCandidates = 300,
-  absBounds = 6
+  absBounds = 6,
+  inputSubsetIdx = NULL
 )
 }
 \arguments{
@@ -27,9 +27,6 @@ nsgpr(
 where each column is a realisation}
 
 \item{input}{List of Q input variables (see Details).}
-
-\item{inputSubsetIdx}{A list identifying a subset of the input values to be
-used in the estimation (see Details).}
 
 \item{corrModel}{Correlation function specification used for g(.). It can be
 either "pow.ex" or "matern".}
@@ -74,6 +71,9 @@ optimisation via nlminb() begins with the best of these vectors.}
 
 \item{absBounds}{lower and upper boundaries for B-spline coefficients (if
 wanted).}
+
+\item{inputSubsetIdx}{A list identifying a subset of the input values to be
+used in the estimation (see Details).}
 }
 \value{
 A list containing:  \describe{ \item{MLEsts}{Maximum likelihood

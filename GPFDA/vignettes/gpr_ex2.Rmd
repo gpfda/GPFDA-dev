@@ -85,7 +85,7 @@ sapply(fit$hyper, exp)
 
 Predictions for the test set can then be found:
 ```{r}
-pred <- gprPredict(train=fit, input.new=inputTest, noiseFreePred=T)
+pred <- gprPredict(train=fit, inputNew=inputTest, noiseFreePred=T)
 ```
 
 

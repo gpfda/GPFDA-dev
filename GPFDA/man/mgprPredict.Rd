@@ -2,12 +2,12 @@
 % Please edit documentation in R/mgp.functions.R
 \name{mgprPredict}
 \alias{mgprPredict}
-\title{Prediction of multivariate Gaussian process}
+\title{Prediction of MGPR model}
 \usage{
 mgprPredict(
   train,
-  Data.obs = NULL,
-  Data.new,
+  DataObs = NULL,
+  DataNew,
   noiseFreePred = F,
   meanModel = NULL,
   mu = 0
@@ -15,13 +15,13 @@ mgprPredict(
 }
 \arguments{
 \item{train}{A 'mgpr' object obtained from 'mgpr' function. 
-If NULL, predictions are made based on Data.obs informed by the user.}
+If NULL, predictions are made based on DataObs informed by the user.}
 
-\item{Data.obs}{List of observed data. Default to NULL. If NULL,
+\item{DataObs}{List of observed data. Default to NULL. If NULL,
 predictions are made based on the trained data 
 (included in the object of class 'mgpr') used for learning.}
 
-\item{Data.new}{List of test input data.}
+\item{DataNew}{List of test input data.}
 
 \item{noiseFreePred}{Logical. If TRUE, predictions will be noise-free.}
 
@@ -44,7 +44,7 @@ for the test set.}
   \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.} }
 }
 \description{
-Prediction of multivariate Gaussian process
+Prediction of MGPR model
 }
 \examples{
 ## See examples in vignette:

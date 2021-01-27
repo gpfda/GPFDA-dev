@@ -182,13 +182,13 @@ Based on the estimated NSGP model, we want to make predictions at test input poi
 # Creating test input points
 n1test <- n1*2
 n2test <- n2*2
-input.new <- list()
-input.new[[1]] <- seq(0,1,length.out = n1test)
-input.new[[2]] <- seq(0,1,length.out = n2test)
-inputMatTest <- as.matrix(expand.grid(input.new[[1]], input.new[[2]]))
+inputNew <- list()
+inputNew[[1]] <- seq(0,1,length.out = n1test)
+inputNew[[2]] <- seq(0,1,length.out = n2test)
+inputMatTest <- as.matrix(expand.grid(inputNew[[1]], inputNew[[2]]))
 
 pred <- nsgprPredict(hp=hp, response=response, input=input, 
-                       input.new=input.new,  noiseFreePred=F, nBasis=6, 
+                       inputNew=inputNew,  noiseFreePred=F, nBasis=6, 
                        corrModel=corrModel, gamma=gamma, cyclic=c(F,F), 
                        whichTau=c(T,T))
 ```

@@ -80,14 +80,14 @@ plot(fit, realisation=10)
 
 Predictions on a fine grid for the $10$th realisation can be obtained as follows:
 ```{r}
-input.new <- seq(0, 1, length.out = 1000)
-pred1 <- gprPredict(train=fit, input.new=input.new, noiseFreePred=T)
+inputNew <- seq(0, 1, length.out = 1000)
+pred1 <- gprPredict(train=fit, inputNew=inputNew, noiseFreePred=T)
 plot(pred1, realisation=10)
 ```
 
 If one wants to include noise variance in the predictions for the new time points:
 ```{r}
-pred2 <- gprPredict(train=fit, input.new=input.new, noiseFreePred=F)
+pred2 <- gprPredict(train=fit, inputNew=inputNew, noiseFreePred=F)
 plot(pred2, realisation=10)
 ```
 

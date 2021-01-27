@@ -103,43 +103,51 @@ for(j in 1:N){
 Data$response <- response
 ```
 
+```{r, include=F, eval=F}
+dataExampleMGPR <- Data
+save(dataExampleMGPR, file = "data/dataExampleMGPR.rda")
+```
+
+
 Below we estimate the mean and covariance functions using a subset of data 
-including $m=200$ observations (out of $750$ of the sample) aiming for a faster estimation.
+including $m=100$ observations (out of $750$ of the sample) aiming for a faster estimation.
 These $m$ observations are chosen randomly. For the mean functions, we choose 
 the linear model by settting `meanModel = 't'`.
 ```{r}
-res <- mgpr(Data=Data, m=200, meanModel = 't')
+res <- mgpr(Data=Data, m=100, meanModel = 't')
 ```
 
 
 Next, based on the estimated model, we want to predict the values of the three 
 outputs at new time points:
 ```{r}
-n_star <- 60*3
+n_star <- 60*N
 input1star <- seq(min(input1), max(input1), length.out = n_star/N)
 input2star <- seq(min(input2), max(input2), length.out = n_star/N)
 input3star <- seq(min(input3), max(input3), length.out = n_star/N)
-Data.new <- list()
-Data.new$input <- list(input1star, input2star, input3star)
+DataNew <- list()
+DataNew$input <- list(input1star, input2star, input3star)
 ```
 
 We have trained the model using $m$ time points. However, for visualisation purposes, 
-it is more interesting to visualise predictions based on very few data points.
+it is more interesting to see predictions based on very few data points.
 Therefore, let's use a very small subset of observations and make predictions given this 
-small subset.
+small subset. We will use observations from the fifth multivariate realisation stored in `Data'.
 ```{r}
+realisation <- 5
+
 obsSet <- list()
 obsSet[[1]] <- c(5, 10, 23, 50, 80, 200)
-obsSet[[2]] <- c(5, 10, 23, 200)
-obsSet[[3]] <- c(5, 10, 23, 200)
+obsSet[[2]] <- c(10, 23, 180)
+obsSet[[3]] <- c(3, 11, 30, 240)
 
-Data.obs <- list()
-Data.obs$input[[1]] <- Data$input[[1]][obsSet[[1]]]
-Data.obs$input[[2]] <- Data$input[[2]][obsSet[[2]]]
-Data.obs$input[[3]] <- Data$input[[3]][obsSet[[3]]]
-Data.obs$response[[1]] <- Data$response[[1]][obsSet[[1]], ]
-Data.obs$response[[2]] <- Data$response[[2]][obsSet[[2]], ]
-Data.obs$response[[3]] <- Data$response[[3]][obsSet[[3]], ]
+DataObs <- list()
+DataObs$input[[1]] <- Data$input[[1]][obsSet[[1]]]
+DataObs$input[[2]] <- Data$input[[2]][obsSet[[2]]]
+DataObs$input[[3]] <- Data$input[[3]][obsSet[[3]]]
+DataObs$response[[1]] <- Data$response[[1]][obsSet[[1]], realisation]
+DataObs$response[[2]] <- Data$response[[2]][obsSet[[2]], realisation]
+DataObs$response[[3]] <- Data$response[[3]][obsSet[[3]], realisation]
 ```
 
 
@@ -147,7 +155,7 @@ The `mgprPredict` function returns a list containing the predictive mean and
 standard deviation for the curves of each output at the new time points.
 ```{r}
 # Calculate predictions for the test set given some observations
-predCGP <- mgprPredict(train=res, Data.obs=Data.obs, Data.new=Data.new)
+predCGP <- mgprPredict(train=res, DataObs=DataObs, DataNew=DataNew)
 str(predCGP)
 ```
 
@@ -155,8 +163,34 @@ str(predCGP)
 The predictions (with 95\% confidence inverval) for the $5$th curve at the new 
 time points can be visualised by using the model estimated by the `mgpr` function:
 ```{r, fig.width=9, fig.height=4}
-plot(res, Data.obs=Data.obs, Data.new=Data.new, realisation=5)
+plot(res, DataObs=DataObs, DataNew=DataNew)
 ```
+
+
+Let's assume that we have additional information for the first two functions by 
+also including their 100th and 150th observations:
+
+```{r}
+obsSet[[1]] <- c(5, 10, 23, 50, 80, 100, 150, 200)
+obsSet[[2]] <- c(10, 23, 100, 150, 180)
+
+DataObs$input[[1]] <- Data$input[[1]][obsSet[[1]]]
+DataObs$input[[2]] <- Data$input[[2]][obsSet[[2]]]
+DataObs$response[[1]] <- Data$response[[1]][obsSet[[1]], realisation]
+DataObs$response[[2]] <- Data$response[[2]][obsSet[[2]], realisation]
+```
+
+
+```{r}
+predCGP <- mgprPredict(train=res, DataObs=DataObs, DataNew=DataNew)
+```
+
+Now notice how predictions for the third function are affected by the information 
+added to the other functions.
+```{r, fig.width=9, fig.height=4}
+plot(res, DataObs=DataObs, DataNew=DataNew)
+```
+
 
 ```{r, include = FALSE}
 options(old)

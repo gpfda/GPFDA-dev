@@ -2,33 +2,34 @@
 % Please edit documentation in R/mgp.functions.R
 \name{plot.mgpr}
 \alias{plot.mgpr}
-\title{Plot predictions of a multivariate Gaussian Process regression
-model}
+\title{Plot predictions of GPR model}
 \usage{
 \method{plot}{mgpr}(
   x,
-  Data.obs,
-  Data.new,
+  DataObs,
+  DataNew,
   realisation,
+  alpha = 0.05,
   ylim = NULL,
   mfrow = NULL,
   cex = 2,
-  mar = c(4.5, 5.1, 0.2, 0.8),
+  mar = c(4.5, 7.1, 0.2, 0.8),
   oma = c(0, 0, 0, 0),
-  cex.lab = 1.5,
-  cex.axis = 1,
-  cex.main = 1.5,
+  cex.lab = 2,
+  cex.axis = 1.5,
   ...
 )
 }
 \arguments{
 \item{x}{An object of class 'mgpr'.}
 
-\item{Data.obs}{List of observed data.}
+\item{DataObs}{List of observed data.}
 
-\item{Data.new}{List of test data.}
+\item{DataNew}{List of test data.}
 
 \item{realisation}{Index identifying which realisation should be plotted.}
+
+\item{alpha}{Significance level used for MGPR predictions. Default is 0.05.}
 
 \item{ylim}{Range of y-axis.}
 
@@ -43,8 +44,6 @@ model}
 \item{cex.lab}{Graphical parameter passed to par().}
 
 \item{cex.axis}{Graphical parameter passed to par().}
-
-\item{cex.main}{Graphical parameter passed to par().}
 
 \item{...}{Graphical parameters passed to plot().}
 }

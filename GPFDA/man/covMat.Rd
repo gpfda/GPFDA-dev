@@ -8,13 +8,13 @@
 \alias{cov.linear}
 \title{Calculate a covariance matrix}
 \usage{
-cov.pow.ex(hyper, input, input.new = NULL, gamma = 2)
+cov.pow.ex(hyper, input, inputNew = NULL, gamma = 2)
 
-cov.rat.qu(hyper, input, input.new = NULL)
+cov.rat.qu(hyper, input, inputNew = NULL)
 
-cov.matern(hyper, input, input.new = NULL, nu)
+cov.matern(hyper, input, inputNew = NULL, nu)
 
-cov.linear(hyper, input, input.new = NULL)
+cov.linear(hyper, input, inputNew = NULL)
 }
 \arguments{
 \item{hyper}{The hyperparameters. It must be a list with certain names. See 
@@ -23,8 +23,8 @@ details.}
 \item{input}{The covariate t. It must be either a matrix, where each column
 represents a covariate, or a vector if there is only one covariate.}
 
-\item{input.new}{The covariate t'. It also must be a vector or a matrix. 
-If NULL (default), 'input.new' will be set to be equal to 'input' and the 
+\item{inputNew}{The covariate t'. It also must be a vector or a matrix. 
+If NULL (default), 'inputNew' will be set to be equal to `input' and the 
 function will return a squared, symmetric covariance matrix.}
 
 \item{gamma}{Power parameter used in powered exponential kernel function. It

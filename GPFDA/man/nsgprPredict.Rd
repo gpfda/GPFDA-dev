@@ -2,13 +2,13 @@
 % Please edit documentation in R/nsgp.functions.R
 \name{nsgprPredict}
 \alias{nsgprPredict}
-\title{NSGP predicion given a vector of hyperparameters}
+\title{Prediction of NSGPR model}
 \usage{
 nsgprPredict(
   hp,
   response,
   input,
-  input.new,
+  inputNew,
   noiseFreePred = F,
   nBasis = nBasis,
   corrModel = corrModel,
@@ -26,7 +26,7 @@ where each column is a realisation}
 
 \item{input}{List of Q input variables (see Details).}
 
-\item{input.new}{List of Q test set input variables.}
+\item{inputNew}{List of Q test set input variables.}
 
 \item{noiseFreePred}{Logical.  If TRUE, predictions will be noise-free.}
 
@@ -63,7 +63,7 @@ A list containing  \describe{
 }
 }
 \description{
-NSGP predicion given a vector of hyperparameters
+Prediction of NSGPR model
 }
 \examples{
 ## See examples in vignette:

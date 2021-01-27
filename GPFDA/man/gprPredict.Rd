@@ -2,11 +2,11 @@
 % Please edit documentation in R/gp.functions6.R
 \name{gprPredict}
 \alias{gprPredict}
-\title{Prediction using Gaussian Process}
+\title{Prediction of GPR model}
 \usage{
 gprPredict(
   train = NULL,
-  input.new = NULL,
+  inputNew = NULL,
   noiseFreePred = F,
   hyper = NULL,
   input = NULL,
@@ -24,7 +24,7 @@ gprPredict(
 NULL, learning is done based on the other given arguments; otherwise,
 prediction is made based on the trained model of class gpr'.}
 
-\item{input.new}{Test input covariates.  It must be either a matrix, where
+\item{inputNew}{Test input covariates.  It must be either a matrix, where
 each column represents a covariate, or a vector if there is only one
 covariate.}
 
@@ -70,7 +70,7 @@ A list containing  \describe{ \item{pred.mean}{Mean of predictions}
   \item{...}{Objects of 'gpr' class. } }
 }
 \description{
-Prediction using Gaussian Process
+Prediction of GPR model
 }
 \examples{
 ## See examples in vignettes:

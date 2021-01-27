@@ -186,15 +186,15 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
 
 
 
-#' Prediction of multivariate Gaussian process
+#' Prediction of MGPR model
 #'
 #' @inheritParams mgpr
 #' @param train A 'mgpr' object obtained from 'mgpr' function. 
-#'   If NULL, predictions are made based on Data.obs informed by the user.
-#' @param Data.obs List of observed data. Default to NULL. If NULL,
+#'   If NULL, predictions are made based on DataObs informed by the user.
+#' @param DataObs List of observed data. Default to NULL. If NULL,
 #'   predictions are made based on the trained data 
 #'   (included in the object of class 'mgpr') used for learning.
-#' @param Data.new List of test input data.
+#' @param DataNew List of test input data.
 #' @param noiseFreePred Logical. If TRUE, predictions will be noise-free.
 #'
 #' @export
@@ -208,8 +208,8 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
 #' ## See examples in vignette:
 #' # vignette("mgpr", package = "GPFDA")
 mgprPredict <- function(train, 
-                       Data.obs=NULL,
-                       Data.new,
+                       DataObs=NULL,
+                       DataNew,
                        noiseFreePred=F, 
                        meanModel=NULL, mu=0){
   
@@ -229,19 +229,24 @@ mgprPredict <- function(train,
     meanLinearModel <- train$meanLinearModel
   }
   
-  if(!is.null(Data.obs)){
-    N <- length(Data.obs$input)
-    X <- as.matrix(unlist(Data.obs$input))
+  
+  if(!is.null(DataObs)){
+    N <- length(DataObs$input)
+    X <- as.matrix(unlist(DataObs$input))
+    
+    if(!is.matrix(DataObs$response[[1]])){
+      DataObs$response <- lapply(DataObs$response, as.matrix)
+    }
   }
 
-  X.new <- as.matrix(unlist(Data.new$input))
-  ns.new <- sapply(Data.new$input, length)
+  X.new <- as.matrix(unlist(DataNew$input))
+  ns.new <- sapply(DataNew$input, length)
   idx.new <- c(unlist(sapply(1:N, function(i) rep(i, ns.new[i]))))
 
-  ns <- sapply(Data.obs$input, length)
-  nsTest <- sapply(Data.new$input, length)
+  ns <- sapply(DataObs$input, length)
+  nsTest <- sapply(DataNew$input, length)
   idx <- c(unlist(sapply(1:N, function(i) rep(i, ns[i]))))
-  Y <- Reduce('rbind', Data.obs$response)
+  Y <- Reduce('rbind', DataObs$response)
   
   nrep <- ncol(Y)
   
@@ -255,7 +260,7 @@ mgprPredict <- function(train,
   if(meanModel=='t'){
     meanList <- list()
     for(j in 1:N){
-      newtrend <- data.frame(xxx=Data.obs$input[[j]])
+      newtrend <- data.frame(xxx=DataObs$input[[j]])
       meanList[[j]] <- predict(meanLinearModel[[j]], newdata=newtrend)
     }
     meanY <- do.call(cbind, replicate(nrep, unlist(meanList), simplify=FALSE))
@@ -304,7 +309,7 @@ mgprPredict <- function(train,
   if(meanModel=='t'){
     meanList <- list()
     for(j in 1:N){
-      newtrend <- data.frame(xxx=Data.new$input[[j]])
+      newtrend <- data.frame(xxx=DataNew$input[[j]])
       meanList[[j]] <- predict(meanLinearModel[[j]], newdata=newtrend)
     }
     mu <- do.call(cbind, replicate(nrep, unlist(meanList), simplify=FALSE))
@@ -435,16 +440,16 @@ LogLikCGP <- function(hp, response, X, idx){
 
 
 
-#' Plot predictions of a multivariate Gaussian Process regression
-#' model
+#' Plot predictions of GPR model
 #' 
 #' Plot predictons of each element of the multivariate Gaussian Process for a
 #' given an object of class 'mgpr'.
 #'
 #' @param x An object of class 'mgpr'.
-#' @param Data.obs List of observed data.
-#' @param Data.new List of test data.
+#' @param DataObs List of observed data.
+#' @param DataNew List of test data.
 #' @param realisation Index identifying which realisation should be plotted.
+#' @param alpha Significance level used for MGPR predictions. Default is 0.05.
 #' @param ylim Range of y-axis.
 #' @param mfrow Graphical parameter.
 #' @param cex  Graphical parameter.
@@ -452,7 +457,6 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @param oma Graphical parameter passed to par().
 #' @param cex.lab Graphical parameter passed to par().
 #' @param cex.axis Graphical parameter passed to par().
-#' @param cex.main Graphical parameter passed to par().
 #' @param ... Graphical parameters passed to plot().
 #'
 #' @importFrom  graphics polygon
@@ -467,16 +471,23 @@ LogLikCGP <- function(hp, response, X, idx){
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("mgpr", package = "GPFDA")
-plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL, mfrow=NULL, 
+plot.mgpr <- function(x, DataObs, DataNew, realisation, alpha=0.05,
+                      ylim=NULL, mfrow=NULL, 
                       cex=2, 
-                      mar=c(4.5,5.1,0.2,0.8), oma=c(0,0,0,0),
-                      cex.lab=1.5, cex.axis=1, cex.main=1.5, ...){
+                      mar=c(4.5,7.1,0.2,0.8), oma=c(0,0,0,0),
+                      cex.lab=2, cex.axis=1.5, ...){
   
-  old <- par(mar=mar, oma=oma, cex.lab=cex.lab, cex.axis=cex.axis, cex.main=cex.main)
+  old <- par(mar=mar, oma=oma, cex.lab=cex.lab, cex.axis=cex.axis)
+  
+  z <- stats::qnorm(1-alpha/2)
+  
+  if(!is.matrix(DataObs$response[[1]])){
+    DataObs$response <- lapply(DataObs$response, as.matrix)
+  }
   
   predCGP <- mgprPredict(train=x, 
-                        Data.obs=Data.obs,
-                        Data.new=Data.new)
+                        DataObs=DataObs,
+                        DataNew=DataNew)
   
   N <- length(predCGP$pred.mean)
   
@@ -491,8 +502,8 @@ plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL, mfrow=NULL,
   for(variable in 1:N){
     
     predMean <- predCGP$pred.mean[[variable]][,realisation]
-    upper <- predMean+1.96*predCGP$pred.sd[[variable]]
-    lower <- predMean-1.96*predCGP$pred.sd[[variable]]
+    upper <- predMean+z*predCGP$pred.sd[[variable]]
+    lower <- predMean-z*predCGP$pred.sd[[variable]]
     
     if(is.null(ylim)){
       ylim_i <- range(c(lower, upper))
@@ -500,13 +511,13 @@ plot.mgpr <- function(x, Data.obs, Data.new, realisation, ylim=NULL, mfrow=NULL,
       ylim_i <- ylim[[variable]]
     }
     
-    xlim_i <- range(Data.obs$input[[variable]], Data.new$input[[variable]])
-    plot(Data.obs$input[[variable]], Data.obs$response[[variable]][,realisation], 
-         type="p", xlab="t", ylab=bquote(X[.(variable)]), ylim=ylim_i, 
+    xlim_i <- range(DataObs$input[[variable]], DataNew$input[[variable]])
+    plot(DataObs$input[[variable]], DataObs$response[[variable]][,realisation], 
+         type="p", xlab="t", ylab=bquote(x[.(variable)]), ylim=ylim_i, 
          xlim=xlim_i, pch=19, cex=cex, cex.axis=cex.axis, cex.lab=cex.lab, ...)
-    lines(Data.new$input[[variable]], predMean, col="blue", lwd=2)
+    lines(DataNew$input[[variable]], predMean, col="blue", lwd=2)
     
-    polygon(x=c(Data.new$input[[variable]], rev(Data.new$input[[variable]])), 
+    polygon(x=c(DataNew$input[[variable]], rev(DataNew$input[[variable]])), 
             y=c(upper, rev(lower)),
             col=rgb(127,127,127,120, maxColorValue=255), border=NA)
   }

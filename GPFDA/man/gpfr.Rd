@@ -2,7 +2,7 @@
 % Please edit documentation in R/gpfr.functions6.R
 \name{gpfr}
 \alias{gpfr}
-\title{Gaussian process functional regression model (GPFR)}
+\title{Gaussian process functional regression (GPFR) model}
 \usage{
 gpfr(
   response,

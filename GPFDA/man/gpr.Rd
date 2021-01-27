@@ -2,11 +2,11 @@
 % Please edit documentation in R/gp.functions6.R
 \name{gpr}
 \alias{gpr}
-\title{Gaussian process regression}
+\title{Gaussian process regression (GPR) model}
 \usage{
 gpr(
-  input,
   response,
+  input,
   Cov = "pow.ex",
   m = NULL,
   hyper = NULL,
@@ -23,11 +23,11 @@ gpr(
 )
 }
 \arguments{
-\item{input}{Input covariates. It must be either a matrix, where each column
-represents a covariate, or a vector if there is only one covariate.}
-
 \item{response}{Response data. It should be a matrix, where each column is a
 realisation. It can be a vector if there is only one realisation.}
+
+\item{input}{Input covariates. It must be either a matrix, where each column
+represents a covariate, or a vector if there is only one covariate.}
 
 \item{Cov}{Covariance function(s) to use. Options are: 'linear', 'pow.ex',
 'rat.qu', and 'matern'. Default to 'power.ex'.}
