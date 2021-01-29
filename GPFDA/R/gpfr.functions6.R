@@ -31,8 +31,7 @@ main1 <- function(response,uReg=NULL,fxReg=NULL,fxList=NULL,fxCoefListScalarResp
         
         ## set up functional variable for fx
         if(length(fxList)!=length(fxReg)){
-          cat('Length of fxList is not equal to the length of list of 
-              functional covariates','\n')
+          cat('  The length of fxList is not equal to the number of functional covariates entered in fxReg','\n')
           
           if(length(fxList)==0){
             cat('     Default fxList is applied','\n')
@@ -43,7 +42,7 @@ main1 <- function(response,uReg=NULL,fxReg=NULL,fxList=NULL,fxCoefListScalarResp
             })
           } 
           else{
-            cat('     First element of fxList is applied to all items','\n')
+            cat('     The first element of fxList will be applied to all functional covariates.','\n')
             fxList <- lapply(fxReg,function(i){
               i <- fxList[[1]]
               return(i)
@@ -54,8 +53,7 @@ main1 <- function(response,uReg=NULL,fxReg=NULL,fxList=NULL,fxCoefListScalarResp
           
         ## set up functional parameter for fbeta
         if(length(fxCoefListScalarResp)!=length(fxReg)){
-          cat('       Length of fxCoefListScalarResp is not equal to the length of list of 
-              functional covariates','\n')
+          cat('       Length of fxCoefListScalarResp is not equal to the length of list of  functional covariates','\n')
           if(length(fxCoefListScalarResp)==0){
             cat('     Default fxCoefListScalarResp is applied','\n')
             fxCoefListScalarResp <- fxList
@@ -206,8 +204,7 @@ main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
     
     ## define list of beta
     if(length(uCoefList)!=length(lxList)){
-      cat('  Length of uCoefList list is not equal to the length of list of 
-          functional covariates.','\n')
+      cat('  The length of uCoefList is not equal to the number of scalar covariates entered in uReg.','\n')
       if(length(uCoefList)==0){
         cat('  Default uCoefList is applied.','\n')
         betalist <- lapply(lxList,function(i){
@@ -216,7 +213,7 @@ main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
       }
       
       if(length(uCoefList)>0){
-        cat('  The first element of uCoefList is applied to all items.', '\n')
+        cat('  The first element of uCoefList will be applied to the functional regression coefficients of all scalar covariates.', '\n')
         betalist <- lapply(lxList,function(i){
           i <- betaPar(uCoefList[[1]])
         })
@@ -255,15 +252,14 @@ main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
       if(unique(unlist(lapply(fxReg,class)))=='matrix'){
         if(ncol(fxReg[[1]])!=length(y$fdnames$time)) fxReg <- lapply(fxReg,t)
         if(length(fxList)!=length(fxReg)){
-          cat('     Length of fxList is not equal to the length of list of 
-              functional covariates','\n')
+          cat('     The length of fxList is not equal to the number of functional covariates entered in fxReg.','\n')
           fxReg <- lapply(fxReg,t)
           if(length(fxList)==0){
             cat('     Default fxList is applied','\n')
             fxReg <- lapply(fxReg,mat2fd)
           }
           if(length(fxList)>0){
-            cat('     First element of fxList is applied to all items','\n')
+            cat('     The first element of fxList will be applied to all functional covariates.','\n')
             
             fxReg <- lapply(fxReg,function(i){
               i <- mat2fd(i,fxList[[1]])
@@ -280,8 +276,7 @@ main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
       
       ## set up list of fdPar object for beta
       if(length(fxCoefList)!=length(fxReg)){
-        cat('     Length of fxCoefList list is not equal to the length of list 
-            of functional covariates','\n')
+        cat('     The length of fxCoefList list is not equal to the number of functional covariates entered in fxReg.','\n')
         if(length(fxCoefList)==0){
           cat('     Default fxCoefList is applied','\n')
           if(1-concurrent){
@@ -291,7 +286,7 @@ main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
           }
         }
         if(length(fxCoefList)>0){
-          cat('     First element of fxCoefList is applied to all items','\n')
+          cat('     The first element of fxCoefList will be applied to the functional regression coefficients of all functional covariates.','\n')
           if(1-concurrent) {
             betalist <- lapply(fxReg,function(i) i=betaPar(list(bivar=TRUE)))
           }else{
@@ -704,14 +699,14 @@ gpfrtrain <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
     }}
   
 
-  cat('    optimizing    ','\n')
+  cat('   Start optimization: ','\n')
 
   if(!useGradient){repgp.Dloglikelihood <- NULL}
   pp <- nlminb(init0,repgp.loglikelihood,repgp.Dloglikelihood,
                response=response,Data=Data,Cov=Cov,gamma=gamma,nu=nu, 
                control=list(trace=trace.iter,rel.tol=rel.tol))
 
-  cat('    optimization done','\n','\n')
+  cat('    Optimization has been finished.','\n','\n')
   pp.cg <- pp[[1]]
   
   names(pp.cg) <- names(init0)
@@ -730,7 +725,7 @@ gpfrtrain <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
                                                 Y=l[,1],Cov=Cov,
                                                 gamma=gamma,nu=nu))
   II <- abs(-1/apply(do.call('cbind',Qlist),1,sum))
-  cat("Fisher's information done",'\n','\n')
+  # cat("Fisher's information done",'\n','\n')
   
   mean <- t(Reduce('+',fittedFM)) ## mean from functional regression model
   
@@ -771,9 +766,10 @@ gpfrtrain <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
         (Q-diag(exp(hyper.cg$vv),dim(Q)[1]))*t(invQ))
       fitted[,i] <- yfit
       fitted.sd[,i] <- sqrt(s2)
-      if(i%%5==0) cat(paste0('fitting ',i,'th curve','\n'))
+      if(i%%5==0) cat(paste0('Fitting ',i,'th curve;','\n'))
     }
     
+    cat(paste0('GPFR model fitted to all the curves.','\n'))
   }
     
   result <- list('hyper'=pp.cg,'I'=II, 'modellist'=model$model,'CovFun'=Cov,
@@ -1241,8 +1237,7 @@ gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL
     
   ## Type I prediction
   if(type==1){
-    
-    cat('    Working out Type I prediction','\n')
+
     gpresp <- as.matrix(gpReg$response)
     if(nrow(gpresp)==1) gpresp <- t(gpresp)
     ygpobs <- as.matrix(gpresp)-gpyhat_ml-apply(gpyhat_mf,1,sum)    
@@ -1255,12 +1250,12 @@ gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL
     #+sum(mf_var))
     ypred <- yhat_ml+apply(yhat_mf,1,sum) + ygppred 
     ## fd regression plus gp regression
+    cat('  Type I predictions calculated.','\n')
   }
   
   ## Type II prediction
   if(is.null(gpReg)|type==2){
-    cat('    Working out Type II prediction','\n')
-    
+
     fitted <- matrix(0,ncol=ncol(train$resid_resp),nrow=ncol(test))
     fitted.var <- fitted
     
@@ -1278,6 +1273,7 @@ gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL
     }
     ypred <- as.matrix(apply(fitted,1,mean))
     s2 <- as.matrix(apply(fitted.var,1,mean))+apply(fitted^2,1,mean)-ypred^2
+    cat('  Type II predictions calculated.','\n')
   }
   
   

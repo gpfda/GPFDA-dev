@@ -1,8 +1,8 @@
 Package: GPFDA
 Type: Package
 Title: Gaussian Process for Functional Data Analysis
-Version: 3.1.0
-Date: 2021-01-26
+Version: 3.1.1
+Date: 2021-01-29
 Author: Jian Qing Shi, Yafeng Cheng, Evandro Konzen
 Maintainer: Evandro Konzen <gpfda.r@gmail.com>
 Description: Functionalities for modelling functional data with 
