@@ -217,8 +217,7 @@ cov.linear <- function(hyper, input, inputNew=NULL){
 #'   hyperparameters should be in one list.
 #'
 #' @return A list containing: \describe{ \item{hyper}{Hyperparameters vector
-#'   estimated from training data} \item{var.hyper}{ Variance of the estimated
-#'   hyperparameters} \item{fitted.mean }{Fitted values for the training data }
+#'   estimated from training data} \item{fitted.mean }{Fitted values for the training data }
 #'   \item{fitted.sd }{Standard deviation of the fitted values for the training 
 #'   data}
 #'   \item{train.x }{ Training covariates} \item{train.y }{ Training response}
@@ -229,8 +228,8 @@ cov.linear <- function(hyper, input, inputNew=NULL){
 #'   exponential covariance function } \item{nu }{Parameter used in Matern
 #'   covariance function } \item{Q}{Covariance matrix } \item{mean}{Mean
 #'   function } \item{meanModel}{Mean model used} \item{meanLinearModel}{'lm'
-#'   object if mean is a linear regression. NULL otherwise.} \item{conv}{An
-#'   integer. 0 means converge; 1 otherwise. } \item{hyper0}{Starting point of
+#'   object if mean is a linear regression. NULL otherwise.} \item{convergence}{An
+#'   integer. 0 means converged; 1 otherwise. } \item{hyper0}{Starting point of
 #'   the hyperparameters vector.} }
 #'
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
@@ -264,6 +263,8 @@ gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL,
               useGradient is automatically set to FALSE.")
     }}
   input <- as.matrix(input)
+  
+  hyperSupplied <- hyper
   
   dimData <- ncol(input)
   response <- as.matrix(response)
@@ -392,38 +393,47 @@ gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL,
     response <- response - mu
   }
   
-  #### Try a number of hp vector and start with the best
-  candidates <- matrix(0, nInitCandidates, length(hyper_upp))
-  for(iCand in 1:nInitCandidates){
-    candidates[iCand,] <- runif(n=length(hyper_upp), min=hyper_low, 
-                                max=hyper_upp)
-  }
-  colnames(candidates) <- hp.name
-  cat(c('\n','--------- Initialising ---------- \n'))
-  resCand <- apply(candidates, 1, function(x){
-    gp.loglikelihood2(hyper.p=x, input=input, response=response,
-                      Cov=Cov, gamma=gamma, nu=nu)})
   
-  best_init <- candidates[which.min(resCand),]
-  
-  trace <- round(trace)
-  if(trace>0){
-    cat(c('iter:  -loglik:',hp.name,'\n'), sep='     ')
+  if(is.null(hyperSupplied)){
+    
+    #### Try a number of hp vector and start with the best
+    candidates <- matrix(0, nInitCandidates, length(hyper_upp))
+    for(iCand in 1:nInitCandidates){
+      candidates[iCand,] <- runif(n=length(hyper_upp), min=hyper_low, 
+                                  max=hyper_upp)
+    }
+    colnames(candidates) <- hp.name
+    cat(c('\n','--------- Initialising ---------- \n'))
+    resCand <- apply(candidates, 1, function(x){
+      gp.loglikelihood2(hyper.p=x, input=input, response=response,
+                        Cov=Cov, gamma=gamma, nu=nu)})
+    
+    best_init <- candidates[which.min(resCand),]
+    
+    trace <- round(trace)
+    if(trace>0){
+      cat(c('iter:  -loglik:',hp.name,'\n'), sep='     ')
+    }
+    if(!useGradient){gp.Dlikelihood2 <- NULL}
+    CG0 <- nlminb(start=best_init, objective=gp.loglikelihood2, 
+                  gradient=gp.Dlikelihood2,
+                  input=input, response=response, Cov=Cov, gamma=gamma, nu=nu,
+                  control=list(iter.max=iter.max, rel.tol=rel.tol, trace=trace))
+    
+    # if(trace!=F&CG0$convergence==0)
+    #   cat('\n','    optimization finished. Converged.','\n')
+    # if(trace!=F&CG0$convergence==1)
+    #   cat('\n','    optimization finished. Failed Converge.','\n')
+    if(trace>0){
+      cat('\n','    optimization finished.','\n')
+    }
+    CG <- CG0[[1]]
+    convergence <- CG0$convergence
+  }else{
+    CG <- unlist(hyper)
+    convergence <- NULL
   }
-  if(!useGradient){gp.Dlikelihood2 <- NULL}
-  CG0 <- nlminb(start=best_init, objective=gp.loglikelihood2, 
-                gradient=gp.Dlikelihood2,
-                input=input, response=response, Cov=Cov, gamma=gamma, nu=nu,
-                control=list(iter.max=iter.max, rel.tol=rel.tol, trace=trace))
-  
-  # if(trace!=F&CG0$convergence==0)
-  #   cat('\n','    optimization finished. Converged.','\n')
-  # if(trace!=F&CG0$convergence==1)
-  #   cat('\n','    optimization finished. Failed Converge.','\n')
-  if(trace>0){
-    cat('\n','    optimization finished.','\n')
-  }
-  CG <- CG0[[1]]
+
   names(CG) <- hp.name
   CG.df <- data.frame(CG=CG,CG.N=substr(hp.name,1,8))
   names(CG.df) <- c('CG','CG.N')
@@ -449,60 +459,11 @@ gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL,
   
   diag(Q) <- diag(Q)+exp(hyper.cg$vv)
   invQ <- chol2inv(chol(Q))
-  
-  if("matern"%in%Cov){
-    if(nu%in%c(3/2, 5/2)){
-      calcVarHyperPar <- T
-    }else{
-      calcVarHyperPar <- F
-    }
-  }else{
-    calcVarHyperPar <- T
-  }
-  
-  if(calcVarHyperPar){
-    
-    D2fxList <- vector('list',nrep)
-    for(irep in 1:nrep){
-      
-      QR <- invQ%*%as.matrix(response[,irep])
-      AlphaQ <- QR%*%t(QR)-invQ
-      
-      D2fx <- lapply(seq_along(hyper.cg), function(i){
-        Dp <- hyper.cg[i]
-        name.Dp <- names(Dp)
-        f <- get(paste0('D2',name.Dp))
-        if(name.Dp%in%c('pow.ex.w','pow.ex.v') )
-          D2para <- f(hyper=hyper.cg, input=input, gamma=gamma, inv.Q=invQ, 
-                      Alpha.Q=AlphaQ)
-        if(name.Dp%in%c('matern.w','matern.v') )
-          D2para <- f(hyper=hyper.cg, input=input, nu=nu, inv.Q=invQ, 
-                      Alpha.Q=AlphaQ)
-        if(!name.Dp%in%c('pow.ex.w','pow.ex.v','matern.w','matern.v') & 
-           !name.Dp%in%c('linear.a','linear.i'))
-          D2para <- f(hyper=hyper.cg, input=input, inv.Q=invQ, Alpha.Q=AlphaQ)
-        if(name.Dp%in%c('linear.a'))
-          D2para <- f(hyper=hyper.cg, input=input, Alpha.Q=AlphaQ)
-        if(name.Dp%in%c('linear.i'))
-          D2para <- f(hyper=hyper.cg, inv.Q=invQ, Alpha.Q=AlphaQ)
-        return(D2para)
-      })
-      names(D2fx) <- names(hyper.cg)
-      D2fx <- unlist(D2fx)
-      D2fxList[[irep]] <- D2fx
-    }
-    
-    D2fx <- Reduce('+', D2fxList)
-    
-    var_hyper <- (-1/(unlist(D2fx)*dim(input)[1]))
-  }else{
-    var_hyper <- NULL
-  }
 
   fitted <- (Q-diag(exp(hyper.cg$vv),dim(Q)[1]))%*%invQ%*%(response)+mu
   fitted.var <- exp(hyper.cg$vv)*rowSums(
     (Q-diag(exp(hyper.cg$vv),dim(Q)[1]))*t(invQ))
-  result <- list('hyper'=hyper.cg, 'var.hyper'=var_hyper,
+  result <- list('hyper'=hyper.cg, 
                  'fitted.mean'=fitted,
                  fitted.sd=sqrt(fitted.var),
                  'train.x'=input, 'train.y'=response,
@@ -511,10 +472,95 @@ gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL,
                  'idxSubset'=idxSubset, 'CovFun'=Cov, 'gamma'=gamma, 'nu'=nu, 
                  'Q'=Q, 'inv'=invQ, 'mu'=mu, 'meanModel'=meanModel, 
                  'meanLinearModel'=meanLinearModel,
-                 conv=CG0$convergence, 'hyper0'=hyper)
+                 convergence=convergence, 'hyper0'=hyper)
   class(result) <- 'gpr'
   return(result)
 }
+
+
+#' Print method for 'gpr' objects
+#'
+#' @param x A 'gpr' object.
+#' @param ... Not used here.
+#'
+#' @return Returns a summary of an object of class 'gpr'.
+#' @export
+#'
+#' @seealso \link[GPFDA]{gpr}
+print.gpr <- function(x, ...) {
+  
+  if(class(x) != "gpr"){
+    stop("'x' must be of class 'gpr'")
+  }
+
+  cat(paste0("GPR model specifications:", "\n"))
+  cat("\n")
+
+  if(x$meanModel==0){
+    cat(paste0("Zero mean function. \n"))
+  }else if(x$meanModel==1){
+    cat(paste0("Constant mean function. \n"))
+  }else if(x$meanModel=="t"){
+    cat(paste0("Linear model for the mean function. \n"))
+  }else if(x$meanModel=="avg"){
+    cat(paste0("Average across replications is used as the mean function. \n"))
+  }
+  
+  cat("\n")
+  cat(paste0("Covariance kernel(s): \n"))
+  cat(paste0(x$CovFun, collapse = ", "))
+  cat("\n")
+  
+  if("matern"%in%(x$CovFun)){
+    cat(paste0("nu = ", x$nu, "\n"))
+  }
+  if("pow.ex"%in%(x$CovFun)){
+    cat(paste0("gamma = ", x$gamma, "\n"))
+  }
+
+}
+
+
+#' Summary method for 'gpr' objects
+#'
+#' @param object A 'gpr' object.
+#' @param ... Not used here.
+#' 
+#' @return Some fitting results of the GPR model.
+#' @export
+#'
+#' @seealso \link[GPFDA]{gpr}
+summary.gpr <- function(object, ...){
+  
+  if(class(object) != "gpr"){
+    stop("'object' must be of type gpr")
+  }
+
+  
+  if(object$meanModel==0){
+    cat(paste0("Mean function assumed to be zero.", "\n"))
+    cat("\n")
+  }
+  
+  if(object$meanModel==1){
+    cat(paste0("Estimated constant mean function:", "\n"))
+    cat(paste0("mu = ", round(object$mu, digits = 6), "\n"))
+    cat("\n")
+  }
+  
+  if(object$meanModel=="t"){
+    cat(paste0("Coefficients of the fitted linear model for the mean function:", 
+               "\n"))
+    linModel <- object$meanLinearModel$coefficients
+    names(linModel) <- c("intercept", paste0("input", 1:ncol(object$train.x)))
+    print(linModel)
+    cat("\n")
+  }
+
+  cat(paste0("Marginal ML estimates of hyperparameters:", "\n"))
+  print(round(unlist(object$hyper), digits = 6))
+}
+
 
 
 
@@ -523,9 +569,9 @@ gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL,
 #' Prediction of GPR model
 #'
 #' @inheritParams gpr
-#' @param train A 'gpr' object obtained from 'gpr' function. Default to NULL. If
-#'   NULL, learning is done based on the other given arguments; otherwise,
-#'   prediction is made based on the trained model of class gpr'.
+#' @param object A 'gpr' object obtained from 'gpr' function. If NULL (default), 
+#'   learning is done based on the other given arguments; otherwise,
+#'   prediction is made based on the trained model of class 'gpr'.
 #' @param inputNew Test input covariates.  It must be either a matrix, where
 #'   each column represents a covariate, or a vector if there is only one
 #'   covariate.
@@ -534,6 +580,7 @@ gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL,
 #'   realisation. It can be a vector if there is only one realisation.
 #' @param mSR Subset size m if Subset of Regressors method is used for
 #'   prediction. It must be smaller than the total sample size.
+#' @param ... Not used here.
 #'
 #' @return A list containing  \describe{ \item{pred.mean}{Mean of predictions}
 #'   \item{pred.sd}{Standard deviation of predictions} \item{newdata}{Test input 
@@ -547,9 +594,19 @@ gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL,
 #' # vignette("gpr_ex1", package = "GPFDA")
 #' # vignette("gpr_ex2", package = "GPFDA")
 #' # vignette("co2", package = "GPFDA")
-gprPredict <- function(train=NULL, inputNew=NULL, noiseFreePred=F, hyper=NULL, 
+predict.gpr <- function(object, inputNew=NULL, noiseFreePred=F, hyper=NULL, 
                          input=NULL, Y=NULL, mSR=NULL,
-                         Cov=NULL, gamma=NULL, nu=NULL, meanModel=0, mu=0){
+                         Cov=NULL, gamma=NULL, nu=NULL, meanModel=0, mu=0, ...){
+  
+  
+  
+  
+  if( (!is.null(object)) & (class(object)!="gpr")){
+    stop("'object' must be either NULL or of type 'gpr'")
+  }
+  
+  train <- object
+  
   inputNew <- as.matrix(inputNew)
   if(mu==1 & !is.null(Y)){
     mu <- mean(Y)
@@ -1138,6 +1195,10 @@ diag.rat.qu <- function(hyper, input){
 }
 
 
+
+
+
+
 #' Plot GPR model for either training or prediction
 #'
 #' Plot Gaussian process for a given an object of class 'gpr'.
@@ -1146,35 +1207,47 @@ diag.rat.qu <- function(hyper, input){
 #'   Process.
 #' @param fitted Logical. Plot fitted values or not. Default to FALSE. If FALSE,
 #'   plot the predictions.
-#' @param col.no Column number of the input matrix. If the input matrix has more
-#'   than one columns, than one of them will be used in the plot. Default to be
-#'   the first one.
+#' @param ylab Title for the y-axis.
+#' @param xlab Title for the x-axis.
 #' @param ylim Range value for y-axis.
-#' @param cex.points Graphical parameter
-#' @param lwd.points Graphical parameter
-#' @param pch Graphical parameter
-#' @param lwd Graphical parameter
+#' @param whichInput Which input coordinate direction should be at the x-axis. 
+#' Default to be the first one.
 #' @param realisation Integer identifying which realisation should be plotted
 #'   (if there are multiple).
-#' @param main Title for the plot
-#' @param ... Graphical parameters passed to plot().
-#' @importFrom  graphics polygon
-#' @importFrom  graphics points
-#' @importFrom  graphics matpoints
-#' @importFrom  graphics matlines
-#' @importFrom  graphics lines
-#' @importFrom  grDevices rgb
-#' @return A plot
+#' @param alpha Significance level used for 'fitted' or 'prediction'. Default is 0.05.
+#' @param colourData Colour for training data.
+#' @param colourPred Colour for predictive mean for the new curve.
+#' @param lwd Graphical parameter.
+#' @param cex.points Graphical parameter.
+#' @param cex.lab Graphical parameter.
+#' @param cex.axis Graphical parameter.
+#' @param cex.main Graphical parameter.
+#' @param main Title of the plot.
+#' @param ... Not used here.
+#'
+#' @import  ggplot2
+#' @importFrom reshape2 melt
+#' 
+#' @return A plot.
 #' @export
+#'
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("gpr_ex1", package = "GPFDA")
-plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, main=NULL, 
-                     cex.points=NULL, lwd.points=NULL, pch=NULL, lwd=NULL, ...){
+plot.gpr <- function(x, fitted=F, 
+                     ylab='y', xlab='t', ylim=NULL,
+                     whichInput=1, realisation=NULL, alpha=0.05, 
+                     colourData="red", colourPred="black", lwd=0.5, cex.points=2,
+                     cex.lab=10, cex.axis=10, cex.main=15, main=NULL, ...){
+  
+  if(class(x) != "gpr"){
+    stop("'object' must be of type gpr")
+  }
+  
   obj <- x
   if(fitted==T){
     if(is.null(obj$fitted.mean)){
-      cat('Fitted values not found; plotting predicted values.')
+      cat('Fitted values not found. Predicted values will be plotted instead.')
       type <- 'Prediction'
       mu <- obj$pred.mean
       sd <- obj$pred.sd
@@ -1192,7 +1265,7 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, main=NU
     }
   }else{
     if(is.null(obj$pred.mean)){
-      cat('Predicted values not found, ploting fitted values')
+      cat('Predicted values not found. Fitted values will be plotted instead.')
       type <- 'Fitted values'
       mu <- obj$fitted.mean
       sd <- obj$fitted.sd
@@ -1209,60 +1282,76 @@ plot.gpr <- function(x, fitted=F, col.no=1, ylim=NULL, realisation=NULL, main=NU
       Y <- obj$train.yOri
     }
   }
-  if(dim(X)[1]<=150|length(X)<=150){
-    pchType <- 4
-    PcexNo <- 1
-    LcexNo <- 1.5
-    PLcexNo <- 2
-  }else{
-    pchType <- 20
-    PcexNo <- 0.1
-    LcexNo <- 0.8
-    PLcexNo <- 1
-  }
-  
-  if(!is.null(cex.points)){
-    PcexNo <- cex.points
-  }
-  if(!is.null(lwd.points)){
-    PLcexNo <- lwd.points
-  }
-  if(!is.null(pch)){
-    pchType <- pch
-  }
-  if(!is.null(lwd)){
-    LcexNo <- lwd
-  }
-  
-  
   
   
   noiseFreePred <- obj$noiseFreePred
-  if(type=='Prediction'){
-    if(noiseFreePred){
-      type <- "Noise-free prediction"
-    }
-  }
   
-  if(!is.null(main)){
-    type <- main
-  }
   if(!is.null(realisation)){
     mu <- mu[,realisation]
     Y <- Y[,realisation]
   }
-  upper <- mu+1.96*(sd);
-  lower <- mu-1.96*(sd);
+  
+  z <- stats::qnorm(1-alpha/2)
+  upper <- mu+z*sd;
+  lower <- mu-z*sd;
   if(is.null(ylim)){
     ylim <- range(upper,lower,Y)
   }
-  plot(-100,-100,col=0,xlim=range(X[,col.no],x[,col.no]), ylim=ylim, main=type, 
-       xlab="input ", ylab="response",...)
-  polygon(c(x[,col.no], rev(x[,col.no])), c(upper, rev(lower)), 
-          col=rgb(127,127,127,120, maxColorValue=255), border=NA)
-  points(X[,col.no], Y, pch=pchType, col=2, cex=PcexNo, lwd=PLcexNo)
-  lines(x[,col.no], mu, col=4, lwd=LcexNo)
+  
+  df <- data.frame(t=x, y=mu)
+  meltdf <- melt(df, id="t")
+  
+  out <- ggplot(data=meltdf, aes(x=t,y=value,colour=colourPred,group=variable),
+                lwd=lwd, linetype="dashed",
+                color=colourPred) +
+    geom_line(lwd=lwd, colour=colourPred) + theme(legend.position="none")
+  
+  df2 <- data.frame(t=x[,whichInput], lower=lower, upper=upper)
+  out <- out + geom_ribbon(data=df2, aes(x=t, ymin=lower, ymax=upper),
+                           alpha=0.3, size=0, inherit.aes=FALSE)
+  
+  df3 <- data.frame(t=X[,whichInput], y=Y)
+  meltdf3 <- melt(df3, id="t")
+  out <- out + geom_point(data=meltdf3, shape = 16, size = cex.points, 
+                          color = colourData)
+  
+  if(is.null(main)){
+    main <- type
+  }
+  if(main=='Prediction'){
+    if(noiseFreePred){
+      main <- "Noise-free prediction"
+    }
+  }
+  
+  out <- out + labs(title = main) + theme(plot.title = element_text(hjust = 0.5))
+  
+  if(!is.null(cex.main)){
+    out <- out + theme(plot.title = element_text(size=cex.main))
+  }
+  if(!is.null(xlab)){
+    out <- out + labs(x = xlab)
+  }
+  if(!is.null(xlab)){
+    out <- out + labs(y = ylab)
+  }
+  if(!is.null(ylim)){
+    out <- out + coord_cartesian(ylim = ylim)
+  }
+  
+  if(!is.null(cex.lab)){
+    out <- out + theme(axis.title=element_text(size=cex.lab))
+  }
+  if(!is.null(cex.axis)){
+    out <- out + theme(axis.text=element_text(size=cex.axis))
+  }
+  
+  suppressWarnings(print(out))
+  
 }
+
+
+
 
 
 #' Draw an image plot for a given two-dimensional input

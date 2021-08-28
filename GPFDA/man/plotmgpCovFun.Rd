@@ -11,17 +11,16 @@ plotmgpCovFun(
   Data,
   hp,
   idx,
+  xlab = NULL,
+  ylab = NULL,
   ylim = NULL,
   xlim = NULL,
-  mar = c(4.5, 5.1, 2.2, 0.8),
-  oma = c(0, 0, 0, 0),
-  cex.lab = 1.5,
-  cex.axis = 1,
-  cex.main = 1.5
+  cex.lab = 10,
+  cex.axis = 10
 )
 }
 \arguments{
-\item{type}{Logical. It can be either 'Cov' (for covariance function) or
+\item{type}{Character. It can be either 'Cov' (for covariance function) or
 'Cor' (for corresponding correlation function).}
 
 \item{output}{Integer identifying one element of the multivariate process.}
@@ -31,33 +30,27 @@ If 'output' and 'outputp' are the same, the auto-covariance function will
 be plotted. Otherwise, the cross-covariance function between 'output' and
 'outputp' will be plotted.}
 
-\item{Data}{List of two elements: 'input' and 'response'. The element 'input'
-is a list of N vectors, where each vector represents the input covariate
-values for a particular output. The element 'response' is the corresponding
-list of N matrices (if there are multiple realisations) or vectors (for a
-single realisation) representing the response variables.}
+\item{Data}{List containing data.}
 
 \item{hp}{Vector of hyperparameters}
 
 \item{idx}{Index vector identifying to which output the elements of
 concatenated vectors correspond to.}
 
-\item{ylim}{Graphical parameter}
+\item{xlab}{Graphical parameter.}
 
-\item{xlim}{Graphical parameter}
+\item{ylab}{Graphical parameter.}
 
-\item{mar}{Graphical parameter passed to par().}
+\item{ylim}{Graphical parameter.}
 
-\item{oma}{Graphical parameter passed to par().}
+\item{xlim}{Graphical parameter.}
 
-\item{cex.lab}{Graphical parameter passed to par().}
+\item{cex.lab}{Graphical parameter.}
 
-\item{cex.axis}{Graphical parameter passed to par().}
-
-\item{cex.main}{Graphical parameter passed to par().}
+\item{cex.axis}{Graphical parameter.}
 }
 \value{
-A plot
+A plot.
 }
 \description{
 Plot auto- or cross-covariance function of a multivariate Gaussian process

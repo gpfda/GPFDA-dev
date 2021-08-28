@@ -7,14 +7,20 @@
 \method{plot}{gpr}(
   x,
   fitted = F,
-  col.no = 1,
+  ylab = "y",
+  xlab = "t",
   ylim = NULL,
+  whichInput = 1,
   realisation = NULL,
+  alpha = 0.05,
+  colourData = "red",
+  colourPred = "black",
+  lwd = 0.5,
+  cex.points = 2,
+  cex.lab = 10,
+  cex.axis = 10,
+  cex.main = 15,
   main = NULL,
-  cex.points = NULL,
-  lwd.points = NULL,
-  pch = NULL,
-  lwd = NULL,
   ...
 )
 }
@@ -25,29 +31,40 @@ Process.}
 \item{fitted}{Logical. Plot fitted values or not. Default to FALSE. If FALSE,
 plot the predictions.}
 
-\item{col.no}{Column number of the input matrix. If the input matrix has more
-than one columns, than one of them will be used in the plot. Default to be
-the first one.}
+\item{ylab}{Title for the y-axis.}
+
+\item{xlab}{Title for the x-axis.}
 
 \item{ylim}{Range value for y-axis.}
+
+\item{whichInput}{Which input coordinate direction should be at the x-axis. 
+Default to be the first one.}
 
 \item{realisation}{Integer identifying which realisation should be plotted
 (if there are multiple).}
 
-\item{main}{Title for the plot}
+\item{alpha}{Significance level used for 'fitted' or 'prediction'. Default is 0.05.}
 
-\item{cex.points}{Graphical parameter}
+\item{colourData}{Colour for training data.}
 
-\item{lwd.points}{Graphical parameter}
+\item{colourPred}{Colour for predictive mean for the new curve.}
 
-\item{pch}{Graphical parameter}
+\item{lwd}{Graphical parameter.}
 
-\item{lwd}{Graphical parameter}
+\item{cex.points}{Graphical parameter.}
 
-\item{...}{Graphical parameters passed to plot().}
+\item{cex.lab}{Graphical parameter.}
+
+\item{cex.axis}{Graphical parameter.}
+
+\item{cex.main}{Graphical parameter.}
+
+\item{main}{Title of the plot.}
+
+\item{...}{Not used here.}
 }
 \value{
-A plot
+A plot.
 }
 \description{
 Plot Gaussian process for a given an object of class 'gpr'.

@@ -12,8 +12,7 @@ replications or samples.}
 
 \item{fdList}{A list with following items: \describe{ \item{time}{Sequence
 of time points (default to be 100 points from 0 to 1).}
-\item{nbasis}{Number of basis functions used in smoothing, default to be
-less or equal to 23.} \item{norder}{Order of the functional curves default
+\item{nbasis}{Number of basis functions used in smoothing, default to be the minimum between 23 and 20\% of the number of time points. } \item{norder}{Order of the functional curves default
 to be 6.} \item{bSpline}{Logical, if TRUE (default), b-Spline basis is
 used; otherwise, Fourier basis is used.} \item{Pen}{Default to be c(0,0),
 meaning that the penalty is on the second order derivative of the curve,
@@ -31,7 +30,7 @@ Easy setting up for creating an 'fd' object
 All items listed above have default values. If any item is required
   to change, add that item into the list; otherwise, leave it as NULL. For
   example, if one only wants to change the number of basis functions, do:
-  
+
   \code{mat2fd(SomeMatrix,list(nbasis=21))}
 }
 \examples{

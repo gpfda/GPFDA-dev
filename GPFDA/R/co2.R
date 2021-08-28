@@ -1,4 +1,4 @@
-#' co2: data set for a real data example
+#' atmosphericCO2: data set for a real data example
 #'
 #' A data.frame containing monthly CO2 data and and annual average for each
 #' year. The original data has a sample size of 612, but the 5 of them which are
@@ -11,4 +11,4 @@
 #'   from \url{https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/maunaloa.co2}.
 #'   Atmospheric CO2 values (ppmv) derived from in situ air samples collected at
 #'   Mauna Loa, Hawaii, USA.
-"co2"
+"atmosphericCO2"

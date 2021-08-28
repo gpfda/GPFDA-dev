@@ -64,13 +64,26 @@ fit <- gpr(input=input, response=Y, Cov=c('linear','pow.ex'), gamma=2,
 Note the smaller number of iterations needed when the gradient analytical 
 expressions are used in the optimisation.
 
-We can see that the hyperparameter estimates are very accurate despite the fairly 
-small sample size:
+The model specifications used can be seen by typing
 ```{r}
-sapply(fit$hyper, exp)
+print(fit)
 ```
 
-The fitted model for the $10$th realisation can be seen:
+
+The fitted model is summarized by the `summary` method. We can see that the 
+hyperparameter estimates (in log scale) are very accurate despite the fairly small sample size.
+```{r}
+summary(fit)
+```
+
+```{r}
+unlist(hp)
+```
+
+
+
+
+The fitted model for the $10$th realisation (as an example) can be seen:
 ```{r}
 plot(fit, realisation=10)
 ```
@@ -81,13 +94,13 @@ plot(fit, realisation=10)
 Predictions on a fine grid for the $10$th realisation can be obtained as follows:
 ```{r}
 inputNew <- seq(0, 1, length.out = 1000)
-pred1 <- gprPredict(train=fit, inputNew=inputNew, noiseFreePred=T)
+pred1 <- predict(fit, inputNew=inputNew, noiseFreePred=T)
 plot(pred1, realisation=10)
 ```
 
 If one wants to include noise variance in the predictions for the new time points:
 ```{r}
-pred2 <- gprPredict(train=fit, inputNew=inputNew, noiseFreePred=F)
+pred2 <- predict(fit, inputNew=inputNew, noiseFreePred=F)
 plot(pred2, realisation=10)
 ```
 

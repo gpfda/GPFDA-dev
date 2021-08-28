@@ -78,8 +78,7 @@ optimization starts with the best.}
 }
 \value{
 A list containing: \describe{ \item{hyper}{Hyperparameters vector
-  estimated from training data} \item{var.hyper}{ Variance of the estimated
-  hyperparameters} \item{fitted.mean }{Fitted values for the training data }
+  estimated from training data} \item{fitted.mean }{Fitted values for the training data }
   \item{fitted.sd }{Standard deviation of the fitted values for the training 
   data}
   \item{train.x }{ Training covariates} \item{train.y }{ Training response}
@@ -90,8 +89,8 @@ A list containing: \describe{ \item{hyper}{Hyperparameters vector
   exponential covariance function } \item{nu }{Parameter used in Matern
   covariance function } \item{Q}{Covariance matrix } \item{mean}{Mean
   function } \item{meanModel}{Mean model used} \item{meanLinearModel}{'lm'
-  object if mean is a linear regression. NULL otherwise.} \item{conv}{An
-  integer. 0 means converge; 1 otherwise. } \item{hyper0}{Starting point of
+  object if mean is a linear regression. NULL otherwise.} \item{convergence}{An
+  integer. 0 means converged; 1 otherwise. } \item{hyper0}{Starting point of
   the hyperparameters vector.} }
 }
 \description{

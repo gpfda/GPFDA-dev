@@ -118,6 +118,19 @@ res <- mgpr(Data=Data, m=100, meanModel = 't')
 ```
 
 
+
+The `print` and `summary` methods can then be used to see a summary of the model 
+specifications and the fitted model, respectively:
+```{r}
+print(res)
+```
+
+```{r}
+summary(res)
+```
+
+
+
 Next, based on the estimated model, we want to predict the values of the three 
 outputs at new time points:
 ```{r}
@@ -151,11 +164,11 @@ DataObs$response[[3]] <- Data$response[[3]][obsSet[[3]], realisation]
 ```
 
 
-The `mgprPredict` function returns a list containing the predictive mean and 
+The `predict` method returns a list containing the predictive mean and 
 standard deviation for the curves of each output at the new time points.
 ```{r}
 # Calculate predictions for the test set given some observations
-predCGP <- mgprPredict(train=res, DataObs=DataObs, DataNew=DataNew)
+predCGP <- predict(res, DataObs=DataObs, DataNew=DataNew)
 str(predCGP)
 ```
 
@@ -182,7 +195,7 @@ DataObs$response[[2]] <- Data$response[[2]][obsSet[[2]], realisation]
 
 
 ```{r}
-predCGP <- mgprPredict(train=res, DataObs=DataObs, DataNew=DataNew)
+predCGP <- predict(res, DataObs=DataObs, DataNew=DataNew)
 ```
 
 Now notice how predictions for the third function are affected by the information 

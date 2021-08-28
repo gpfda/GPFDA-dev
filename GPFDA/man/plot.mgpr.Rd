@@ -2,21 +2,23 @@
 % Please edit documentation in R/mgp.functions.R
 \name{plot.mgpr}
 \alias{plot.mgpr}
-\title{Plot predictions of GPR model}
+\title{Plot predictions of MGPR model}
 \usage{
 \method{plot}{mgpr}(
   x,
   DataObs,
   DataNew,
-  realisation,
+  nCol = NULL,
+  xlab = "t",
+  ylabs = NULL,
+  ylims = NULL,
   alpha = 0.05,
-  ylim = NULL,
-  mfrow = NULL,
-  cex = 2,
-  mar = c(4.5, 7.1, 0.2, 0.8),
-  oma = c(0, 0, 0, 0),
-  cex.lab = 2,
-  cex.axis = 1.5,
+  colourData = "black",
+  colourPred = "red",
+  lwd = 0.5,
+  cex.points = 2,
+  cex.lab = 10,
+  cex.axis = 10,
   ...
 )
 }
@@ -27,33 +29,37 @@
 
 \item{DataNew}{List of test data.}
 
-\item{realisation}{Index identifying which realisation should be plotted.}
+\item{nCol}{Number of columns that the grid of plots should have.}
 
-\item{alpha}{Significance level used for MGPR predictions. Default is 0.05.}
+\item{xlab}{Title for the x-axis.}
 
-\item{ylim}{Range of y-axis.}
+\item{ylabs}{Title for the y-axis.}
 
-\item{mfrow}{Graphical parameter.}
+\item{ylims}{Ranges of values for y-axis for each of the N response variables. It must be a matrix with N rows and 2 columns.}
 
-\item{cex}{Graphical parameter.}
+\item{alpha}{Significance level used for 'fitted' or 'prediction'. Default is 0.05.}
 
-\item{mar}{Graphical parameter passed to par().}
+\item{colourData}{Colour for training data.}
 
-\item{oma}{Graphical parameter passed to par().}
+\item{colourPred}{Colour for predictive mean for the new curves.}
 
-\item{cex.lab}{Graphical parameter passed to par().}
+\item{lwd}{Graphical parameter.}
 
-\item{cex.axis}{Graphical parameter passed to par().}
+\item{cex.points}{Graphical parameter.}
 
-\item{...}{Graphical parameters passed to plot().}
+\item{cex.lab}{Graphical parameter.}
+
+\item{cex.axis}{Graphical parameter.}
+
+\item{...}{Not used here.}
 }
 \value{
 A plot showing predictions of each element of the multivariate
   process.
 }
 \description{
-Plot predictons of each element of the multivariate Gaussian Process for a
-given an object of class 'mgpr'.
+Plot predictons of each of the N elements of the multivariate Gaussian Process 
+for a given an object of class 'mgpr'.
 }
 \examples{
 ## See examples in vignette:

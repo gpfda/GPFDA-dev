@@ -38,8 +38,10 @@ A list containing: \describe{ \item{fitted.mean }{Fitted values for
   output the elements of concatenated vectors correspond to.} 
   \item{Cov}{Covariance matrix} \item{mean}{Concatenated mean function } 
   \item{meanModel}{Mean model used for each output} 
+  \item{constantMeanEstimates}{Constant mean estimated for each output if 
+  the constant mean model is used for the mean functions.}
   \item{meanLinearModel}{'lm' object for each output if the linear regression 
-  model is used for the mean functions. NULL otherwise.} }
+  model is used for the mean functions.} }
 }
 \description{
 Multivariate Gaussian process regression where each of the N

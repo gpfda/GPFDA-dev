@@ -32,8 +32,10 @@
 #'   output the elements of concatenated vectors correspond to.} 
 #'   \item{Cov}{Covariance matrix} \item{mean}{Concatenated mean function } 
 #'   \item{meanModel}{Mean model used for each output} 
+#'   \item{constantMeanEstimates}{Constant mean estimated for each output if 
+#'   the constant mean model is used for the mean functions.}
 #'   \item{meanLinearModel}{'lm' object for each output if the linear regression 
-#'   model is used for the mean functions. NULL otherwise.} }
+#'   model is used for the mean functions.} }
 #'
 #' @references Shi, J. Q., and Choi, T. (2011), ``Gaussian Process Regression
 #'   Analysis for Functional Data'', CRC Press.
@@ -74,11 +76,13 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
   }
 
   if(meanModel==1) {
+    constantMeanEstimates <- list()
     responseNew <- NULL
     mu <- NULL
     for(j in 1:N){
       
       mean_j <- mean(response[idx==j,])
+      constantMeanEstimates[[j]] <- mean_j
       nj <- nrow(response[idx==j,,drop=F])
       mean_j <- matrix( rep(mean_j, nj*nrep), nrow=nj, byrow=F)
       response_j <- response[idx==j,,drop=F] - mean_j
@@ -87,6 +91,8 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
     }
     response <- responseNew
     
+  }else{
+    constantMeanEstimates <- NULL
   }
 
   if(meanModel=='t') {
@@ -163,7 +169,7 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
                 idx=idx)
   
   hp_opt <- res$par
-  
+
   K <- mgpCovMat(Data=Data, hp=hp_opt)
   invK <- chol2inv(chol(K))
   
@@ -172,63 +178,165 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
   fitted <- (K-diag(varEpsilon, n.original))%*%invK%*%Y.original + mean.original
   fitted.var <- varEpsilon*rowSums((K-diag(varEpsilon, n.original))*t(invK))
 
+  nu0names <- paste0("nu0_", 1:N)
+  nu1names <- paste0("nu1_", 1:N)
+  a0names <- paste0("a0_", 1:N)
+  a1names <- paste0("a1_", 1:N)
+  signame <- "sigma"
+  names(hp_opt) <- c(nu0names, nu1names, a0names, a1names, signame)
+  
   result <- list('hyper'=hp_opt,
               'fitted.mean'=fitted,
               'fitted.sd'=sqrt(fitted.var),
               'N'=N,
               'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 
               'mu'=mean.original[,1], 
-              'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel)
+              'meanModel'=meanModel, 'constantMeanEstimates'=constantMeanEstimates,
+              'meanLinearModel'=meanLinearModel)
   class(result)='mgpr'
   
   return(result)
 }
 
 
+#' Print method for 'mgpr' objects
+#'
+#' @param x An 'mgpr' object.
+#' @param ... Not used here.
+#'
+#' @return Returns a summary of an object of class 'mgpr'.
+#' @export
+#'
+#' @seealso \link[GPFDA]{mgpr}
+print.mgpr <- function(x, ...) {
+  
+  if(class(x) != "mgpr"){
+    stop("'x' must be of class 'mgpr'")
+  }
+  
+  cat(paste0("MGPR model specifications:", "\n"))
+  cat("\n")
+  
+  
+  cat(paste0("Number of response variables: ", x$N, "\n"))
+  cat("\n")
+  
+  if(x$meanModel==0){
+    cat(paste0("Zero mean function of each response \n"))
+  }else if(x$meanModel==1){
+    cat(paste0("Constant mean function of each response \n"))
+  }else if(x$meanModel=="t"){
+    cat(paste0("Linear model for the mean function of each response \n"))
+  }else if(x$meanModel=="avg"){
+    cat(paste0("Average across replications is used as the mean function of each response \n"))
+  }
+  
+}
+
+
+
+
+#' Summary method for 'mgpr' objects
+#'
+#' @param object An 'mgpr' object.
+#' @param ... Not used here.
+#' 
+#' @return Some fitting results of the MGPR model.
+#' @export
+#'
+#' @seealso \link[GPFDA]{mgpr}
+summary.mgpr <- function(object, ...){
+  
+  if(class(object) != "mgpr"){
+    stop("'object' must be of type mgpr")
+  }
+  
+  N <- object$N
+  
+  if(object$meanModel==0){
+    cat(paste0("Mean function assumed to be zero.", "\n"))
+    cat("\n")
+  }
+  
+  if(object$meanModel==1){
+    cat(paste0("Estimated constant mean function of each response variable:", "\n"))
+    
+    for(j in 1:N){
+      cat(paste0("For response variable ", j, ":\n"))
+      cat(paste0("mean = ", round(object$constantMeanEstimates[[j]], digits = 6), "\n"))  
+    }
+    
+    cat("\n")
+  }
+  
+  if(object$meanModel=="t"){
+    cat(paste0("Coefficients of the fitted linear model for the mean function of each response variable:", "\n"))
+    cat("\n")
+    for(j in 1:N){
+      cat(paste0("Linear model for response variable ", j, ":\n"))
+      linModel <- object$meanLinearModel[[j]]$coefficients
+      linModel <- round(linModel, digits = 6)
+      names(linModel) <- c("intercept", paste0("input"))
+      print(linModel)
+      cat("\n")
+    }
+    cat("\n")
+  }
+  
+  cat(paste0("Marginal ML estimates of hyperparameters:", "\n"))
+  print(round(object$hyper, digits = 6))
+}
+
+
+
+
+
+  
 
 #' Prediction of MGPR model
 #'
 #' @inheritParams mgpr
-#' @param train A 'mgpr' object obtained from 'mgpr' function. 
+#' @param object An 'mgpr' object obtained from 'mgpr' function. 
 #'   If NULL, predictions are made based on DataObs informed by the user.
 #' @param DataObs List of observed data. Default to NULL. If NULL,
 #'   predictions are made based on the trained data 
 #'   (included in the object of class 'mgpr') used for learning.
 #' @param DataNew List of test input data.
 #' @param noiseFreePred Logical. If TRUE, predictions will be noise-free.
-#'
+#' @param ... Not used here.
 #' @export
 #'
-#' @return A list containing  \describe{ \item{pred.mean}{Mean of predictions 
-#' for the test set.}
-#'   \item{pred.sd}{Standard deviation of predictions for the test set.}
-#'   \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.} }
+#' @return A list containing  \describe{ 
+#' \item{pred.mean}{Mean of predictions for the test set.}
+#' \item{pred.sd}{Standard deviation of predictions for the test set.}
+#' \item{noiseFreePred}{Logical. If TRUE, predictions are noise-free.} }
 #'   
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("mgpr", package = "GPFDA")
-mgprPredict <- function(train, 
+predict.mgpr <- function(object, 
                        DataObs=NULL,
                        DataNew,
                        noiseFreePred=F, 
-                       meanModel=NULL, mu=0){
+                       meanModel=NULL, mu=0, ...){
   
   
-  
-  if(class(train)!='mgpr'){
-      stop("Argument 'train' must be an object of class 'mgpr'.")
-  }else{
-    hyper <- train$hyper
-    X <- train$X
-    Y <- train$Y
-    N <- train$N
-    idx <- train$idx
-    Cov <- train$Cov
-    mu <- train$mu
-    meanModel <- train$meanModel
-    meanLinearModel <- train$meanLinearModel
+  if( class(object)!="mgpr"){
+    stop("'object' must be either NULL or of type 'mgpr'")
   }
   
+  train <- object
+  
+  hyper <- train$hyper
+  X <- train$X
+  Y <- train$Y
+  N <- train$N
+  idx <- train$idx
+  Cov <- train$Cov
+  mu <- train$mu
+  meanModel <- train$meanModel
+  meanLinearModel <- train$meanLinearModel
+
   
   if(!is.null(DataObs)){
     N <- length(DataObs$input)
@@ -440,91 +548,136 @@ LogLikCGP <- function(hp, response, X, idx){
 
 
 
-#' Plot predictions of GPR model
+
+
+
+#' Plot predictions of MGPR model
 #' 
-#' Plot predictons of each element of the multivariate Gaussian Process for a
-#' given an object of class 'mgpr'.
+#' Plot predictons of each of the N elements of the multivariate Gaussian Process 
+#' for a given an object of class 'mgpr'.
 #'
 #' @param x An object of class 'mgpr'.
 #' @param DataObs List of observed data.
 #' @param DataNew List of test data.
-#' @param realisation Index identifying which realisation should be plotted.
-#' @param alpha Significance level used for MGPR predictions. Default is 0.05.
-#' @param ylim Range of y-axis.
-#' @param mfrow Graphical parameter.
-#' @param cex  Graphical parameter.
-#' @param mar Graphical parameter passed to par().
-#' @param oma Graphical parameter passed to par().
-#' @param cex.lab Graphical parameter passed to par().
-#' @param cex.axis Graphical parameter passed to par().
-#' @param ... Graphical parameters passed to plot().
-#'
-#' @importFrom  graphics polygon
-#' @importFrom  graphics lines
-#' @importFrom  graphics plot
-#' @importFrom  graphics par
-#' @importFrom  grDevices rgb
-#'
+#' @param nCol Number of columns that the grid of plots should have.
+#' @param xlab Title for the x-axis.
+#' @param ylabs Title for the y-axis.
+#' @param ylims Ranges of values for y-axis for each of the N response variables. It must be a matrix with N rows and 2 columns.
+#' @param alpha Significance level used for 'fitted' or 'prediction'. Default is 0.05.
+#' @param colourData Colour for training data.
+#' @param colourPred Colour for predictive mean for the new curves.
+#' @param lwd Graphical parameter.
+#' @param cex.points Graphical parameter.
+#' @param cex.lab Graphical parameter.
+#' @param cex.axis Graphical parameter.
+#' @param ... Not used here.
+#' @import  ggplot2
+#' @importFrom reshape2 melt
+#' @importFrom gridExtra grid.arrange
 #' @return A plot showing predictions of each element of the multivariate
 #'   process.
 #' @export
-#' @examples
+#' @examples 
 #' ## See examples in vignette:
 #' # vignette("mgpr", package = "GPFDA")
-plot.mgpr <- function(x, DataObs, DataNew, realisation, alpha=0.05,
-                      ylim=NULL, mfrow=NULL, 
-                      cex=2, 
-                      mar=c(4.5,7.1,0.2,0.8), oma=c(0,0,0,0),
-                      cex.lab=2, cex.axis=1.5, ...){
+plot.mgpr <- function(x, DataObs, DataNew, nCol=NULL,
+                      xlab='t', ylabs=NULL, ylims=NULL,
+                      alpha=0.05, 
+                      colourData="black", colourPred="red", lwd=0.5, cex.points=2,
+                      cex.lab=10, cex.axis=10, ...){
   
-  old <- par(mar=mar, oma=oma, cex.lab=cex.lab, cex.axis=cex.axis)
-  
+  if(class(x) != "mgpr"){
+    stop("'object' must be of type mgpr")
+  }
+
   z <- stats::qnorm(1-alpha/2)
   
   if(!is.matrix(DataObs$response[[1]])){
     DataObs$response <- lapply(DataObs$response, as.matrix)
   }
   
-  predCGP <- mgprPredict(train=x, 
-                        DataObs=DataObs,
-                        DataNew=DataNew)
+  predCGP <- predict.mgpr(object=x, 
+                         DataObs=DataObs,
+                         DataNew=DataNew)
   
   N <- length(predCGP$pred.mean)
   
-  if(is.null(mfrow)){
-    if(N<4){
-      par(mfrow=c(1,N))
-    }
-  }else{
-    par(mfrow=mfrow)
-  }
+  outList <- vector('list', N)
   
   for(variable in 1:N){
     
-    predMean <- predCGP$pred.mean[[variable]][,realisation]
+    predMean <- predCGP$pred.mean[[variable]]
     upper <- predMean+z*predCGP$pred.sd[[variable]]
     lower <- predMean-z*predCGP$pred.sd[[variable]]
     
-    if(is.null(ylim)){
-      ylim_i <- range(c(lower, upper))
+    df <- data.frame(t=DataNew$input[[variable]], y=predMean)
+    meltdf <- melt(df, id="t")
+    
+    out <- ggplot(data=meltdf, aes(x=t,y=value,colour=colourPred,group=variable),
+                  lwd=lwd, linetype="dashed",
+                  color=colourPred) +
+      geom_line(lwd=lwd, colour=colourPred) + theme(legend.position="none")
+    
+    df2 <- data.frame(t=DataNew$input[[variable]], lower=lower, upper=upper)
+    out <- out + geom_ribbon(data=df2, aes(x=t, ymin=lower, ymax=upper),
+                             alpha=0.3, size=0, inherit.aes=FALSE)
+    
+    df3 <- data.frame(t=DataObs$input[[variable]], y=DataObs$response[[variable]])
+    meltdf3 <- melt(df3, id="t")
+    out <- out + geom_point(data=meltdf3, shape = 16, size = cex.points, 
+                            color = colourData)
+    
+    ylab_i <- NULL
+    if(is.null(ylabs)){
+      ylab_i <- bquote(x[.(variable)])
     }else{
-      ylim_i <- ylim[[variable]]
+      if(length(ylabs)!=N)stop("length(ylabs) must be equal to the number of responses
+                              to be plotted.")
+      ylab_i <- ylabs[variable]
+      
     }
     
-    xlim_i <- range(DataObs$input[[variable]], DataNew$input[[variable]])
-    plot(DataObs$input[[variable]], DataObs$response[[variable]][,realisation], 
-         type="p", xlab="t", ylab=bquote(x[.(variable)]), ylim=ylim_i, 
-         xlim=xlim_i, pch=19, cex=cex, cex.axis=cex.axis, cex.lab=cex.lab, ...)
-    lines(DataNew$input[[variable]], predMean, col="blue", lwd=2)
+    ylim_i <- NULL
+    if(is.null(ylims)){
+      ylim_i <- range(c(lower, upper))
+    }else{
+      stopMessage <- "'ylims' must  be a matrix with two columns; the number of rows must be equal to the number of responses to be plotted."
+      if(!is.matrix(ylims)){
+        stop(stopMessage)
+      }else{
+        if(nrow(ylims)!=N | ncol(ylims)!=2){
+          stop(stopMessage)
+        }
+      }
+      ylim_i <- ylims[[variable]]
+    }
     
-    polygon(x=c(DataNew$input[[variable]], rev(DataNew$input[[variable]])), 
-            y=c(upper, rev(lower)),
-            col=rgb(127,127,127,120, maxColorValue=255), border=NA)
+    if(!is.null(ylab_i)){
+      out <- out + labs(y = ylab_i)
+    }
+    
+    if(!is.null(ylim_i)){
+      out <- out + coord_cartesian(ylim = ylim_i)
+    }
+    
+    if(!is.null(cex.lab)){
+      out <- out + theme(axis.title=element_text(size=cex.lab))
+    }
+    if(!is.null(cex.axis)){
+      out <- out + theme(axis.text=element_text(size=cex.axis))
+    }
+    
+    outList[[variable]] <- out
   }
   
-  par(mfrow=c(1,1))
-  par(old)
+  if(is.null(nCol)){
+    nCol <- ifelse(N<4, N, ceiling(sqrt(N)))
+  }
+  
+  outPlot <- do.call("grid.arrange", c(outList, ncol=nCol))
+
 }
+
 
 
 
@@ -532,38 +685,33 @@ plot.mgpr <- function(x, DataObs, DataNew, realisation, alpha=0.05,
 
 #' Plot auto- or cross-covariance function of a multivariate Gaussian process
 #'
-#' @inheritParams mgpr
-#' @param type Logical. It can be either 'Cov' (for covariance function) or
+#' @param type Character. It can be either 'Cov' (for covariance function) or
 #'   'Cor' (for corresponding correlation function).
 #' @param output Integer identifying one element of the multivariate process.
 #' @param outputp Integer identifying one element of the multivariate process.
 #'   If 'output' and 'outputp' are the same, the auto-covariance function will
 #'   be plotted. Otherwise, the cross-covariance function between 'output' and
 #'   'outputp' will be plotted.
+#' @param Data List containing data.
 #' @param hp Vector of hyperparameters
 #' @param idx Index vector identifying to which output the elements of
 #'   concatenated vectors correspond to.
-#' @param ylim Graphical parameter
-#' @param xlim Graphical parameter
-#' @param mar Graphical parameter passed to par().
-#' @param oma Graphical parameter passed to par().
-#' @param cex.lab Graphical parameter passed to par().
-#' @param cex.axis Graphical parameter passed to par().
-#' @param cex.main Graphical parameter passed to par().
-#'
-#' @importFrom  graphics plot
-#' @importFrom  graphics par
-#'
-#' @return A plot
+#' @param xlab Graphical parameter.
+#' @param ylab Graphical parameter.
+#' @param ylim Graphical parameter.
+#' @param xlim Graphical parameter.
+#' @param cex.lab Graphical parameter.
+#' @param cex.axis Graphical parameter.
+#' @import  ggplot2
+#' @importFrom reshape2 melt
+#' @return A plot.
 #' @export
 #' @examples
 #' ## See examples in vignette:
 #' # vignette("mgpr", package = "GPFDA")
-plotmgpCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL, 
-                          xlim=NULL, mar=c(4.5,5.1,2.2,0.8), oma=c(0,0,0,0), 
-                          cex.lab=1.5, cex.axis=1, cex.main=1.5){
-  
-  old <- par(mar=mar, oma=oma, cex.lab=cex.lab, cex.axis=cex.axis, cex.main=cex.main)
+plotmgpCovFun <- function(type="Cov", output, outputp, Data, hp, idx, 
+                          xlab=NULL, ylab=NULL, 
+                          ylim=NULL, xlim=NULL, cex.lab=10, cex.axis=10){
   
   Psi <- mgpCovMat(Data=Data, hp=hp)
   
@@ -574,13 +722,43 @@ plotmgpCovFun <- function(type="Cov", output, outputp, Data, hp, idx, ylim=NULL,
   toPlot <- Psi[idx==output, idx==outputp][,1]
   tp0 <- Data$input[[outputp]][1]
   
-  if(!is.null(ylim)){
-    ylim <- range(toPlot)
+  df <- data.frame(t=Data$input[[output]] - tp0, y=toPlot)
+  meltdf <- melt(df, id="t")
+  
+  out <- ggplot(data=meltdf, aes(x=t,y=value,group=variable)) +
+    geom_line() + theme(legend.position="none")
+  
+  
+  if(is.null(ylab)){
+    ylab <- bquote(.(type)*"["*X[.(output)]*"(t),"~X[.(outputp)]*"("*.(tp0)*")]")
   }
-  plot(Data$input[[output]] - tp0, toPlot, ylim=ylim, xlim=xlim, type="l",
-       xlab=bquote("t-("*.(tp0)*")"),
-       ylab=bquote(.(type)*"["*X[.(output)]*"(t),"~
-                     X[.(outputp)]*"("*.(tp0)*")]"))
-
-  par(old)
+  if(is.null(xlab)){
+    xlab <- bquote("t-("*.(tp0)*")")
+  }
+  
+  
+  if(!is.null(ylab)){
+    out <- out + labs(y = ylab)
+  }
+  if(!is.null(xlab)){
+    out <- out + labs(x = xlab)
+  }
+  if(!is.null(ylim)){
+    out <- out + coord_cartesian(ylim = ylim)
+  }
+  if(!is.null(xlim)){
+    out <- out + coord_cartesian(xlim = xlim)
+  }
+  if(!is.null(cex.lab)){
+    out <- out + theme(axis.title=element_text(size=cex.lab))
+  }
+  if(!is.null(cex.axis)){
+    out <- out + theme(axis.text=element_text(size=cex.axis))
+  }
+  
+  suppressWarnings(print(out))
+  
 }
+
+
+

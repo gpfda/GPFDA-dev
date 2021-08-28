@@ -1,8 +1,8 @@
 ---
-title: "co2 data example"
+title: "CO2 data example"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{co2}
+  %\VignetteIndexEntry{CO2}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -24,15 +24,15 @@ old <- options(scipen = 1, digits = 4)
 In this example, we use a real dataset and apply a customised covariance kernel.
 See the documentation of the package for a description of this dataset.
 
-## Loading co2 data
+## Loading atmosphericCO2 data
 ```{r}
 library(GPFDA)
-data(co2, package = "GPFDA")
+data(atmosphericCO2, package = "GPFDA")
 ```
 
 For visualisation purposes, we will use only the first five years of the sample.
 ```{r}
-y <- c(t(data.matrix(co2[1:5, 1:12])))
+y <- c(t(data.matrix(atmosphericCO2[1:5, 1:12])))
 n <- length(y)
 input <- 5*(1:n)/n
 whichNeg <- (y<0) # removing negative values
@@ -69,7 +69,7 @@ plot(fit1, main="exponential kernel - fitted model")
 
 See below the large uncertainty in predictions for test input points:
 ```{r, warnings=F, results=F, fig.width=8, fig.height=5}
-pred1 <- gprPredict(train = fit1, inputNew=inputNew)
+pred1 <- predict(fit1, inputNew=inputNew)
 plot(pred1, main="exponential kernel - predictions")
 ```
 
@@ -216,7 +216,7 @@ plot(fit2, main="customised kernel - fitted model")
 ```
 
 ```{r, message=F, fig.width=8, fig.height=5}
-pred2 <- gprPredict(train = fit2, inputNew=inputNew)
+pred2 <- predict(fit2, inputNew=inputNew)
 plot(pred2, main="customised kernel - predictions")
 ```
 

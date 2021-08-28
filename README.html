@@ -368,14 +368,14 @@ summary {
 <div id="gpfda-dev" class="section level1">
 <h1>GPFDA-dev</h1>
 <p>Developing version of the R package GPFDA</p>
-<div id="short-history-of-the-package" class="section level2">
-<h2>Short history of the package</h2>
+<div id="short-history-of-the-package" class="section level3">
+<h3>Short history of the package</h3>
 <p>The package was initially created to implement the model proposed by Shi, J. Q., et al. “Mixed‐effects Gaussian process functional regression models with application to dose–response curve prediction.” Statistics in Medicine 31.26 (2012): 3165-3177. (<a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/sim.4502" class="uri">https://onlinelibrary.wiley.com/doi/abs/10.1002/sim.4502</a>)</p>
 <p>The early stage of the functions was in Matlab. Later Yafeng Cheng developed an R version and published on CRAN. A corresponding user manual with theoretical details and examples is available at <a href="https://www.staff.ncl.ac.uk/j.q.shi/ps/gpfda.pdf" class="uri">https://www.staff.ncl.ac.uk/j.q.shi/ps/gpfda.pdf</a>. This manual corresponds to a previous version of the package and will be updated soon.</p>
 <p>In 06/2019, Evandro Konzen joins the project. He brings non-stationary kernels and efficient computation to the package.</p>
 </div>
-<div id="changes-after-062019" class="section level2">
-<h2>Changes after 06/2019</h2>
+<div id="changes-from-062019" class="section level3">
+<h3>Changes from 06/2019</h3>
 <ul>
 <li>Improvement on computation efficiency using C++ functions.</li>
 <li>Addition of code for GP with nonstationary and/or nonseparable covariance structure – see Konzen, E., Shi, J. Q. and Wang, Z. (2020) “Modeling Function-Valued Processes with Nonseparable and/or Nonstationary Covariance Structure” (<a href="https://arxiv.org/abs/1903.09981" class="uri">https://arxiv.org/abs/1903.09981</a>).</li>
@@ -383,6 +383,14 @@ summary {
 <li>Addition of vignettes to demonstrate the main functionalities of the package in many GPR and GPFR models.</li>
 </ul>
 <p>An animation of a trivariate GP can be seen at <a href="https://ekonzen.shinyapps.io/CGP_N3/" class="uri">https://ekonzen.shinyapps.io/CGP_N3/</a></p>
+<div id="changes-and-additions-made-to-version-4.0.0-under-development-of-the-package-include" class="section level4">
+<h4>Changes and additions made to version 4.0.0 (under development) of the package include:</h4>
+<ul>
+<li>R methods (print, summary, predict) have been added to GPR, GPFR and MGPR models;</li>
+<li>In GPFR models, documentation has been improved, and bugs and error messages have been fixed;</li>
+<li>Most plots, which were base R plots, have been converted to ggplot2.</li>
+</ul>
+</div>
 </div>
 </div>
 

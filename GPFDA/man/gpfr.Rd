@@ -6,24 +6,24 @@
 \usage{
 gpfr(
   response,
-  time = NULL,
+  time,
   uReg = NULL,
   fxReg = NULL,
+  gpReg = NULL,
   fyList = NULL,
   uCoefList = NULL,
   fxList = NULL,
-  concurrent = TRUE,
   fxCoefList = NULL,
-  gpReg = NULL,
-  hyper = NULL,
-  NewHyper = NULL,
+  concurrent = TRUE,
   Cov = "pow.ex",
   gamma = 2,
   nu = 1.5,
+  hyper = NULL,
+  NewHyper = NULL,
   useGradient = T,
   rel.tol = 1e-10,
   trace.iter = 5,
-  fitting = FALSE
+  fitting = TRUE
 )
 }
 \arguments{
@@ -40,6 +40,9 @@ length 'n'.}
 'nrep' rows  and 'n' columns, an 'fd' object, or a list of matrices or 'fd'
 objects.}
 
+\item{gpReg}{Covariates in the GP model. It should be a matrix, a numeric vector,
+an 'fd' object, a list of matrices or a list of 'fd' objects.}
+
 \item{fyList}{A list to control the smoothing of response.}
 
 \item{uCoefList}{A list to control the smoothing of the regression
@@ -48,21 +51,13 @@ coefficient function of the scalar covariates in the FR model.}
 \item{fxList}{A list to control the smoothing of functional covariates in the
 FR model.}
 
-\item{concurrent}{Logical. If TRUE (default), concurrent functional
-regression will be carried out; otherwise, the full functional regression
-will be carried out.}
-
 \item{fxCoefList}{A list to control the smoothing of the regression
 coefficient function of functional covariates in the functional concurrent
 model.}
 
-\item{gpReg}{Covariates in the GP model. It should be a matrix, a numeric vector, 
-an 'fd' object, a list of matrices or a list of 'fd' objects.}
-
-\item{hyper}{Vector of initial hyperparameters. Default to NULL.}
-
-\item{NewHyper}{Vector of names of new hyperparameters from the customized
-kernel function.}
+\item{concurrent}{Logical. If TRUE (default), concurrent functional
+regression will be carried out; otherwise, the full functional regression
+will be carried out.}
 
 \item{Cov}{Covariance function(s) to use. Options are: 'linear', 'pow.ex',
 'rat.qu', and 'matern'. Default to 'power.ex'.}
@@ -73,6 +68,11 @@ must be 0<gamma<=2.}
 \item{nu}{Smoothness parameter of the Matern class. It must be a positive
 value.}
 
+\item{hyper}{Vector of initial hyperparameters. Default to NULL.}
+
+\item{NewHyper}{Vector of names of new hyperparameters from the customized
+kernel function.}
+
 \item{useGradient}{Logical. If TRUE, first derivatives will be used in the
 optimization.}
 
@@ -80,27 +80,25 @@ optimization.}
 
 \item{trace.iter}{Print the processing of iterations of optimization.}
 
-\item{fitting}{Logical. If TRUE, fitting is carried out. Default to FALSE.}
+\item{fitting}{Logical. If TRUE, GPFR fitting is carried out on the supplied data. Default to TRUE.}
 }
 \value{
-A list containing: \describe{ \item{hyper}{Estimated hyperparameters}
-  \item{I}{A vector of estimated standard deviation of hyperparameters}
-  \item{modellist}{List of FR models fitted before Gaussian process}
-  \item{CovFun}{Covariance function used} \item{gamma}{Parameter 'gamma' used
+A list containing: \describe{ 
+  \item{fitted.mean}{Fitted values obtained by GPFR model}
+  \item{fitted.sd}{Standard deviation of the fitted values obtained by GPFR model}
+  \item{FRmodelsList}{List of fitted FR models used for the mean function}
+  \item{residFR}{Residuals obtained in FR model which were used in GPR model.} 
+  \item{CovFun}{Covariance kernel used in GPR model} \item{gamma}{Parameter 'gamma' used
   in Gaussian process with powered exponential kernel} \item{nu}{Parameter
-  'nu' used in Gaussian process with Matern kernel} \item{init_resp}{Raw
-  response data} \item{resid_resp}{Residual after the fitted values from FR
-  models have been taken out} \item{fitted}{Fitted values}
-  \item{fitted.sd}{Standard deviation of the fitted values}
-  \item{ModelType}{The type of the model applied in the function.}
-  \item{lTrain}{Training scalar covariates for the FR model}
-  \item{fTrain}{Training functional covariates for the FR model}
-  \item{mfTrainfd}{List of 'fd' objects from training data for FR model with
-  functional covariates} \item{gpTrain}{Training data for Gaussian Process}
-  \item{time}{Input time 't'} \item{iuuL}{Inverse of covariance matrix for
-  uReg} \item{iuuF}{Inverse of covariance matrix for fxReg}
-  \item{fittedFM}{Fitted values from the FR model} \item{fyList}{fyList
-  object used} }
+  'nu' used in Gaussian process with Matern kernel} 
+  \item{hyper}{Marginal ML estimates of hyperparameters of GPR model}
+  \item{rawResponse}{Raw response data}
+  \item{uTrain}{Training scalar covariates used in FR model}
+  \item{fxTrain}{Training functional covariates used in FR model}
+  \item{gpTrain}{Training covariates used in GPR model}
+  \item{time}{Input time 't'} 
+  \item{...}{Other objects used for 'print', 'summary', and 'predict' methods} 
+  }
 }
 \description{
 Use functional regression (FR) model for the mean structure and Gaussian
@@ -111,9 +109,8 @@ replications in the sample.
 \details{
 \code{fyList} is a list with the following items:
 
-  \itemize{ \item \code{time}: a sequence of time points; default to be 100
-  points from 0 to 1. \item \code{nbasis}: number of basis functions used in
-  smoothing, default to be less than or equal to 23. \item \code{norder}:
+  \itemize{ \item \code{nbasis}: number of basis functions used in
+  smoothing, default to be the minimum between 23 and 20\% of the number of time points. \item \code{norder}:
   order of the functional curves; default to be 6. \item \code{bSpline}:
   logical. If TRUE (default), B-splines basis is used; otherwise, Fourier
   basis is used. \item \code{Pen}: default to be c(0,0), meaning that the
@@ -125,13 +122,13 @@ replications in the sample.
   there are multiple ones.
 
   \code{uCoefList} and \code{fxCoefList} are similar to
-  each other. Each one is expected to be a list of lists. If a list of one 
-  element is provided, then the items of this element are applied to each of 
+  each other. Each one is expected to be a list of lists. If a list of one
+  element is provided, then the items of this element are applied to each of
   the functional coefficients of scalar covariates and of functional covariates,
-  respectively. 
+  respectively.
 
-  \itemize{ \item \code{rtime}: range of time, default to be c(0,1). \item
-  \code{nbasis}: nnumber of basis functions used in smoothing, default to be
+  \itemize{ 
+  \item \code{nbasis}: nnumber of basis functions used in smoothing, default to be
   less than or equal to 19. \item  \code{norder}: order of the functional
   curves; default to be 6. \item \code{bSpline}: logical. If TRUE (default),
   B-splines basis is used; otherwise, Fourier basis is used. \item
