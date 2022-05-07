@@ -72,7 +72,7 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
     mu <- 0
     mu <- matrix(mu, nrow=n, ncol=nrep, byrow=F)
   }
-
+  
   if(meanModel==1) {
     responseNew <- NULL
     mu <- NULL
@@ -88,7 +88,7 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
     response <- responseNew
     
   }
-
+  
   if(meanModel=='t') {
     meanLinearModel <- list()  
     responseNew <- NULL
@@ -122,6 +122,7 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
   }
   
   mean.original <- mu
+  responseResid <- response
   
   idxSubset <- NULL
   if(!is.null(m)){
@@ -131,11 +132,13 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
     X <- X[idxSubset,,drop=F]
     idx <- idx[idxSubset]
     # if(!is.null(mu)){
-      mu <- mu[idxSubset,,drop=F]
+    mu <- mu[idxSubset,,drop=F]
     # }
     n <- nrow(response)
   }
-    
+  
+  
+  
   # c(va0s, va1s, Apars, sig)
   lowerlimits <- c(rep(-50, N), rep(log(1e-3), N+2*N*Q), log(1e-8))
   upperlimits <- c(rep(50, N),  rep(log(3000), N+2*N*Q), log(3))
@@ -158,7 +161,7 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
   res <- nlminb(start=hp_init_log, objective=LogLikCGP, gradient=NULL, 
                 hessian=NULL,
                 control=list(eval.max=1000, iter.max=1000,
-                               rel.tol=1e-8, x.tol=1e-8, xf.tol=1e-8),
+                             rel.tol=1e-8, x.tol=1e-8, xf.tol=1e-8),
                 lower=lowerlimits, upper=upperlimits, response=response, X=X, 
                 idx=idx)
   
@@ -168,17 +171,17 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
   invK <- chol2inv(chol(K))
   
   varEpsilon <- exp(hp_opt[length(hp_opt)])^2
-    
-  fitted <- (K-diag(varEpsilon, n.original))%*%invK%*%Y.original + mean.original
+  
+  fitted <- (K-diag(varEpsilon, n.original))%*%invK%*%responseResid + mean.original
   fitted.var <- varEpsilon*rowSums((K-diag(varEpsilon, n.original))*t(invK))
-
+  
   result <- list('hyper'=hp_opt,
-              'fitted.mean'=fitted,
-              'fitted.sd'=sqrt(fitted.var),
-              'N'=N,
-              'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 
-              'mu'=mean.original[,1], 
-              'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel)
+                 'fitted.mean'=fitted,
+                 'fitted.sd'=sqrt(fitted.var),
+                 'N'=N,
+                 'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 
+                 'mu'=mean.original[,1], 
+                 'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel)
   class(result)='mgpr'
   
   return(result)
@@ -215,9 +218,7 @@ mgprPredict <- function(train,
   
   
   
-  if(class(train)!='mgpr'){
-      stop("Argument 'train' must be an object of class 'mgpr'.")
-  }else{
+  if(inherits(train, 'mgpr')){
     hyper <- train$hyper
     X <- train$X
     Y <- train$Y
@@ -227,6 +228,8 @@ mgprPredict <- function(train,
     mu <- train$mu
     meanModel <- train$meanModel
     meanLinearModel <- train$meanLinearModel
+  }else{
+    stop("Argument 'train' must be an object of class 'mgpr'.")
   }
   
   

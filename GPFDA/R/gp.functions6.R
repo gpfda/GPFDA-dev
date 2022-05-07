@@ -562,7 +562,7 @@ gprPredict <- function(train=NULL, inputNew=NULL, noiseFreePred=F, hyper=NULL,
   if("matern"%in%Cov & is.null(nu)){
     stop("Argument 'nu' must be informed for matern kernel")
   }
-  if(class(train)=='gpr'){
+  if(inherits(train,'gpr')){
     hyper <- train$hyper
     input <- train$train.x
     Y <- train$train.y

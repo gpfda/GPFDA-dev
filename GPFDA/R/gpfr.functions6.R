@@ -20,9 +20,10 @@ main1 <- function(response,uReg=NULL,fxReg=NULL,fxList=NULL,fxCoefListScalarResp
   ## functional regression
   temp <- list(NULL)
   if(!is.null(fxReg)){
-    if(class(fxReg)=='matrix'|class(fxReg)=='fd')
+    if( inherits(fxReg,'matrix') | inherits(fxReg,'fd') ){
       fxReg <- list(fxReg)
-    if(class(fxReg)=='list'){
+    }
+    if(inherits(fxReg,'list')){
       if(length(unique(unlist(lapply(fxReg,class))))!=1) 
         stop('functional covariates are expected to have same class')
       if(unique(unlist(lapply(fxReg,class)))=='matrix'){
@@ -155,6 +156,7 @@ main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
   ml <- NULL;res <- NULL;fittedFM <- NULL;
   if(!is.null(uReg)){
     if(class(y)[1]=='fdata') y <- y$data
+    # if(inherits(y,'fdata')) y <- y$data
   }
   if(!is.null(time)){
     if(!is.null(fyList)) fyList$time <- time
@@ -171,6 +173,7 @@ main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
   }
   
   if(class(y)[1]=='matrix'){
+  # if(inherits(y,'matrix')){
     ## define 'fd' object for y if y is a matrix
     y <- mat2fd(y,fyList)
   }
@@ -320,8 +323,12 @@ main2 <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
           mf_fitted <- apply(t(eval.fd(y_time,x)),1,function(i) 
             i=i*betaEstMat[[2]]+betaEstMat[[1]])
           
-          if(class(y)=='fd') y_raw <- t(eval.fd(y_time,y))
-          if(class(y)=='matrix'){
+          # if(class(y)=='fd'){
+          if(inherits(y,'fd')){
+            y_raw <- t(eval.fd(y_time,y))
+          }
+          # if(class(y)=='matrix'){
+          if(inherits(y,'matrix')){
             if(nrow(y)==nrow(mf_fitted)) residMF <- y_raw-mf_fitted
             if(nrow(y)==ncol(mf_fitted)) residMF <- t(y_raw)-mf_fitted
           }
@@ -642,8 +649,9 @@ gpfrtrain <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
     Data <- lapply(Data,t)
   }
   
-  if(class(Data)=='fd')
+  if(inherits(Data,'fd')){
     Data <- (eval.fd(time,Data))
+  }
   if(unique(unlist(lapply(Data,class))=='fd')){
     Data <- lapply(Data,function(i) (eval.fd(time,i)))
   }
@@ -1001,7 +1009,8 @@ gpfr <- function(response, time=NULL, uReg=NULL, fxReg=NULL,
 #' # vignette("gpfr", package = "GPFDA")
 gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL,
                      gpReg=NULL, GPpredict=TRUE){
-  if(class(train)!='gpfr'){
+
+  if(!inherits(train,'gpfr')){
     stop("The argument 'train' is expected to be an object of class 'gpfr' ",'\n')
   }
   
@@ -1039,7 +1048,7 @@ gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL
             model$mf[[1]]$yhatfdobj$fd$basis$rangeval)[1:2]
   if(is.null(model$ml) & is.null(model$mf)) rtime <- c(0,1)
   
-    if(class(testInputGP)=='numeric'){
+  if(inherits(testInputGP,'numeric')){
     testInputGP <- as.matrix(testInputGP)
   }
   if(is.matrix(testInputGP)){
@@ -1065,13 +1074,15 @@ gpfrPredict <- function(train, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL
   ml_var <- 0
   mf_var <- 0
   
-  if(!is.null(gpReg)& class(gpReg)!='list'){
+  # if(!is.null(gpReg)& class(gpReg)!='list'){
+  if(!is.null(gpReg) & !inherits(gpReg,'list')){
     cat('Type I prediction is expecting gpReg to be a list with a response and 
         an input. Do Type II prediction instead')
     gpReg <- NULL
   }
   type <- 2
-  if(!is.null(gpReg) & class(gpReg)=='list'){
+  # if(!is.null(gpReg) & class(gpReg)=='list'){
+  if(!is.null(gpReg) & inherits(gpReg,'list')){
     type <- 1
     nl <- names(gpReg)
     if(sum(c('response','input','time')%in%names(gpReg))!=3)
