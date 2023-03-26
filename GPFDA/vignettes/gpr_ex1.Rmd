@@ -38,7 +38,7 @@ n <- 15
 input <- seq(0, 1, length.out=n)
 hp <- list('linear.a'=log(40), 'linear.i'=log(10),
            'pow.ex.v'=log(5), 'pow.ex.w'=log(15),
-           'vv'=log(0.3))
+           'vv'=log(0.05))
 Sigma <- cov.linear(hyper=hp, input=input) + 
   cov.pow.ex(hyper=hp, input=input, gamma=2) + 
   diag(exp(hp$vv), n, n)

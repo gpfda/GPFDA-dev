@@ -489,7 +489,7 @@ gpr <- function(response, input, Cov='pow.ex', m = NULL, hyper=NULL,
 #' @seealso \link[GPFDA]{gpr}
 print.gpr <- function(x, ...) {
   
-  if(class(x) != "gpr"){
+  if(!inherits(x, "gpr")){
     stop("'x' must be of class 'gpr'")
   }
 
@@ -532,7 +532,7 @@ print.gpr <- function(x, ...) {
 #' @seealso \link[GPFDA]{gpr}
 summary.gpr <- function(object, ...){
   
-  if(class(object) != "gpr"){
+  if(!inherits(object, "gpr")){
     stop("'object' must be of type gpr")
   }
 
@@ -598,10 +598,8 @@ predict.gpr <- function(object, inputNew=NULL, noiseFreePred=F, hyper=NULL,
                          input=NULL, Y=NULL, mSR=NULL,
                          Cov=NULL, gamma=NULL, nu=NULL, meanModel=0, mu=0, ...){
   
-  
-  
-  
-  if( (!is.null(object)) & (class(object)!="gpr")){
+
+  if( (!is.null(object)) & (!inherits(object, "gpr")) ){
     stop("'object' must be either NULL or of type 'gpr'")
   }
   
@@ -619,7 +617,7 @@ predict.gpr <- function(object, inputNew=NULL, noiseFreePred=F, hyper=NULL,
   if("matern"%in%Cov & is.null(nu)){
     stop("Argument 'nu' must be informed for matern kernel")
   }
-  if(class(train)=='gpr'){
+  if(inherits(train, "gpr")){
     hyper <- train$hyper
     input <- train$train.x
     Y <- train$train.y
@@ -1240,7 +1238,7 @@ plot.gpr <- function(x, fitted=F,
                      colourData="red", colourPred="black", lwd=0.5, cex.points=2,
                      cex.lab=10, cex.axis=10, cex.main=15, main=NULL, ...){
   
-  if(class(x) != "gpr"){
+  if(!inherits(x, "gpr")){
     stop("'object' must be of type gpr")
   }
   
@@ -1299,7 +1297,7 @@ plot.gpr <- function(x, fitted=F,
   }
   
   df <- data.frame(t=x, y=mu)
-  meltdf <- melt(df, id="t")
+  meltdf <- reshape2::melt(df, id="t")
   
   out <- ggplot(data=meltdf, aes(x=t,y=value,colour=colourPred,group=variable),
                 lwd=lwd, linetype="dashed",
@@ -1311,7 +1309,7 @@ plot.gpr <- function(x, fitted=F,
                            alpha=0.3, size=0, inherit.aes=FALSE)
   
   df3 <- data.frame(t=X[,whichInput], y=Y)
-  meltdf3 <- melt(df3, id="t")
+  meltdf3 <- reshape2::melt(df3, id="t")
   out <- out + geom_point(data=meltdf3, shape = 16, size = cex.points, 
                           color = colourData)
   

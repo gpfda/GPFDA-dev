@@ -1,9 +1,8 @@
-#include <math.h>
-#include <vector>
-// [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
-using namespace Rcpp;
+#include "functions.h"
+// [[Rcpp::depends(RcppArmadillo)]]
 
+using namespace Rcpp;
 
 // [[Rcpp::export]]
 arma::mat CovMaternCppSq(NumericMatrix input, NumericVector cc, NumericMatrix A, NumericVector nu) {

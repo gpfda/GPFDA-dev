@@ -4,12 +4,14 @@
 \name{dataExampleMGPR}
 \alias{dataExampleMGPR}
 \title{Data simulated in the MGPR example}
-\format{A list with two elements:
+\format{
+A list with two elements:
 \describe{ \item{input}{List of 3 numeric vectors, each one being the time 
 points where the corresponding function is observed.} 
 \item{response}{List of 3 matrices containing the observed 250 datapoints. 
 Each column is an independent realisation.}
-}}
+}
+}
 \usage{
 dataExampleMGPR
 }

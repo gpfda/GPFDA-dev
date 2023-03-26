@@ -2,7 +2,7 @@ Package: GPFDA
 Type: Package
 Title: Gaussian Process for Functional Data Analysis
 Version: 4.0.0
-Date: 2021-08-28
+Date: 2023-03-26
 Author: Jian Qing Shi, Yafeng Cheng, Evandro Konzen
 Maintainer: Evandro Konzen <gpfda.r@gmail.com>
 Description: Functionalities for modelling functional data with 
@@ -14,24 +14,22 @@ Description: Functionalities for modelling functional data with
     The development version of the package can be found on 
     <https://github.com/gpfda/GPFDA-dev>.
 License: GPL-3
-Depends: R (>= 3.6)
+Depends: R (>= 4.0)
 Imports: 
-    Rcpp (>= 1.0.2),
+    Rcpp (>= 1.0.10),
     splines,
     mgcv,
     fields,
     interp,
     stats,
     graphics,
-    grDevices,
     fda,
     fda.usc,
     reshape2,
     ggplot2,
-    gridExtra,
-    magrittr
+    gridExtra
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.0.2
+RoxygenNote: 7.2.3
 Encoding: UTF-8
 Suggests:
     MASS, 

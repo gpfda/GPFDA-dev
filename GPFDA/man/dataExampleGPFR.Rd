@@ -4,7 +4,8 @@
 \name{dataExampleGPFR}
 \alias{dataExampleGPFR}
 \title{Data simulated in the GPFR example}
-\format{A list with seven elements:
+\format{
+A list with seven elements:
 \describe{ \item{tt}{A vector of length 50} 
 \item{response_train}{A (20 x 50) matrix}
 \item{x_train}{A (20 x 50) matrix}
@@ -13,7 +14,8 @@
 \item{response_new}{A vector of length 60}
 \item{x_new}{A vector of length 60}
 \item{scalar_new}{A (1 x 2) matrix}
-}}
+}
+}
 \usage{
 dataExampleGPFR
 }

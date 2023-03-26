@@ -49,13 +49,23 @@
 #'
 #' @importFrom mgcv cSplineDes
 #' @importFrom splines bs
-#' @details The input argument for Q=2 can be constructed as follows: \describe{
-#'   \item{}{n1 <- 10} \item{}{n2 <- 1000} \item{}{input <- list()}
-#'   \item{}{input[[1]] <- seq(0,1,length.out = n1)} \item{}{input[[2]] <-
-#'   seq(0,1,length.out = n2)} } If we want to use every third lattice point in
-#'   the second input variable (using Subset of Data), then we can set
-#'   \describe{ \item{}{inputSubsetIdx <- list()} \item{}{inputSubsetIdx[[1]] <-
-#'   1:n1} \item{}{inputSubsetIdx[[2]] <- seq(1,n2, by=3)} }
+#' 
+#' @details The input argument for Q=2 can be constructed as follows: 
+#' 
+#' \preformatted{
+#'   n1 <- 10
+#'   n2 <- 1000
+#'   input <- list()
+#'   input[[1]] <- seq(0,1,length.out = n1)
+#'   input[[2]] <- seq(0,1,length.out = n2)
+#'  }
+#'  If we want to use every third lattice point in
+#'  the second input variable (using Subset of Data), then we can set
+#'  \preformatted{
+#'   inputSubsetIdx <- list()
+#'   inputSubsetIdx[[1]] <- 1:n1
+#'   inputSubsetIdx[[2]] <- seq(1,n2, by=3)
+#'  }
 #'
 #' @references Konzen, E., Shi, J. Q. and Wang, Z. (2020) "Modeling
 #'   Function-Valued Processes with Nonseparable and/or Nonstationary Covariance
@@ -608,6 +618,9 @@ LogLikNSGP <- function(hp, response, inputMat, inputIdxMat, inputSubsetIdx,
     fX <- nrep*0.5*logdetK + 0.5*sum(diag( yt.invK.y )) + nrep*0.5*n*log(2*pi)
   }
   fX <- as.numeric(fX)
+  
+  # cat(paste0("hp: "), paste0(hp))
+  # cat(paste0("\n"))
   
   return(fX)
 }

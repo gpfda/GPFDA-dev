@@ -74,15 +74,13 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
     mu <- 0
     mu <- matrix(mu, nrow=n, ncol=nrep, byrow=F)
   }
-
+  
   if(meanModel==1) {
-    constantMeanEstimates <- list()
     responseNew <- NULL
     mu <- NULL
     for(j in 1:N){
       
       mean_j <- mean(response[idx==j,])
-      constantMeanEstimates[[j]] <- mean_j
       nj <- nrow(response[idx==j,,drop=F])
       mean_j <- matrix( rep(mean_j, nj*nrep), nrow=nj, byrow=F)
       response_j <- response[idx==j,,drop=F] - mean_j
@@ -91,10 +89,8 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
     }
     response <- responseNew
     
-  }else{
-    constantMeanEstimates <- NULL
   }
-
+  
   if(meanModel=='t') {
     meanLinearModel <- list()  
     responseNew <- NULL
@@ -128,6 +124,7 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
   }
   
   mean.original <- mu
+  responseResid <- response
   
   idxSubset <- NULL
   if(!is.null(m)){
@@ -137,11 +134,13 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
     X <- X[idxSubset,,drop=F]
     idx <- idx[idxSubset]
     # if(!is.null(mu)){
-      mu <- mu[idxSubset,,drop=F]
+    mu <- mu[idxSubset,,drop=F]
     # }
     n <- nrow(response)
   }
-    
+  
+  
+  
   # c(va0s, va1s, Apars, sig)
   lowerlimits <- c(rep(-50, N), rep(log(1e-3), N+2*N*Q), log(1e-8))
   upperlimits <- c(rep(50, N),  rep(log(3000), N+2*N*Q), log(3))
@@ -164,39 +163,32 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
   res <- nlminb(start=hp_init_log, objective=LogLikCGP, gradient=NULL, 
                 hessian=NULL,
                 control=list(eval.max=1000, iter.max=1000,
-                               rel.tol=1e-8, x.tol=1e-8, xf.tol=1e-8),
+                             rel.tol=1e-8, x.tol=1e-8, xf.tol=1e-8),
                 lower=lowerlimits, upper=upperlimits, response=response, X=X, 
                 idx=idx)
   
   hp_opt <- res$par
-
+  
   K <- mgpCovMat(Data=Data, hp=hp_opt)
   invK <- chol2inv(chol(K))
   
   varEpsilon <- exp(hp_opt[length(hp_opt)])^2
-    
-  fitted <- (K-diag(varEpsilon, n.original))%*%invK%*%Y.original + mean.original
+  
+  fitted <- (K-diag(varEpsilon, n.original))%*%invK%*%responseResid + mean.original
   fitted.var <- varEpsilon*rowSums((K-diag(varEpsilon, n.original))*t(invK))
-
-  nu0names <- paste0("nu0_", 1:N)
-  nu1names <- paste0("nu1_", 1:N)
-  a0names <- paste0("a0_", 1:N)
-  a1names <- paste0("a1_", 1:N)
-  signame <- "sigma"
-  names(hp_opt) <- c(nu0names, nu1names, a0names, a1names, signame)
   
   result <- list('hyper'=hp_opt,
-              'fitted.mean'=fitted,
-              'fitted.sd'=sqrt(fitted.var),
-              'N'=N,
-              'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 
-              'mu'=mean.original[,1], 
-              'meanModel'=meanModel, 'constantMeanEstimates'=constantMeanEstimates,
-              'meanLinearModel'=meanLinearModel)
-  class(result)='mgpr'
+                 'fitted.mean'=fitted,
+                 'fitted.sd'=sqrt(fitted.var),
+                 'N'=N,
+                 'X'=X.original, 'Y'=Y.original, 'idx'=idx.original, 'Cov'=K, 
+                 'mu'=mean.original[,1], 
+                 'meanModel'=meanModel, 'meanLinearModel'=meanLinearModel)
+  class(result) <- 'mgpr'
   
   return(result)
 }
+
 
 
 #' Print method for 'mgpr' objects
@@ -210,7 +202,7 @@ mgpr <- function(Data, m=NULL, meanModel=0, mu=NULL){
 #' @seealso \link[GPFDA]{mgpr}
 print.mgpr <- function(x, ...) {
   
-  if(class(x) != "mgpr"){
+  if(!inherits(x, "mgpr")){
     stop("'x' must be of class 'mgpr'")
   }
   
@@ -247,7 +239,7 @@ print.mgpr <- function(x, ...) {
 #' @seealso \link[GPFDA]{mgpr}
 summary.mgpr <- function(object, ...){
   
-  if(class(object) != "mgpr"){
+  if(!inherits(object, "mgpr")){
     stop("'object' must be of type mgpr")
   }
   
@@ -320,8 +312,7 @@ predict.mgpr <- function(object,
                        noiseFreePred=F, 
                        meanModel=NULL, mu=0, ...){
   
-  
-  if( class(object)!="mgpr"){
+  if(!inherits(object, "mgpr")){
     stop("'object' must be either NULL or of type 'mgpr'")
   }
   
@@ -439,10 +430,10 @@ predict.mgpr <- function(object,
     pred.sd[[j]] <- pred.sd.[idx.new==j]
   }
 
-  result=c(list('pred.mean'=pred.mean,
+  result <- c(list('pred.mean'=pred.mean,
                 'pred.sd'=pred.sd,
                 'noiseFreePred'=noiseFreePred))
-  class(result)='mgpr'
+  class(result) <- 'mgpr'
   
   return(result)
   
@@ -586,7 +577,7 @@ plot.mgpr <- function(x, DataObs, DataNew, nCol=NULL,
                       colourData="black", colourPred="red", lwd=0.5, cex.points=2,
                       cex.lab=10, cex.axis=10, ...){
   
-  if(class(x) != "mgpr"){
+  if(!inherits(x, "mgpr")){
     stop("'object' must be of type mgpr")
   }
 

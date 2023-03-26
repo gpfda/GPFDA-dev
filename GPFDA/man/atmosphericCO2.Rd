@@ -4,8 +4,10 @@
 \name{atmosphericCO2}
 \alias{atmosphericCO2}
 \title{atmosphericCO2: data set for a real data example}
-\format{A data frame with 13 columns (12 months and the annual average) and
-  51 rows (number of years).}
+\format{
+A data frame with 13 columns (12 months and the annual average) and
+  51 rows (number of years).
+}
 \usage{
 atmosphericCO2
 }

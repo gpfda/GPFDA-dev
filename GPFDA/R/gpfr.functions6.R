@@ -7,7 +7,9 @@ fitFuncReg <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
   y <- response
   uModel <- NULL;res <- NULL;fittedFR <- NULL;
   if(!is.null(uReg)){
-    if(class(y)[1]=='fdata') y <- y$data
+    if(inherits(y, "fdata")){
+      y <- y$data
+    }
   }
   
   if(is.null(time))stop("Argument 'time' must be provided.")
@@ -77,13 +79,12 @@ fitFuncReg <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
     
     
   }
-  
-  if(class(y)[1]=='matrix'){
+  if(inherits(y, "matrix")){
     ## define 'fd' object for y if y is a matrix
     y <- mat2fd(y,fyList)
     fyBasis <- y$basis
   }
-  if(class(y)[1]!='fd'){
+  if(!inherits(y, "fd")){
     stop('class of response must be one of matrix, fd or fdata')
   }
   y_time <- seq(y$basis$rangeval[1],y$basis$rangeval[2],
@@ -110,7 +111,7 @@ fitFuncReg <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
   
   if(!is.null(uReg)){
     ## define list of x
-    if(class(uReg)[1]!='matrix') stop("'uReg' must be a matrix.")
+    if(!inherits(uReg, "matrix")){stop("'uReg' must be a matrix.")}
     x <- uReg
     nx <- ncol(x)
     lxList <- vector('list',length=nx)
@@ -137,8 +138,10 @@ fitFuncReg <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
       predict(i,y_time)))
     ml_fitted <- uReg%*%t(betaEstMat)
     
-    if(class(response)[1]=='fd') rawResponse <- eval.fd(y_time,response)
-    if(class(response)[1]=='matrix'){
+    if(inherits(response, "fd")){
+      rawResponse <- eval.fd(y_time,response)
+    }
+    if(inherits(response, "matrix")){
       if(nrow(response)==nrow(ml_fitted)) residML <- response-ml_fitted
       if(nrow(response)==ncol(ml_fitted)) residML <- t(response)-ml_fitted
     }
@@ -161,13 +164,15 @@ fitFuncReg <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
     fyBasis <- y$basis
     
     ## set up list of 'fd' object for x
-    if(class(fxReg)[1]=='matrix' | class(fxReg)[1]=='fd')
+    if(inherits(fxReg, "matrix") | inherits(fxReg, "fd")){
       fxReg <- list(fxReg)
-    
-    if(class(fxReg)[1]=='list'){
-      if(length(unique(unlist(lapply(fxReg,class))))!=1)
+    }
+
+    if(inherits(fxReg, "list")){
+      if(length(unique(lapply(fxReg, function(x) class(x)[1])))!=1){
         stop('All functional covariates are expected to have the same class.')
-      if(unique(unlist(lapply(fxReg,class)))=='matrix'){
+      }
+      if(unique(lapply(fxReg, function(x) class(x)[1]))=='matrix'){
         if(ncol(fxReg[[1]])!=length(y$fdnames$time)) fxReg <- lapply(fxReg,t)
         if(length(fxList)!=length(fxReg)){
           
@@ -243,11 +248,11 @@ fitFuncReg <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
           mf_fitted <- apply(t(eval.fd(y_time,x)),1,function(i)
             i=i*betaEstMat[[2]]+betaEstMat[[1]])
           
-          if(class(y)=='fd'){
+          if(inherits(y, "fd")){
             rawResponse <- t(eval.fd(y_time,y))
             residMF <- rawResponse-t(mf_fitted)
           }
-          if(class(y)=='matrix'){
+          if(inherits(y, "matrix")){
             if(nrow(y)==nrow(mf_fitted)) residMF <- rawResponse-mf_fitted
             if(nrow(y)==ncol(mf_fitted)) residMF <- t(rawResponse)-mf_fitted
           }
@@ -267,8 +272,10 @@ fitFuncReg <- function(response,uReg=NULL,fxReg=NULL,fyList=NULL,uCoefList=NULL,
           mf_fitted <- apply(t(eval.fd(y_time,x)),1,function(i)
             i=i%*%betaEstMat[[2]]/length(y_time)^2+betaEstMat[[1]])
           
-          if(class(y)[1]=='fd') rawResponse <- t(eval.fd(y_time,y))
-          if(class(y)[1]=='matrix'){
+          if(inherits(y, "fd")){
+            rawResponse <- t(eval.fd(y_time,y))
+          }
+          if(inherits(y, "matrix")){
             if(nrow(y)==nrow(mf_fitted)) residMF <- rawResponse-mf_fitted
             if(nrow(y)==ncol(mf_fitted)) residMF <- t(rawResponse)-mf_fitted
           }
@@ -635,7 +642,7 @@ gpfr <- function(response, time, uReg=NULL, fxReg=NULL, gpReg=NULL,
   ## convert fd/fdata class to matrix
   resid <- model$resid # residuals
   Data <- gpReg
-  if(class(resid)[1]!='matrix'){
+  if(!inherits(resid, "matrix")){
     stop("Residuals from functional regression are not in a 'matrix'.")
   }
   ftime <- model$fyl$time
@@ -643,19 +650,24 @@ gpfr <- function(response, time, uReg=NULL, fxReg=NULL, gpReg=NULL,
   if(is.null(ftime) & is.null(time)) stop("Input 'time' must be supplied.")
   
   
+  Data_classes <- lapply(Data, function(x) class(x)[1])
   
-  if(unique(unlist(lapply(Data,class)))[1]=='fdata'){
+  # if(unique(unlist(lapply(Data,class)))[1]=='fdata'){
+  if(unique(unlist(Data_classes))[1]=='fdata'){
     Data <- lapply(Data,function(i) i=t(i$data))
   }
   
-  if(class(resid)[1]=='matrix') resid <- t(resid)
-  if(unique(unlist(lapply(Data,class))[1]=='matrix')){
+  if(inherits(resid, "matrix")){
+    resid <- t(resid)
+  }
+  if(unique(unlist(Data_classes)[1]=='matrix')){
     Data <- lapply(Data,t)
   }
   
-  if(class(Data)=='fd')
-    Data <- (eval.fd(time,Data))
-  if(unique(unlist(lapply(Data,class))=='fd')){
+  if(inherits(Data,'fd')){
+    Data <- eval.fd(time,Data)
+  }
+  if(unique(unlist(Data_classes)=='fd')){
     Data <- lapply(Data,function(i) (eval.fd(time,i)))
   }
   
@@ -927,7 +939,7 @@ gpfr <- function(response, time, uReg=NULL, fxReg=NULL, gpReg=NULL,
 predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NULL,
                         gpReg=NULL, GPpredict=TRUE, ...){
   
-  if(class(object) != "gpfr"){
+  if(!inherits(object, "gpfr")){
     stop("'object' must be of type 'gpfr'")
   }
   
@@ -962,7 +974,7 @@ predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NU
                model$fxModel[[1]]$yhatfdobj$fd$basis$rangeval)[1:2]
   if(is.null(model$uModel) & is.null(model$fxModel)) rtime <- c(0,1)
   
-  if(class(testInputGP)=='numeric'){
+  if(inherits(testInputGP, "numeric")){
     testInputGP <- as.matrix(testInputGP)
   }
   if(is.matrix(testInputGP)){
@@ -972,7 +984,7 @@ predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NU
     if(!is.null(testTime)) time <- testTime
   }
   
-  if(class(testInputGP)[1]=='fd'){
+  if(inherits(testInputGP, "fd")){
     if(is.null(testTime)) time <- seq(rtime[1],rtime[2],
                                       len=testInputGP$fdnames$time)
     if(!is.null(testTime)) time <- testTime
@@ -988,13 +1000,14 @@ predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NU
   ml_var <- 0
   mf_var <- 0
   
-  if(!is.null(gpReg)& class(gpReg)!='list'){
+  if(!is.null(gpReg) & !inherits(gpReg,'list')){
     cat("Type I prediction was expecting 'gpReg' to be a list with a response and
         an input. Type II prediction will be made instead.")
     gpReg <- NULL
   }
   type <- 2
-  if(!is.null(gpReg) & class(gpReg)=='list'){
+  
+  if(!is.null(gpReg) & inherits(gpReg,'list')){
     type <- 1
     nl <- names(gpReg)
     if(sum(c('response','input','time')%in%names(gpReg))!=3)
@@ -1031,10 +1044,10 @@ predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NU
               x[[i]] <- as.matrix(uReg[,i])
           }
         }
-        if(class(uReg)[1]=='list'){
-          if(unique(unlist(lapply(uReg,class)))=='fd')
+        if(inherits(uReg,"list")){
+          if(unique(unlist(lapply(uReg, function(x) class(x)[1])))=='fd')
             x <- lapply(uReg,function(i) t(i$coefs))
-          if(unique(unlist(lapply(uReg,class)))=='matrix')
+          if(unique(unlist(lapply(uReg, function(x) class(x)[1])))=='matrix')
             x <- uReg
         }
         betalist <- lapply(model$uModel$betaestlist,function(i){
@@ -1079,10 +1092,10 @@ predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NU
         
         if(is.fdata(fxReg)) fxReg <- list(t(fxReg$data))
         if(is.matrix(fxReg) | is.fd(fxReg)) fxReg <- list((fxReg))
-        if(unique(unlist(lapply(fxReg,class)))=='fd'){
+        if(unique(unlist(lapply(fxReg, function(x) class(x)[1])))=='fd'){
           fxReg <- lapply(fxReg,function(i) eval.fd(time,i))
         }
-        if(unique(unlist(lapply(fxReg,class)))=='matrix'){
+        if(unique(unlist(lapply(fxReg, function(x) class(x)[1])))=='matrix'){
           fxReg <- lapply(fxReg,t)
         }
         if(unique(unlist(lapply(fxReg,ncol)))>1){
@@ -1104,7 +1117,7 @@ predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NU
           i=cbind(matrix(1,nrow=nrow(fxReg[[1]])),i)
         })
         ## find beta and multiply with the fx
-        if(!'bifd'%in%unlist(lapply(model$fxModel[[1]],class))){
+        if(!'bifd'%in%unlist(lapply(model$fxModel[[1]], function(x) class(x)[1]))){
           fbeta <- lapply(model$fxModel,function(i){
             intcept=predict(i$betaestlist[[1]],time)
             slope=predict(i$betaestlist[[2]],time)
@@ -1136,7 +1149,7 @@ predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NU
           if(ii==2) gpyhat_mf <- Reduce('+',fxReg)
         }
         
-        if('bifd'%in%unlist(lapply(model$fxModel[[1]],class))){
+        if('bifd'%in%unlist(lapply(model$fxModel[[1]], function(x) class(x)[1]))){
           fbeta <- lapply(model$fxModel,function(i){
             intcept=eval.fd(time,i$beta0estfd)
             slope=eval.bifd(time,time,i$beta1estbifd)
@@ -1246,7 +1259,7 @@ predict.gpfr <- function(object, testInputGP, testTime=NULL, uReg=NULL, fxReg=NU
 #' @seealso \link[GPFDA]{gpfr}
 print.gpfr <- function(x, ...) {
   
-  if(class(x) != "gpfr"){
+  if(!inherits(x,"gpfr")){
     stop("'x' must be of type gpfr")
   }
   
@@ -1366,7 +1379,7 @@ print.gpfr <- function(x, ...) {
 #' @seealso \link[GPFDA]{gpfr}
 summary.gpfr <- function(object, ...){
   
-  if(class(object) != "gpfr"){
+  if(!inherits(object,"gpfr")){
     stop("'object' must be of type gpfr")
   }
   
@@ -1463,8 +1476,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
                        colourTrain="red", colourNew="blue", lwd=0.5,
                        cex.lab=10, cex.axis=10, cex.main=15, main=NULL, ...){
   
-  
-  if(class(x) != "gpfr"){
+  if(!inherits(x,"gpfr")){
     stop("'object' must be of type gpfr")
   }
   
@@ -1494,7 +1506,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
   
   if(type=='raw'){
     df <- data.frame(t=obj$time, y=t(obj$rawResponse[idx,,drop=F]))
-    meltdf <- melt(df, id="t")
+    meltdf <- reshape2::melt(df, id="t")
     out <- ggplot(meltdf, aes(x=t,y=value,colour=variable,group=variable)) +
       geom_line(lwd=lwd) + theme(legend.position="none")
     if(numRealis<6){
@@ -1507,7 +1519,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
   if(type=='meanFunction'){
     
     df <- data.frame(t=obj$time, y=t(obj$rawResponse[idx,,drop=F]))
-    meltdf <- melt(df, id="t")
+    meltdf <- reshape2::melt(df, id="t")
     out <- ggplot(meltdf, aes(x=t,y=value,colour=variable,group=variable)) +
       geom_line(lwd=lwd, linetype = "dashed") + theme(legend.position="none")
     if(numRealis<6){
@@ -1518,7 +1530,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
     fittedFRtotal <- t(Reduce("+", obj$fittedFR)[idx, ])
     
     df2 <- data.frame(t=obj$time,  y=fittedFRtotal)
-    meltdf2 <- melt(df2, id="t")
+    meltdf2 <- reshape2::melt(df2, id="t")
     out <- out + geom_line(data = meltdf2)
     
     if(is.null(main)){ main <- "Mean function fit"}
@@ -1528,13 +1540,13 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
   if(type=='fitted'){
     
     df <- data.frame(t=obj$time, y=obj$fitted.mean[,idx,drop=F])
-    meltdf <- melt(df, id="t")
+    meltdf <- reshape2::melt(df, id="t")
     out <- ggplot(meltdf, aes(x=t,y=value,colour=variable,group=variable)) +
       geom_line(lwd=lwd) + theme(legend.position="none")
     
     df2 <- data.frame(t=obj$time,
                       y=t(obj$rawResponse[idx,,drop=F]))
-    meltdf2 <- melt(df2, id="t")
+    meltdf2 <- reshape2::melt(df2, id="t")
     out <- out + geom_point(data=meltdf2, shape = 21, fill = "black", 
                             size = 0.2, stroke = 1,
                             aes(color = variable))
@@ -1542,7 +1554,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
     yCIlo <- (obj$fitted.mean-obj$fitted.sd*z)[,idx[1:numRealis]]
     yCIup <- (obj$fitted.mean+obj$fitted.sd*z)[,idx[1:numRealis]]
     
-    out <- out + geom_ribbon(aes(ymin=yCIlo, ymax=yCIup), alpha=0.1, size=0)
+    out <- out + geom_ribbon(aes(ymin=c(yCIlo), ymax=c(yCIup)), alpha=0.1, linewidth=0)
     
     if(is.null(main)){ main <- "GPFR fit"}
   }
@@ -1568,7 +1580,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
       
       df <- data.frame(t=obj$testTime,
                         y=obj$ypred.mean[,1])
-      meltdf <- melt(df, id="t")
+      meltdf <- reshape2::melt(df, id="t")
       
       out <- ggplot(data=meltdf, aes(x=t,y=value,colour=colourNew,group=variable),
                     lwd=lwd, linetype="dashed",
@@ -1582,13 +1594,13 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
       yCIup <- c(obj$ypred.mean + z*obj$ypred.sd)
       
       df2 <- data.frame(t=obj$testTime, yCIlo=yCIlo, yCIup=yCIup)
-      out <- out + geom_ribbon(data=df2, aes(x=t, ymin=yCIlo, ymax=yCIup),
-                               alpha=0.3, size=0, inherit.aes=FALSE)
+      out <- out + geom_ribbon(data=df2, aes(x=t, ymin=c(yCIlo), ymax=c(yCIup)),
+                               alpha=0.3, linewidth=0, inherit.aes=FALSE)
       
     }else{
       
       df <- data.frame(t=obj$time, y=t(obj$rawResponse[idx,,drop=F]))
-      meltdf <- melt(df, id="t")
+      meltdf <- reshape2::melt(df, id="t")
       out <- ggplot(meltdf, aes(x=t,y=value,colour=colourTrain,group=variable)) +
         geom_line(lwd=lwd) + theme(legend.position="none")
       
@@ -1599,7 +1611,7 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
       
       df2 <- data.frame(t=obj$testTime,
                         y=obj$ypred.mean[,1])
-      meltdf2 <- melt(df2, id="t")
+      meltdf2 <- reshape2::melt(df2, id="t")
       out <- out + geom_line(data=meltdf2, lwd=lwd, linetype="dashed",
                              color=colourNew) +
         geom_point(data=meltdf2, shape = 21, fill = "black",
@@ -1609,8 +1621,8 @@ plot.gpfr <- function (x, type=c('raw','meanFunction','fitted','prediction'),
       yCIup <- c(obj$ypred.mean + z*obj$ypred.sd)
       
       df3 <- data.frame(t=obj$testTime, yCIlo=yCIlo, yCIup=yCIup)
-      out <- out + geom_ribbon(data=df3, aes(x=t, ymin=yCIlo, ymax=yCIup),
-                               alpha=0.3, size=0, inherit.aes=FALSE)
+      out <- out + geom_ribbon(data=df3, aes(x=t, ymin=c(yCIlo), ymax=c(yCIup)),
+                               alpha=0.3, linewidth=0, inherit.aes=FALSE)
       
     }
     

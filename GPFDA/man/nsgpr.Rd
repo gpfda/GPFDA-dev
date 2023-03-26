@@ -90,13 +90,22 @@ grid of dimension n_1 x n_2 x ... x n_Q.\cr \cr Let n = n_1 x n_2 x ... x n_Q
 and let nSamples be the number of realisations.
 }
 \details{
-The input argument for Q=2 can be constructed as follows: \describe{
-  \item{}{n1 <- 10} \item{}{n2 <- 1000} \item{}{input <- list()}
-  \item{}{input[[1]] <- seq(0,1,length.out = n1)} \item{}{input[[2]] <-
-  seq(0,1,length.out = n2)} } If we want to use every third lattice point in
-  the second input variable (using Subset of Data), then we can set
-  \describe{ \item{}{inputSubsetIdx <- list()} \item{}{inputSubsetIdx[[1]] <-
-  1:n1} \item{}{inputSubsetIdx[[2]] <- seq(1,n2, by=3)} }
+The input argument for Q=2 can be constructed as follows: 
+
+\preformatted{
+  n1 <- 10
+  n2 <- 1000
+  input <- list()
+  input[[1]] <- seq(0,1,length.out = n1)
+  input[[2]] <- seq(0,1,length.out = n2)
+ }
+ If we want to use every third lattice point in
+ the second input variable (using Subset of Data), then we can set
+ \preformatted{
+  inputSubsetIdx <- list()
+  inputSubsetIdx[[1]] <- 1:n1
+  inputSubsetIdx[[2]] <- seq(1,n2, by=3)
+ }
 }
 \examples{
 ## See examples in vignette:
