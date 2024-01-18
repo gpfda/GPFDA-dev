@@ -3,4 +3,6 @@ GPFDA.Rcheck
 *.Rhistory
 */.Rhistory
 .DS_Store
+.Rproj
 .Rproj.user
+.Rbuildignore
