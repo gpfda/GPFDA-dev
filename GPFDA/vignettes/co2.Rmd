@@ -1,8 +1,8 @@
 ---
-title: "CO2 data example"
+title: "co2 data example"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{CO2}
+  %\VignetteIndexEntry{co2}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -20,24 +20,24 @@ knitr::opts_chunk$set(
 old <- options(scipen = 1, digits = 4)
 ```
 
-
-In this example, we use a real dataset and apply a customised covariance kernel.
-See the documentation of the package for a description of this dataset.
-
-## Loading atmosphericCO2 data
+## Loading GPFDA package
 ```{r}
 library(GPFDA)
-data(atmosphericCO2, package = "GPFDA")
+```
+
+## Loading co2 data
+
+In this example, we use a real dataset and apply a customised covariance kernel.
+
+```{r}
+co2 <- datasets::co2
 ```
 
 For visualisation purposes, we will use only the first five years of the sample.
 ```{r}
-y <- c(t(data.matrix(atmosphericCO2[1:5, 1:12])))
+y <- co2[1:60]
 n <- length(y)
 input <- 5*(1:n)/n
-whichNeg <- (y<0) # removing negative values
-y <- y[!whichNeg]
-input <- input[!whichNeg]
 ```
 
 We want to fit a GPR model using the observed data and then make predictions at

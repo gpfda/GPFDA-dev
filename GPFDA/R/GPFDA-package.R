@@ -20,6 +20,9 @@
 #'
 #'@docType package
 #'@name GPFDA
+#'@keywords internal 
+"_PACKAGE"
+
 #'@useDynLib GPFDA, .registration=TRUE
 #'@importFrom Rcpp sourceCpp
 #'@import stats
